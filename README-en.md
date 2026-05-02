@@ -17,9 +17,9 @@ This is for readers who already know roughly what an agent loop is and want to u
 - Why do provider, auth, and session layers get complicated?
 - Why is TUI part of the harness instead of decoration?
 - What problems do memory, swarm, ambient, and self-dev solve?
-- How is JCode different from pi, OpenCode, and Claude Code?
+- Where does JCode sit among coding-agent runtimes?
 
-If agents are completely new to you, read `Learn-OpenClaw` or pi-mono first, then come back to JCode.
+If agents are completely new to you, read a minimal agent-loop demo first, then come back to JCode.
 
 ## Project Structure
 
@@ -60,7 +60,7 @@ learn-jcode-5.5/
 │   │   ├── s08-swarm.md
 │   │   ├── s09-ambient-selfdev.md
 │   │   └── s10-comparison.md
-│   ├── analysis-notes.md     # Writing notes and reference-project analysis
+│   ├── analysis-notes.md     # JCode content analysis and tradeoff notes
 │   ├── glossary.md           # Term glossary
 │   ├── project-structure.md  # Why the repository is organized this way
 │   ├── sources.md            # Local source repositories and revisions
@@ -68,9 +68,9 @@ learn-jcode-5.5/
 └── .gitignore
 ```
 
-This repository does not copy `learn-claude-code`'s `agents/` example directory. That is intentional: this course is not building a toy agent from scratch; it is reading JCode itself. Things readers need to know are written directly into the lessons, not moved into a separate hands-on area.
+This course is not building a toy agent from scratch; it is reading JCode itself. Things readers need to know are written directly into the lessons, not moved into a separate hands-on area.
 
-It does keep the useful part of `learn-claude-code`: small code can make a mechanism easier to see. `mini/` contains four reduced specimens for server/client, tool registry, provider stream, and memory sidecar. They are not another task track; they reduce the cognitive load before reading JCode source.
+`mini/` contains four reduced specimens for server/client, tool registry, provider stream, and memory sidecar. They are not another task track; they reduce the cognitive load before reading JCode source.
 
 ## Lessons
 
@@ -89,7 +89,7 @@ Read in order, one or two lessons per day.
 | s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
-| s10 | [对比课](./docs/zh/s10-comparison.md) | [Comparison](./docs/en/s10-comparison.md) |
+| s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
 If a lesson's source path feels too large, read the corresponding specimen in [mini/](./mini/README.md), then return to the lesson.
 
@@ -107,7 +107,7 @@ Day 5: read TUI and observability
 Day 6: read memory
 Day 7: read swarm
 Day 8: read ambient/self-dev
-Day 9: read the comparison lesson and check the boundaries between JCode and the reference projects
+Day 9: read the boundaries lesson and check JCode tradeoffs among coding-agent runtimes
 ```
 
 This is not a strict schedule. The point is: do not skip the first four lessons and jump straight into swarm or self-dev. You will collect names without understanding runtime boundaries.
@@ -117,19 +117,17 @@ For a real project, pick one small modification:
 - Add a read-only tool, such as `repo_summary`.
 - Write OpenAI-compatible provider profile setup and smoke-test docs.
 - Build a side-panel workflow.
-- Write a source-level comparison of JCode / OpenCode / pi.
+- Write a source-level boundary note for JCode / OpenCode / pi.
 - Document a real memory/session-search use case.
 
-## Local Sources
+## Local Source Repositories
 
 This tutorial is based on local reading of:
 
 - JCode: `/Users/shizi/Documents/workspace/jcode`
-- learn-claude-code: `/tmp/learn-claude-code`
-- Learn-OpenClaw: `/tmp/Learn-OpenClaw`
 - pi-mono: `/Users/shizi/Documents/workspace/pi-mono`
 - OpenCode: `/Users/shizi/Documents/workspace/opencode`
 
 Exact revisions are listed in [docs/sources.md](./docs/sources.md).
 
-For Claude Code, this tutorial compares public behavior and harness design ideas only. It does not use, distribute, or summarize non-public or leaked source code.
+For Claude Code, this tutorial only references public behavior in the boundaries lesson. It does not use, distribute, or summarize non-public or leaked source code.

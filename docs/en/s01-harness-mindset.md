@@ -10,7 +10,7 @@ This lesson does not read implementation yet. It sets the reading angle. If the 
 
 ## Agent vs Harness
 
-This follows the core stance from `learn-claude-code`: the model is the agent. The model decides what to do next. The surrounding code provides the environment.
+This course starts from one judgment: the model is the agent. The model decides what to do next. The surrounding code provides the environment.
 
 ```text
 Agent product = Model + Harness
@@ -57,7 +57,7 @@ For a coding agent:
 
 ## Why JCode Is Worth Studying
 
-If you only want the minimal agent loop, JCode is too large. Start with pi-mono or `Learn-OpenClaw`.
+If you only want the minimal agent loop, JCode is too large. It is a second-stage project: you already know what a loop and tool call are, and now you want to see how a long-running runtime handles real complexity.
 
 JCode is worth studying because it shows product-grade complexity:
 
@@ -82,29 +82,21 @@ LLM + tools + loop
 
 That is the learning value.
 
-## Relationship to Reference Projects
+## Where JCode Sits
 
-### Learn-OpenClaw
-
-`Learn-OpenClaw` is better for quickly building agent intuition. It explains Node, Workflow, Agent, Tool, MCP, and Skill very directly.
-
-This JCode course does not copy the one-day pacing, but it keeps the practical style: each lesson tells you which files to read, which questions to ask, and what conclusion to keep.
-
-### learn-claude-code
-
-`learn-claude-code` is valuable because its stance is clear: do not confuse prompt plumbing with agents; learn harness engineering.
-
-This course keeps that stance. JCode is not code that makes a model intelligent. It is an environment that lets an already capable model act safely and persistently in a codebase.
-
-### pi-mono
+### Distance From A Minimal Harness
 
 pi is valuable because it is small. It shows that `read/write/edit/bash` is enough to build a useful coding agent.
 
 JCode is valuable because it is large. It shows what happens when the harness needs multi-provider support, sessions, memory, swarm, UI, and self-dev.
 
-### OpenCode
+### Distance From Platform-Style Coding Agents
 
 OpenCode and JCode are both open-source coding agents with client/server thinking. OpenCode feels more like an open platform. JCode feels more like a high-performance local runtime.
+
+### Distance From Closed Products
+
+Products such as Claude Code provide public behavioral reference points: tools, permissions, subagents, skills, and long-running work. This course does not discuss or depend on non-public source code. We read JCode.
 
 ## What to Keep From This Lesson
 
@@ -129,7 +121,7 @@ A good reading also tracks cost. A resident server reuses state, but it also bri
 - Why this course says "the model is the agent; JCode is the harness."
 - Why server, TUI, session, and memory are not side features.
 - Why JCode is not the best first project for learning a minimal agent loop.
-- Why this course primarily follows `learn-claude-code`'s harness stance instead of copying `Learn-OpenClaw`'s one-day pacing.
+- Why JCode is better read as a long-running runtime than as a one-day demo.
 
 ## How to Read This Course
 

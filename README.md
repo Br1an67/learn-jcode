@@ -17,9 +17,9 @@
 - provider/auth/session 为什么会变复杂？
 - TUI 为什么不是装饰，而是 harness 的一部分？
 - memory、swarm、ambient、self-dev 这些能力到底解决什么问题？
-- JCode 和 pi、OpenCode、Claude Code 的差异在哪里？
+- JCode 和几个 coding-agent runtime 的边界在哪里？
 
-如果你完全没接触过 agent，建议先看 `Learn-OpenClaw` 或 pi-mono，再回来读 JCode。
+如果你完全没接触过 agent，建议先看一个最小 agent loop demo，再回来读 JCode。
 
 ## 项目结构
 
@@ -60,7 +60,7 @@ learn-jcode-5.5/
 │   │   ├── s08-swarm.md
 │   │   ├── s09-ambient-selfdev.md
 │   │   └── s10-comparison.md
-│   ├── analysis-notes.md     # 本教程写作和参考项目分析
+│   ├── analysis-notes.md     # JCode 内容分析和取舍记录
 │   ├── glossary.md           # 术语表
 │   ├── project-structure.md  # 为什么这样组织项目
 │   ├── sources.md            # 本地参考仓库和 revision
@@ -68,9 +68,9 @@ learn-jcode-5.5/
 └── .gitignore
 ```
 
-没有照搬 `learn-claude-code` 的 `agents/` 示例目录。原因是这个教程不是从零写一个 toy agent，而是读 JCode 本身。需要读者知道的内容直接写进课程，不单独开动手区。
+这个教程不是从零写一个 toy agent，而是读 JCode 本身。需要读者知道的内容直接写进课程，不单独开动手区。
 
-但保留了 `learn-claude-code` 最有价值的一点：小代码能帮助读者看清机制。`mini/` 里是 4 个缩小版机制标本，对应 server/client、tool registry、provider stream、memory sidecar。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
+`mini/` 里是 4 个缩小版机制标本，对应 server/client、tool registry、provider stream、memory sidecar。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
 
 ## 课程
 
@@ -89,7 +89,7 @@ learn-jcode-5.5/
 | s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
-| s10 | [对比课](./docs/zh/s10-comparison.md) | [Comparison](./docs/en/s10-comparison.md) |
+| s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
 如果某课的源码太大，可以先看 [mini/](./mini/README.md) 里的对应标本，再回到课程正文。
 
@@ -107,7 +107,7 @@ learn-jcode-5.5/
 第 6 天：读 memory
 第 7 天：读 swarm
 第 8 天：读 ambient/self-dev
-第 9 天：读对比课，确认 JCode 和几个参考项目的边界
+第 9 天：读边界课，确认 JCode 和几个 coding-agent runtime 的取舍
 ```
 
 这个节奏不是硬性安排。重点是不要跳过前四课直接冲 swarm 和 self-dev。那样很容易只记住名词，看不懂运行时边界。
@@ -117,19 +117,17 @@ learn-jcode-5.5/
 - 新增一个只读工具，比如 `repo_summary`。
 - 写一套 OpenAI-compatible provider profile 配置和 smoke test 文档。
 - 做一个 side panel 工作流。
-- 写一份 JCode / OpenCode / pi 的源码级比较。
+- 写一份 JCode / OpenCode / pi 的源码级边界说明。
 - 给 memory/session search 写一个实际用例。
 
-## 本地参考来源
+## 本地源码来源
 
 本教程基于这些本地仓库阅读：
 
 - JCode: `/Users/shizi/Documents/workspace/jcode`
-- learn-claude-code: `/tmp/learn-claude-code`
-- Learn-OpenClaw: `/tmp/Learn-OpenClaw`
 - pi-mono: `/Users/shizi/Documents/workspace/pi-mono`
 - OpenCode: `/Users/shizi/Documents/workspace/opencode`
 
 具体 revision 见 [docs/sources.md](./docs/sources.md)。
 
-关于 Claude Code：本教程只比较公开行为和 harness 设计思想，不使用、不传播、不复述任何非公开或泄露源码。
+关于 Claude Code：本教程只在边界课里参考公开行为，不使用、不传播、不复述任何非公开或泄露源码。

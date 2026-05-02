@@ -10,7 +10,7 @@ JCode 不是一个“Rust 写的聊天壳”。它是一个 coding-agent harness
 
 ## Agent 和 Harness 的边界
 
-沿用 `learn-claude-code` 的说法：模型才是 agent。模型负责判断下一步该做什么。外部工程负责给模型提供环境。
+本教程的基本判断是：模型才是 agent。模型负责判断下一步该做什么。外部工程负责给模型提供环境。
 
 ```text
 Agent product = Model + Harness
@@ -57,7 +57,7 @@ flowchart LR
 
 ## 为什么 JCode 值得学
 
-如果只想理解最小 agent loop，JCode 太大了。你应该先看 pi-mono 或 `Learn-OpenClaw`。
+如果只想理解最小 agent loop，JCode 太大了。它更适合作为第二阶段项目：你已经知道 loop 和 tool call 是什么，现在想看长期 runtime 怎么处理真实复杂度。
 
 JCode 值得学的是产品化之后的复杂性：
 
@@ -82,29 +82,21 @@ LLM + tools + loop
 
 这就是 JCode 的学习价值。
 
-## 和几个参考项目的关系
+## JCode 的学习位置
 
-### Learn-OpenClaw
-
-`Learn-OpenClaw` 更适合快速建立 agent 概念。它把 Node、Workflow、Agent、Tool、MCP、Skill 讲得很直接。
-
-这份 JCode 教程不复刻那个“一天速成”的节奏，而是保留它的实用性：每一课告诉你读哪些文件、看什么问题、最后应该带走什么结论。
-
-### learn-claude-code
-
-`learn-claude-code` 的强项是立场清楚：不要把 prompt plumbing 当 agent，真正要学的是 harness engineering。
-
-这份教程沿用这个立场。JCode 不是让模型“变聪明”的代码，它是让模型能安全、稳定、长期地在代码库里行动的环境。
-
-### pi-mono
+### 和最小 harness 的距离
 
 pi 的价值是小。它告诉你 `read/write/edit/bash` 就能构成一个有效 coding agent。
 
 JCode 的价值是大。它告诉你当这个 agent 要支持多 provider、多 session、memory、swarm、UI、self-dev 时，工程会长成什么样。
 
-### OpenCode
+### 和平台型 coding agent 的距离
 
 OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。OpenCode 更像开放平台，JCode 更像本地高性能 runtime。
+
+### 和闭源产品的距离
+
+Claude Code 这类产品能给我们公开行为上的参照，比如工具、权限、subagent、skills、长期任务等能力形态。但本教程不讨论、也不依赖任何非公开源码。我们只读 JCode。
 
 ## 这课应该带走的结论
 
@@ -129,7 +121,7 @@ OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。Ope
 - 为什么本教程说“模型是 agent，JCode 是 harness”。
 - 为什么 server、TUI、session、memory 不是旁枝功能。
 - 为什么 JCode 不适合当第一个最小 agent loop 项目。
-- 为什么本教程主参考 `learn-claude-code` 的 harness 视角，而不是照搬 `Learn-OpenClaw` 的一天上手节奏。
+- 为什么 JCode 更适合用长期 runtime 的角度读，而不是当作一天上手 demo。
 
 ## 这份教程怎么读
 

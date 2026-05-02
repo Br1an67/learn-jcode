@@ -4,9 +4,9 @@
 
 ## 1. 角色与读者
 
-作者身份：我是一个读过 JCode、pi、OpenCode、learn-claude-code 的工程同事，写这份教程给想读懂 coding-agent harness 的开发者看。语气像代码走查和学习笔记，不像发布会文案，也不像咨询报告。
+作者身份：我是一个读过 JCode 源码的工程同事，写这份教程给想读懂 coding-agent harness 的开发者看。语气像代码走查和学习笔记，不像发布会文案，也不像咨询报告。
 
-读者画像：读者有技术背景，知道一点 LLM/agent，但时间有限，不想听空话；他们想知道先读哪些文件、为什么这么设计、读完能做什么小改造。
+读者画像：读者有技术背景，知道一点 LLM/agent，但时间有限，不想听空话；他们想直接在教程里看懂核心代码、设计边界和后续能做的小改造，不想在 IDE 和文档之间来回跳。
 
 ## 2. 风格要点
 
@@ -43,7 +43,7 @@ JCode 通过先进的多端协同架构实现了高效的智能体运行时闭�
 正面示例：
 
 ```text
-这部分先看 `src/tool/mod.rs`。重点不是工具有多少，而是 `Registry::base_tools()` 怎么注册、排序、缓存工具定义。
+`Registry::base_tools()` 同时决定“模型能看到什么工具”和“运行时能执行什么工具”。这就是 JCode 工具系统不把 schema 和执行器拆成两套注册表的原因。
 ```
 
 反面示例：
@@ -66,7 +66,7 @@ JCode 通过先进的多端协同架构实现了高效的智能体运行时闭�
 先读 `src/main.rs`、`src/lib.rs`、`src/cli/startup.rs`。
 ```
 
-规则：列文件可以，但后面必须解释读法。至少说清楚“看哪个函数/结构体”“它在链路里承担什么角色”“为什么下一步读另一个文件”。
+规则：文件路径只能作为源码出处，不要把教程写成“阅读顺序清单”。关键流程要直接摘核心代码，并说清楚“这个函数/结构体在链路里承担什么角色”。
 
 ### 带读要把核心代码放进教程
 
@@ -167,8 +167,6 @@ JCode 支持 memory、session search、embedding、graph retrieval 等能力。
 ### 本地参考
 
 - JCode: `/Users/shizi/Documents/workspace/jcode`
-- learn-claude-code: `/tmp/learn-claude-code`
-- Learn-OpenClaw: `/tmp/Learn-OpenClaw`
 - pi-mono: `/Users/shizi/Documents/workspace/pi-mono`
 - OpenCode: `/Users/shizi/Documents/workspace/opencode`
 

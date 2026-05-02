@@ -1,106 +1,95 @@
-# s10 - Comparison: JCode, learn-claude-code, Learn-OpenClaw, pi, OpenCode
+# s10 - Boundaries: JCode, pi, OpenCode, Claude Code
 
 ## Goal
 
-Place the previous lessons back against the reference projects: why this course primarily follows `learn-claude-code`, secondarily borrows from `Learn-OpenClaw`, and how JCode differs from pi, OpenCode, and Claude Code.
+Place the previous lessons back into the coding-agent runtime landscape: what JCode is good for learning, and where it differs from pi, OpenCode, and Claude Code public behavior.
 
-This lesson does not discuss non-public or leaked source code. Claude Code is compared only through public behavior, public docs, and harness ideas abstracted by `learn-claude-code`.
+This lesson only discusses public behavior, public documentation, and open-source code. It does not discuss non-public or leaked Claude Code source.
 
 ```mermaid
 flowchart TD
-  LCC["learn-claude-code\nprimary reference: progressive harness mechanisms"] --> LJ["learn-jcode-5.5\nsource walkthrough + mechanism specimens"]
-  LOC["Learn-OpenClaw\nsecondary reference: clear onboarding path"] --> LJ
-  JCode["JCode\nreal Rust harness"] --> LJ
-  Pi["pi-mono\nminimal coding harness"] --> LJ
-  OpenCode["OpenCode\nopen-platform direction"] --> LJ
+  JCode["JCode\nlocal Rust runtime"] --> Lessons["learn-jcode-5.5\nsource walkthrough"]
+  Pi["pi-mono\nminimal coding harness"] --> Lessons
+  OpenCode["OpenCode\nopen platform direction"] --> Lessons
+  Claude["Claude Code\nclosed product public behavior"] --> Lessons
 ```
 
-This diagram shows the course tradeoff: structure and stance come mostly from `learn-claude-code`, onboarding clarity borrows from `Learn-OpenClaw`, and the main subject remains JCode source.
+This diagram sets the boundary: the course reads JCode. pi, OpenCode, and Claude Code public behavior are only used to calibrate tradeoffs.
 
-## Differences Between the Tutorial Projects
-
-| Project | What it teaches | Main method | How this course uses it |
-| --- | --- | --- | --- |
-| `learn-claude-code` | Harness engineering mechanisms | One runnable mini-agent per lesson, mechanisms layered over time | Primary reference: progression, strong stance, code specimens |
-| `Learn-OpenClaw` | Agent basics and a practical path | Node / Workflow / Agent / Tool first, then examples | Secondary reference: direct explanations and clear next steps |
-| `learn-jcode-5.5` | Product-grade coding-agent harness source | Mermaid + source excerpts + explanation + comparisons | Reads JCode runtime directly instead of building a toy-agent mainline |
-
-`learn-claude-code` is strongest when it shows mechanisms growing step by step: agent loop, tool use, todo, subagent, skill, context compact, task system, background tasks, and agent teams.
-
-`Learn-OpenClaw` is strongest when it keeps the next step obvious. It does not start with a large system. It first explains Node, Workflow, Agent, Tool, MCP, and Skill.
-
-`learn-jcode-5.5` should take a third path: keep the harness stance from `learn-claude-code`, avoid copying its toy implementation, borrow the clarity of `Learn-OpenClaw`, and avoid promising that JCode can be learned in one day.
-
-## Differences Between Coding-Agent Projects
+## Where JCode Sits
 
 | Dimension | pi-mono | OpenCode | Claude Code | JCode |
 | --- | --- | --- | --- | --- |
-| Learning value | Minimal coding harness | Open platform and multi-surface product | Mature harness product shape | Local multi-provider long-running runtime |
-| Tool philosophy | Few tools, centered on `read/write/edit/bash` | Platform tools and extension surface | Public behavior shows tools, permissions, subagents, skills | Base tools plus memory/MCP/swarm/self-dev in one registry |
-| Runtime | Smaller, easier first read | Client/server and platform integration are prominent | Product abstraction is mature, source is not public | Resident server owns sessions, provider, MCP, swarm, events |
-| Session | Lighter | Platform experience matters more | Public behavior supports long-running workflows | Journal, render, import, replay, multi-client |
-| Memory | Not the main point | Depends on implementation | Public product behavior is not source detail | Sidecar non-blocking recall with one-turn delay |
-| Multi-agent | More restrained | Open-platform collaboration direction | Public concepts include subagents / teams | Server-level swarm state, channels, heartbeat, plan |
-| UI | Enough for the job | Multi-surface UX matters | Product UI is complete | Terminal-native; TUI is harness observability |
-| Self-dev | Not core | Not the mainline | Not compared by source | Build/reload exposed as tool and session capability |
+| Learning value | Minimal coding harness | Open platform and multi-surface product | Mature product behavior | Local multi-provider long-running runtime |
+| Tool philosophy | Few tools, centered on `read/write/edit/bash` | Platform tools and extensions | Public behavior shows tools, permissions, subagents, skills | Base tools plus memory/MCP/swarm/self-dev in the registry |
+| Runtime | Smaller and easier to read first | Client/server and platform integration | Product abstraction is complete, source is closed | Resident server owns sessions, providers, MCP, swarm, events |
+| Session | Lighter | Platform experience matters more | Public behavior supports long-running work | Journal, render, import, replay, multi-client |
+| Memory | Not the main point | Implementation-dependent | Public product behavior is not source detail | Sidecar non-blocking recall with one-turn delay |
+| Multi-agent | More restrained | Platform collaboration direction | Public concepts include subagents / teams | Server-level swarm state, channels, heartbeat, plan |
+| UI | Enough for use | Multi-surface experience matters | Product UI is complete | Terminal-native; TUI is harness observability |
+| Self-dev | Not core | Not the main line | Not discussed as source | Build/reload is tool and session capability |
 
-Default recommendations:
+Default advice:
 
-- Read pi if you want the minimal coding-agent path.
-- Read `Learn-OpenClaw` if you want to go from concepts to a running OpenClaw-style project.
-- Read `learn-claude-code` if you want to learn how harness mechanisms layer up.
-- Read JCode if you want to study a complex local runtime.
+- Use pi to understand the minimal path.
+- Use OpenCode to understand open-platform and multi-surface direction.
+- Use Claude Code docs and public behavior to understand mature product capability shape.
+- Use JCode to read a complex local runtime.
 
-## Why This Course Primarily Follows `learn-claude-code`
+## JCode's Cost
 
-Because it gets the important stance right:
-
-```text
-The model is the agent.
-The harness gives the model tools, context, permissions, runtime, and observability.
-```
-
-JCode source is complex, but most of that complexity fits this frame:
-
-| `learn-claude-code` mechanism | JCode source counterpart |
-| --- | --- |
-| agent loop | `src/agent/turn_loops.rs` |
-| tool use | `src/tool/mod.rs` and concrete tools |
-| todo / task | `src/tool/todo.rs`, `src/tool/task.rs` |
-| context compact | `src/agent/compaction.rs`, provider compaction |
-| background tasks | ambient, bg tool, server runtime |
-| agent teams | `src/server/swarm.rs`, `src/tool/communicate.rs` |
-| worktree / isolation | swarm/self-dev runtime boundaries |
-| skills | `skill_manage`, skills registry |
-
-In short: `learn-claude-code` gives us mechanism order. JCode shows the product-grade cost of implementing those mechanisms.
-
-## Why `Learn-OpenClaw` Is Secondary
-
-`Learn-OpenClaw` reads more like an onboarding map, which is useful for readers new to agents. It says the basic relationships plainly:
+JCode complexity mostly comes from long-running runtime behavior, not from the agent loop itself. The minimal loop is short:
 
 ```text
-workflow = node + node
-agent = chatbot + tools
-Tool / MCP / Skill all orbit tool calling
+messages -> model -> tool call -> tool result -> messages
 ```
 
-That helps `learn-jcode-5.5` because JCode can drown readers in server, provider, session, memory, and swarm details. We should borrow the directness, not the one-day pacing.
-
-JCode is not a one-day project. Absorb it over several days:
+JCode adds these layers around that line:
 
 ```text
-Day 1: harness stance.
-Day 2: startup and server.
-Day 3: agent loop and tool registry.
-Day 4: provider/session/TUI.
-Day 5 and later: memory, swarm, ambient, self-dev.
+resident server
+multi-client session
+provider selection / auth
+tool registry / context guard
+TUI observability
+memory sidecar
+swarm coordination
+ambient scheduler
+self-dev reload
 ```
+
+None of those layers are free. Each one adds state ownership questions:
+
+- Does the state live in the client or server?
+- Should the current turn do it synchronously, or should the next turn consume a pending result?
+- Does tool output return directly, or pass through truncation and content-block conversion?
+- Does worker state live in chat history, or in the server plan?
+- How does reload preserve sessions and active work?
+
+That is the main reason to study JCode: it shows what a local long-running agent must pay for state and recovery.
+
+## Difference From pi
+
+pi is better for the minimal effective path. It emphasizes fewer tools, fewer abstractions, and less runtime. It is faster to read and easier to modify.
+
+JCode is better for product-grade boundaries. It connects provider, auth, session, TUI, memory, swarm, and self-dev into one runtime. Do not expect it to be tiny. Watch how it prevents long-running work from turning into state confusion.
+
+## Difference From OpenCode
+
+OpenCode leans more toward open platform shape: multi-surface, configuration, extension, and platform experience. JCode leans more toward local high-performance runtime: terminal-native, resident server, Rust implementation, built-in memory/swarm/self-dev.
+
+Both show the same lesson: serious coding agents are not stdout wrappers. UI, server, permissions, providers, and sessions enter core architecture.
+
+## Difference From Claude Code Public Behavior
+
+Claude Code is closed source, so this course does not discuss it as source. The only useful comparison is public capability shape: tools, permissions, subagents, skills, long-running tasks, and team-style workflows.
+
+JCode's value is source readability. You can see where those capabilities land: `Registry`, `ServerRuntime`, `Session`, `MemoryAgent`, `swarm_state`, `SelfDevTool`. That is why this course stays centered on JCode source.
 
 ## What You Should Be Able To Explain
 
-- Why this course primarily follows `learn-claude-code` instead of `Learn-OpenClaw`.
-- Why JCode's complexity mostly comes from product-grade harness work, not the agent loop itself.
-- Why pi is best for the minimal path while JCode is better for studying a long-running runtime.
-- Why OpenCode and JCode both use client/server thinking but point at different product directions.
-- Why Claude Code can only be compared through public behavior and harness ideas here, not non-public source.
+- Why JCode complexity mainly comes from product-grade runtime, not the agent loop itself.
+- Why pi is good for minimal path learning and JCode is good for long-running runtime learning.
+- Why OpenCode and JCode both use client/server ideas but have different product directions.
+- Why Claude Code can only be compared through public behavior here.
+- Why the course reads JCode directly and only uses other projects to calibrate boundaries.

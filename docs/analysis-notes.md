@@ -1,20 +1,14 @@
 # Analysis Notes
 
-## Tutorial Style To Reuse
+## Course Style
 
-`learn-claude-code` uses a strong thesis first: agent capability comes from the model, while product quality comes from the harness. It then teaches one harness mechanism per lesson. The useful pattern is:
+This course should read like an engineer walking through source with another engineer.
 
 - Start with a mental model, not installation.
-- Use one simple loop or formula as the anchor.
-- Add progressive lessons with a motto for each mechanism.
-- Keep the conclusion project-oriented: what can the reader build after learning this?
-
-`Learn-OpenClaw` uses a practical beginner path. It compresses agent concepts into a one-day roadmap, explains terms bluntly, and tells readers what to read or build for job/interview readiness. The useful pattern is:
-
-- Give time estimates.
-- Prefer small examples over exhaustive theory.
-- Explain Tool, MCP, Skill, Memory, Multi-Agent in plain terms.
-- Tie learning to a concrete project path.
+- Use one runtime mechanism as the anchor for each lesson.
+- Put core code excerpts directly in the lesson instead of sending readers to a file list.
+- Use Mermaid for state flow and ownership boundaries.
+- End each lesson with what the reader should be able to explain, not a separate task area.
 
 ## JCode Subject Model
 
@@ -44,20 +38,18 @@ Comparison framing:
 
 ## Tutorial Shape
 
-### Revision after user feedback
+The first README draft was too close to an architecture guide and too synthetic in tone. The revised tutorial should be direct, source-grounded, and paced over several days.
 
-The first README draft was too close to an architecture guide and too synthetic in tone. The revised tutorial should be a hybrid:
-
-- Use the `learn-claude-code` stance: start from harness engineering, trust the model, teach the runtime around the model.
-- Keep the `Learn-OpenClaw` practicality: concrete learning path, source files to read, project tasks, and interview/project framing.
-- Do not force a one-day promise. Use a multi-day path for actual learning.
-- Avoid generic "AI documentation" tone. Write more like an engineer's course note: direct, opinionated, grounded in source files, and occasionally blunt.
-- Preserve JCode-specific comparisons with pi, OpenCode, and Claude Code, but keep them tied to design decisions rather than marketing claims.
+- Start from harness engineering: the model acts; JCode provides tools, context, permissions, runtime, and observability.
+- Do not force a one-day promise. JCode is a long-running runtime, not a tiny demo.
+- Avoid generic "AI documentation" tone. Write like engineering course notes: direct, opinionated, grounded in source snippets, and occasionally blunt.
+- Keep comparisons tied to actual runtime decisions: pi for minimal path, OpenCode for open-platform direction, Claude Code only for public behavior boundaries.
 - Keep bilingual README files complete enough to stand alone.
 
 The repository should stay small and readable:
 
 - `README.md`: Chinese main tutorial.
 - `README-en.md`: English main tutorial.
+- `docs/zh` and `docs/en`: complete lesson tracks.
+- `mini/`: reduced mechanism specimens connected from the relevant lessons.
 - `docs/analysis-notes.md`: source analysis and editorial decisions.
-- Optional future docs can split lessons, but for this request the two main READMEs should be complete enough to stand alone.

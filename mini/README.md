@@ -1,8 +1,8 @@
 # Mini Mechanism Specimens
 
-This directory follows the useful part of `learn-claude-code`: small runnable files that isolate one harness mechanism.
+This directory contains small runnable files that isolate one JCode harness mechanism.
 
-It is not a separate task track. The main course still reads JCode source. These files are reduced specimens you can run when a JCode chapter feels too large.
+It is not a separate task track. The main course still reads JCode source. These files are reduced specimens for moments where the real source is too large to see the mechanism at once.
 
 Run them with the system Python:
 
