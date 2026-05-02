@@ -2,9 +2,11 @@
 
 # Learn JCode 5.5
 
-A coding-agent harness engineering course for JCode.
+This is a JCode source-reading course for engineers. The tone is code walkthrough, not product brochure.
 
-This repository now follows the organization style of `learn-claude-code`: the root README is only the entry point, and the real lessons live under `docs/zh` and `docs/en`. The difference is that `learn-claude-code` teaches mechanisms by implementing small Python agents, while this repository studies the existing JCode Rust codebase as a real harness.
+The reader is assumed to know roughly what an agent loop is, but not yet how a product-grade coding-agent harness is built. You are not here to read that "JCode is powerful"; you are here to understand why it needs a server, tool registry, provider layer, sessions, TUI, memory, and swarm runtime.
+
+Writing rules live in [docs/writing-style.md](./docs/writing-style.md). New lessons should follow that guide.
 
 ## Who This Is For
 
@@ -45,7 +47,9 @@ learn-jcode-5.5/
 │   │   ├── s06-tui-observability.md
 │   │   └── s07-memory-swarm-selfdev.md
 │   ├── analysis-notes.md     # Writing notes and reference-project analysis
-│   └── sources.md            # Local source repositories and revisions
+│   ├── project-structure.md  # Why the repository is organized this way
+│   ├── sources.md            # Local source repositories and revisions
+│   └── writing-style.md      # Writing tone and banned expressions
 └── .gitignore
 ```
 
@@ -78,6 +82,8 @@ Day 4: read provider/auth/session
 Day 5: read TUI and observability
 Day 6: read memory/swarm/ambient/self-dev
 ```
+
+This is not a strict schedule. The point is: do not skip the first four lessons and jump straight into swarm or self-dev. You will collect names without understanding runtime boundaries.
 
 For a real project, pick one small modification:
 

@@ -61,7 +61,8 @@ learn-jcode-5.5/
 │   │   └── s01...s07
 │   ├── analysis-notes.md
 │   ├── project-structure.md
-│   └── sources.md
+│   ├── sources.md
+│   └── writing-style.md
 └── .gitignore
 ```
 

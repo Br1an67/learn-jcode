@@ -2,9 +2,11 @@
 
 # Learn JCode 5.5
 
-一份面向 JCode 的 coding-agent harness 工程教程。
+这是一份给工程师看的 JCode 源码课程。写法按“同事带你读代码”来，不写宣传稿，不堆黑话。
 
-这个仓库现在按 `learn-claude-code` 的方式组织：根 README 只做入口，真正课程拆到 `docs/zh` 和 `docs/en`。不同之处是：`learn-claude-code` 用小型 Python agent 示例逐课实现机制；本仓库以 JCode 现有 Rust 源码为阅读对象，逐课拆解一个真实 harness。
+读者默认知道一点 agent loop，但还没系统读过产品级 coding-agent harness。你来这里不是为了看“JCode 很强”，而是为了知道它为什么需要 server、tool registry、provider、session、TUI、memory、swarm 这些东西。
+
+写作口径见 [docs/writing-style.md](./docs/writing-style.md)。后续新增章节都按这份规范写。
 
 ## 适合谁
 
@@ -45,7 +47,9 @@ learn-jcode-5.5/
 │   │   ├── s06-tui-observability.md
 │   │   └── s07-memory-swarm-selfdev.md
 │   ├── analysis-notes.md     # 本教程写作和参考项目分析
-│   └── sources.md            # 本地参考仓库和 revision
+│   ├── project-structure.md  # 为什么这样组织项目
+│   ├── sources.md            # 本地参考仓库和 revision
+│   └── writing-style.md      # 写作口径和禁用表达
 └── .gitignore
 ```
 
@@ -78,6 +82,8 @@ learn-jcode-5.5/
 第 5 天：读 TUI 和可观察性
 第 6 天：读 memory/swarm/ambient/self-dev
 ```
+
+这个节奏不是硬性安排。重点是不要跳过前四课直接冲 swarm 和 self-dev。那样很容易只记住名词，看不懂运行时边界。
 
 真正要做项目时，建议选一个小改造：
 
