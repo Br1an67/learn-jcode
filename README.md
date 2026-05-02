@@ -128,9 +128,9 @@ learn-jcode-5.5/
 
 本教程基于这些仓库的源码阅读：
 
-- JCode: `https://github.com/1jehuang/jcode`
-- pi-mono: `https://github.com/badlogic/pi-mono`
-- OpenCode: `https://github.com/anomalyco/opencode`
+- [JCode](https://github.com/1jehuang/jcode)
+- [pi-mono](https://github.com/badlogic/pi-mono)
+- [OpenCode](https://github.com/anomalyco/opencode)
 
 具体 revision 见 [docs/sources.md](./docs/sources.md)。
 

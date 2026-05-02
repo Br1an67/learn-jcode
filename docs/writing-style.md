@@ -166,9 +166,9 @@ JCode 支持 memory、session search、embedding、graph retrieval 等能力。
 
 ### 内容参考范围
 
-- JCode 源码是主体。
-- pi-mono 只用于校准最小 coding harness 的边界。
-- OpenCode 只用于校准开源多端 coding-agent runtime 的边界。
+- [JCode](https://github.com/1jehuang/jcode) 源码是主体。
+- [pi-mono](https://github.com/badlogic/pi-mono) 只用于校准最小 coding harness 的边界。
+- [OpenCode](https://github.com/anomalyco/opencode) 只用于校准开源多端 coding-agent runtime 的边界。
 - Claude Code 只讨论公开行为，不讨论非公开源码。
 
 ### 术语写法

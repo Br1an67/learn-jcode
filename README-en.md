@@ -128,9 +128,9 @@ For a real project, pick one small modification:
 
 This tutorial is based on source reading of:
 
-- JCode: `https://github.com/1jehuang/jcode`
-- pi-mono: `https://github.com/badlogic/pi-mono`
-- OpenCode: `https://github.com/anomalyco/opencode`
+- [JCode](https://github.com/1jehuang/jcode)
+- [pi-mono](https://github.com/badlogic/pi-mono)
+- [OpenCode](https://github.com/anomalyco/opencode)
 
 Exact revisions are listed in [docs/sources.md](./docs/sources.md).
 

@@ -4,9 +4,9 @@ This tutorial is based on source reading of JCode and a small amount of boundary
 
 | Project | Repository | Purpose |
 | --- | --- | --- |
-| JCode | `https://github.com/1jehuang/jcode` | Main subject |
-| pi-mono | `https://github.com/badlogic/pi-mono` | Minimal coding harness boundary |
-| OpenCode | `https://github.com/anomalyco/opencode` | Open-source multi-client runtime boundary |
+| JCode | [1jehuang/jcode](https://github.com/1jehuang/jcode) | Main subject |
+| pi-mono | [badlogic/pi-mono](https://github.com/badlogic/pi-mono) | Minimal coding harness boundary |
+| OpenCode | [anomalyco/opencode](https://github.com/anomalyco/opencode) | Open-source multi-client runtime boundary |
 
 Claude Code is only referenced through public behavior where the boundary lesson needs a closed-product comparison point. This guide does not use, redistribute, or summarize proprietary or leaked source code.
 
