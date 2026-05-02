@@ -1,110 +1,87 @@
-# Learn JCode 5.5
-
 [中文](./README.md) | [English](./README-en.md)
 
-This is a practical guide to JCode. The goal is not to teach you how to build another chatbot. The goal is to understand a real coding-agent harness: how it combines models, tools, filesystems, terminals, permissions, memory, multi-session runtime, and multi-agent coordination into an engineering system that can work for long-running software tasks.
+# Learn JCode 5.5
 
-This guide borrows the harness-engineering lens from `learn-claude-code` and the beginner/project-oriented pacing from `Learn-OpenClaw`. The output is not a clone of either project. It is a JCode learning path that treats JCode as a readable, modifiable, comparable agent engineering specimen.
+## What This Tutorial Is For
 
-## One Sentence
+This is not a "learn agents from zero in one day" tutorial. JCode is also not the best first project if you have never read an agent loop before.
 
-JCode = model + tool system + provider layer + resident server + TUI client + session storage + memory graph + swarm coordination + self-dev.
+If you only want to understand what an agent loop is, start with the `Node / Workflow / Agent` parts in `Learn-OpenClaw`, or read pi-mono's `pi-agent-core`. Those projects are smaller and better for first contact.
 
-The model thinks. JCode turns that thinking into reliable, observable, recoverable, parallelizable action.
+JCode is useful for a different reason: **it shows what a coding-agent harness starts to look like once it becomes a real product system.**
 
-```text
-User input
-  -> JCode TUI / client
-  -> JCode server
-  -> Agent turn loop
-  -> Provider stream
-  -> Tool calls
-  -> Tool results / session journal / UI events
-  -> Next model turn
-```
+It contains many things that do not look like "agent code" at first: a resident server, multiple clients, terminal rendering, OAuth login, provider catalogs, session journals, memory graphs, MCP pools, swarm communication, ambient background cycles, self-dev reloads. The codebase feels scattered until you realize these pieces are exactly what makes a long-running coding agent usable.
 
-## What You Will Learn
+This tutorial has four goals:
 
-A one-day learning plan:
+- Help you read JCode as a serious harness engineering project.
+- Help you compare JCode with pi, OpenCode, and Claude Code without turning it into marketing.
+- Help you make one small but real modification to JCode instead of stopping at an architecture summary.
+- Help you explain agent loop, tool registry, provider layer, server runtime, memory, and swarm coordination in an interview or project review.
 
-| Stage | Time | Goal |
-| --- | ---: | --- |
-| Quick start | 30 min | Install, authenticate a provider, run one JCode session |
-| Harness mindset | 45 min | Understand the boundary between model and harness |
-| Core loop | 1 hour | Understand agent turns, streaming, and tool-result feedback |
-| Tool system | 1 hour | Understand how `read/write/edit/bash/grep/mcp/subagent/swarm` tools are registered and executed |
-| Server/TUI | 1 hour | Understand why JCode uses a resident server with multiple clients |
-| Memory/Swarm/Self-dev | 2 hours | Understand where JCode is more ambitious than pi, OpenCode, and Claude Code |
-| Project modification | 2+ hours | Add a tool, provider, documentation improvement, or learning-oriented change |
+## First: Agents Are Not Written With If-Else Chains
 
-If your goal is interviews or a portfolio project, at minimum read these sections: Quick Start, Architecture Map, Differences From Other Projects, and Practice Tasks.
+This tutorial follows the same core stance as `learn-claude-code`.
 
-## Scope
-
-This guide is based on local reading of:
-
-- JCode: `/Users/shizi/Documents/workspace/jcode`
-- learn-claude-code: `/tmp/learn-claude-code`
-- Learn-OpenClaw: `/tmp/Learn-OpenClaw`
-- pi-mono: `/Users/shizi/Documents/workspace/pi-mono`
-- OpenCode: `/Users/shizi/Documents/workspace/opencode`
-
-For Claude Code, this guide compares public product behavior and harness design concepts only. It does not reproduce, summarize, or depend on non-public or leaked source code.
-
-## First Mental Model: You Are Not "Writing the Agent"
-
-Agency comes from the model. Engineers build the harness.
+The model is the agent. It perceives, reasons, and chooses the next action. The surrounding code is not intelligence. The surrounding code is the harness.
 
 ```text
-Harness = Tools + Context + Memory + UI + Storage + Permissions + Runtime
+Agent product = Model + Harness
+
+Harness = Tools
+        + Context
+        + Memory
+        + Runtime
+        + UI
+        + Storage
+        + Permissions
+        + Provider integration
 ```
 
-For a coding agent:
+JCode puts the model inside an environment that is better suited for software work.
 
-- Tools are the hands: read files, write files, edit files, run shell commands, search, browse, use MCP.
-- Context is the eyes: current messages, file snippets, command output, tool results.
-- Memory is long-term experience: past sessions, user preferences, project facts, retrievable knowledge.
-- UI is the cockpit: streaming output, tool status, diffs, side panels, diagrams, usage.
-- Storage is recovery: session journals, server registry, provider config.
-- Permissions are boundaries: which commands can run, which paths can be written, when user approval is needed.
-- Runtime is life support: resident server, client reconnection, background tasks, reload.
+- If the model wants to read a file, JCode provides `read`.
+- If the model wants to modify a file, JCode provides `edit`, `write`, and `apply_patch`.
+- If the model wants to run tests, JCode provides `bash`.
+- If the context gets too large, JCode compacts it.
+- If old project knowledge matters, JCode searches memory.
+- If the user opens multiple terminals, JCode keeps sessions under one server.
+- If many agents work at the same time, JCode has a swarm runtime for communication and state.
 
-JCode is special because it is not a minimal agent-loop example. It pushes the harness toward product-grade complexity, while putting unusual emphasis on performance and multi-session scaling.
+So do not read JCode as "a Rust chat wrapper." It is closer to a local operating environment for coding agents.
 
-## Quick Start
+## Learning Path
 
-### 1. Install
+I would read it over 6 days. Spend 2-4 hours per day. Do not try to brute-force the whole repository in one sitting. JCode is too large for that, and the result is usually confusion, not understanding.
 
-The default install path from the JCode README:
+### Day 0: Prepare the Environment
+
+Goal: start JCode, authenticate one provider, and know where configuration lives.
+
+Read:
+
+- `/Users/shizi/Documents/workspace/jcode/README.md`
+- `/Users/shizi/Documents/workspace/jcode/OAUTH.md`
+- `/Users/shizi/Documents/workspace/jcode/Cargo.toml`
+
+Commands:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/1jehuang/jcode/master/scripts/install.sh | bash
-```
-
-To run from source inside the JCode repository:
-
-```bash
+cd /Users/shizi/Documents/workspace/jcode
+cargo check --no-default-features
 cargo run --bin jcode
 ```
 
-If compilation is slow, start by checking the CLI/code paths without default heavy features:
+Common login commands:
 
 ```bash
-cargo check --no-default-features
-```
-
-### 2. Authenticate a Provider
-
-JCode supports many login flows. Common paths:
-
-```bash
-jcode login --provider claude
 jcode login --provider openai
+jcode login --provider claude
 jcode login --provider gemini
 jcode login --provider copilot
 ```
 
-You can also configure an OpenAI-compatible endpoint:
+For an OpenAI-compatible endpoint:
 
 ```bash
 jcode provider add local-vllm \
@@ -114,474 +91,624 @@ jcode provider add local-vllm \
   --set-default
 ```
 
-JCode's provider layer is not just an API-key wrapper. It handles OAuth, subscription accounts, model catalogs, pricing/usage, failover, stream-format differences, and provider-specific session behavior.
+Do not rush into source code yet. Day 0 has one job: confirm the harness actually runs.
 
-### 3. Start a Session
+### Day 1: Trace Startup
 
-```bash
-jcode
-```
+Goal: know what happens after the `jcode` command starts.
 
-Try a low-risk prompt first:
-
-```text
-Read this repository and summarize its architecture. Do not edit files.
-```
-
-Then try a tool-oriented prompt:
-
-```text
-Find where tools are registered and explain how a new tool should be added.
-```
-
-## Architecture Map
-
-From the entry point:
+Read:
 
 ```text
 src/main.rs
-  -> jcode::run()
-  -> src/lib.rs
-  -> cli::startup::run()
-  -> server/client/agent/provider/tool/tui
+src/lib.rs
+src/cli/startup.rs
+src/cli/dispatch.rs
+src/server.rs
+src/server/runtime.rs
+docs/SERVER_ARCHITECTURE.md
 ```
 
-Core directories:
-
-| Path | Role |
-| --- | --- |
-| `src/agent/` | Agent turn loop, stream handling, tool calls, context compaction, memory injection |
-| `src/tool/` | Built-in tools: files, shell, web, MCP, subagent, swarm, memory |
-| `src/provider/` | Provider adapters for Claude, OpenAI, Gemini, Copilot, OpenRouter, OpenAI-compatible endpoints |
-| `src/server/` | Resident server, multi-client lifecycle, session management, swarm runtime, reload/reconnect |
-| `src/tui/` | Ratatui UI, side panels, diffs, info widgets, markdown/mermaid rendering |
-| `src/memory*` | Memory graph, session search, memory agent, embedding and retrieval |
-| `src/mcp/` | MCP client, manager, tool bridge, shared pool |
-| `src/ambient/` | Background ambient runner, scheduling, memory maintenance, proactive work |
-| `src/auth/` | OAuth, account store, provider login diagnostics |
-| `crates/` | Types, provider core, TUI subcrates, mobile/desktop layering, workspace modules |
-
-Use this diagram as the reading order:
-
-```mermaid
-flowchart TB
-  CLI[cli startup] --> Client[TUI client]
-  CLI --> Server[daemon server]
-  Client <--> Server
-  Server --> Agent[agent turn loop]
-  Agent --> Provider[provider stream]
-  Provider --> Agent
-  Agent --> Tools[tool registry]
-  Tools --> FS[file/shell/search/browser/MCP]
-  Agent --> Memory[memory prompt and session search]
-  Server --> Swarm[swarm runtime]
-  Server --> Sessions[session journal and replay]
-  Client --> TUI[side panels and widgets]
-```
-
-## Core Loop: JCode Is Still an Agent Loop
-
-The minimal agent loop is:
-
-```text
-messages -> model -> tool_use? -> execute tool -> append tool_result -> model ...
-```
-
-JCode's complexity comes from engineering around that loop, not from changing the loop itself.
-
-Read first:
-
-- `src/agent/turn_loops.rs`
-- `src/agent/tools.rs`
-- `src/tool/mod.rs`
-
-In each turn, JCode does roughly this:
-
-1. Repairs missing tool outputs to avoid malformed provider conversations.
-2. Checks whether context compaction is required.
-3. Builds tool definitions.
-4. Builds memory prompts non-blockingly and injects the pending result from the previous turn.
-5. Builds split static/dynamic system prompts to improve provider cache behavior.
-6. Opens the provider stream and handles thinking, text, tool input, and tool result events.
-7. Executes tools and converts results back into content blocks.
-8. Continues if there are more tool calls; otherwise returns the final assistant text.
-
-Think of it as:
-
-```text
-JCode Agent Loop
-  = provider stream parser
-  + tool executor
-  + context compactor
-  + memory injector
-  + cache tracker
-  + event publisher
-```
-
-## Tool System: JCode's Hands
-
-JCode tools are not random functions. They implement a shared trait:
-
-```text
-Tool
-  - name()
-  - description()
-  - parameters_schema()
-  - execute(input, context)
-```
-
-Tool registration is centralized in `src/tool/mod.rs`. Base capabilities include:
-
-| Category | Tools |
-| --- | --- |
-| Files | `read`, `write`, `edit`, `multiedit`, `patch`, `apply_patch`, `open` |
-| Search | `glob`, `grep`, `agentgrep`, `codesearch`, `session_search`, `conversation_search` |
-| Execution | `bash`, `bg`, `batch` |
-| Web/browser | `webfetch`, `websearch`, `browser` |
-| Coordination | `subagent`, `swarm`, `goal`, `todo` |
-| Extension | `mcp`, `skill_manage`, `gmail`, `side_panel` |
-| Advanced modes | `memory`, `schedule`, `selfdev` |
-
-Compared with a minimal agent, JCode's key difference is that it does not just give the model four tools. It gives the model a governed tool ecosystem. More tools require:
-
-- Deterministic ordering for better prompt-cache hits.
-- Alias mapping for provider-specific tool names.
-- Output truncation to prevent one tool result from overflowing context.
-- Session/context binding so tools know working directory, message ID, and tool-call ID.
-- Dynamic MCP registration so external tools can join the registry.
-
-To add a tool:
-
-1. Add a tool implementation under `src/tool/`.
-2. Implement the `Tool` trait.
-3. Register it in `Registry::base_tools` or the session-specific registration path.
-4. Write the JSON schema and a minimal test.
-5. Make sure output is bounded; return summaries or metadata when necessary.
-
-## Server/TUI: Why JCode Is Not "One CLI Process Per Launch"
-
-JCode uses a single-server, multi-client architecture.
+JCode startup is not "start one CLI process, talk to the model, exit." It is closer to this:
 
 ```text
 jcode
-  -> if no server exists, start daemon server
-  -> client connects over socket
-  -> server owns sessions/provider/swarm/MCP/shared state
-  -> client exit does not kill the server
-  -> clients can reconnect after server reload
+  -> cli startup
+  -> check whether a local JCode server exists
+  -> start daemon server if needed
+  -> TUI client connects to server socket
+  -> server owns sessions, provider, MCP, swarm, events
+  -> client owns display and input
 ```
 
-This is very different from ordinary CLIs:
+This is the first major difference between JCode and many ordinary CLI agents.
 
-- Multiple TUI clients can connect to one server.
-- Session state lives in the server and on disk; clients are views/input endpoints.
-- Providers, MCP pools, and swarm state can be reused across clients.
-- `/reload` can exec the server into a new binary while clients reconnect.
-- With many sessions, per-session memory growth is more controllable.
+pi is a lightweight coding harness. OpenCode also has a client/server design. JCode's emphasis here is a Rust resident runtime with session reuse, reload/reconnect, multi-client behavior, and better multi-session resource control.
 
-This is central to JCode's performance story. If you often run many coding-agent sessions at the same time, a resident server has more scaling headroom than a full independent process per terminal.
+After this day, you should be able to answer:
 
-## TUI and Side Panels: Observability Is Part of the Harness
+- Why does JCode need a server?
+- Why can a session survive a client disconnect?
+- Why is `/reload` more than just quit and restart?
+- Why does the server runtime contain `sessions`, `event_tx`, `mcp_pool`, and `swarm_state`?
 
-Many agent projects focus on tool calls and neglect UI. JCode's TUI is a major capability:
+Exercise: draw the startup path.
 
-- Streaming text/thinking/tool status.
-- Compact tool-call summaries.
-- Diff and file views.
-- Side panels for file viewing, diffs, or agent-written content.
-- Markdown and mermaid rendering.
-- Info widgets for model, usage, git, memory, todos, swarm, and more.
+```mermaid
+flowchart LR
+  CLI[jcode CLI] --> Startup[cli startup]
+  Startup --> Server[daemon server]
+  Startup --> Client[TUI client]
+  Client <--> Server
+  Server --> Session[session state]
+  Server --> Provider[provider]
+  Server --> Tools[tool registry]
+```
 
-A practical coding agent needs more than "the model can write code." The user needs to know:
+### Day 2: Read the Agent Loop
 
-- What is it doing now?
-- Which tools did it call?
-- What changed?
-- Is it stuck?
-- What is the context, cost, cache, and memory state?
+Goal: understand that JCode is still built around a normal agent loop. The surrounding engineering is large, but the core loop is not magical.
 
-JCode treats all of this as harness work.
-
-## Memory: Not Manual Notes, But Automatic Recall
-
-JCode's memory goal is not "make the user manually call a memory tool." It behaves more like human memory: current context triggers relevant memories, which then appear in the next model turn.
-
-Core design:
-
-- Each turn/session can be embedded.
-- Memory retrieval is non-blocking and does not stall the main agent.
-- Memory computed during turn N is usually available in turn N+1.
-- Memories can form a graph: tags, clusters, semantic relations.
-- Session search provides traditional historical-session retrieval.
-- Ambient mode can maintain, merge, prune, and verify memories.
-
-Simplified flow:
+The minimal loop:
 
 ```text
-current messages
-  -> async memory query
-  -> embedding hits
-  -> graph/cascade retrieval
-  -> optional sidecar verification
-  -> memory prompt
-  -> injected as system reminder on next turn
+messages
+  -> LLM
+  -> assistant text or tool_use
+  -> execute tool
+  -> append tool_result
+  -> LLM
+  -> ...
 ```
 
-This is different from many "RAG = VectorDB" demos. JCode is moving toward memory as an organic capability that grows through long-term use of the same harness.
+In JCode, start here:
 
-## Swarm: Multi-Session Coordination Is Not Just Subagents
+```text
+src/agent/turn_loops.rs
+src/agent/tools.rs
+src/agent/messages.rs
+src/agent/compaction.rs
+src/message.rs
+```
 
-JCode swarm is not merely "main agent calls a subagent and gets a summary." It is closer to a multi-session coordination runtime:
+`turn_loops.rs` is one of the most important files in the project. Read it slowly. It roughly does this:
 
-- A coordinator creates the plan and assigns scopes.
-- Agents execute in parallel.
-- Agents can DM, broadcast, and join channels.
-- The server records file touches and can warn agents when code shifts under them.
-- Lifecycle, status, and plan updates are server-level state.
-- Worktrees are optional isolation tools, not a mandatory default.
+1. Repairs missing tool outputs so the provider does not reject the message history.
+2. Calls `messages_for_provider()` and triggers compaction when needed.
+3. Builds `tool_definitions()`.
+4. Takes the pending memory prompt from the previous turn and injects it.
+5. Builds a static/dynamic split system prompt to preserve provider cache behavior.
+6. Calls provider `complete_split()` and opens the stream.
+7. Parses stream events: thinking, text delta, tool start, tool input, tool end.
+8. Executes tools and converts outputs into tool result content blocks.
+9. Continues if the model calls more tools.
 
-For complex code work, the hard questions are not "can I spawn multiple agents?" The hard questions are:
+Do not only stare at code. Read it with one question in mind:
 
-- Who owns the plan?
-- Who can change the plan?
-- Who integrates the work?
-- How do agents communicate?
-- How are file conflicts discovered?
-- How do completed, failed, and blocked states recover?
+```text
+How does one user input become:
+model output -> tool execution -> tool result -> next model input?
+```
 
-JCode answers these around `src/server/swarm*`, `src/server/comm*`, and `src/tool/communicate.rs`.
+Exercise: trace one tool call from `StreamEvent::ToolUseStart` to `tool_output_to_content_blocks()`.
 
-## Ambient and Self-Dev
+Once you understand this day, the point from `learn-claude-code` becomes concrete: the loop is simple; the product-grade mechanisms around the loop are the hard part.
 
-JCode has two especially ambitious directions.
+### Day 3: Read the Tool System
 
-### Ambient
+Goal: understand how JCode gives the model hands.
 
-Ambient mode is a background autonomous loop:
+Core files:
 
-- Maintains the memory graph.
-- Checks recent sessions and git activity.
-- Performs low-risk proactive work.
-- Schedules its own next wake-up based on resources and rate limits.
+```text
+src/tool/mod.rs
+src/tool/read.rs
+src/tool/write.rs
+src/tool/edit.rs
+src/tool/bash.rs
+src/tool/grep.rs
+src/tool/task.rs
+src/tool/communicate.rs
+src/tool/mcp.rs
+src/tool/memory.rs
+src/tool/side_panel.rs
+```
 
-It moves the agent from "do one thing when the user asks" toward "carefully maintain the environment in the background."
+Every tool implements the same `Tool` trait:
 
-### Self-Dev
+```text
+name()
+description()
+parameters_schema()
+execute(input, ctx)
+```
 
-Self-dev lets JCode modify JCode from inside a JCode session:
+This matters. A tool is not just a name in the prompt. It is a validated, executable, observable protocol between the model and the environment.
 
-- Detects when the current repository is JCode.
-- Adds self-dev prompt/tooling to that session.
-- Edits, builds, tests, and reloads itself.
+JCode tools fall into three rough groups.
 
-This is powerful and risky. Practical rules:
+Basic coding tools:
 
-- Use a clean branch.
-- Ask for a plan before editing core runtime.
-- Every self-dev change needs tests or at least `cargo check`.
-- Core areas include `agent`, `tool`, `server`, `provider`, and `tui`; read dependency boundaries before modifying them.
+```text
+read, write, edit, multiedit, patch, apply_patch,
+glob, grep, ls, bash, open
+```
 
-## Differences From Other Projects
+Enhanced tools:
 
-| Project | Positioning | Strength | Cost |
-| --- | --- | --- | --- |
-| pi-mono | Minimal TypeScript coding harness | Easy to read, four-tool mental model, SDK/extension friendly, good base for your own OpenClaw | Skips complex mechanisms like subagents/plan mode by default; you assemble what you need |
-| OpenCode | Open-source, provider-agnostic coding agent | Client/server, LSP, permissions, plugins, desktop/web ecosystem direction | Large TypeScript/Bun codebase, heavier runtime stack |
-| Claude Code | Mature commercial coding-agent harness | Strong product polish, good tool UX, tight model/harness fit | Closed source and Anthropic-centered; do not rely on leaked source for learning |
-| JCode | Performance-first Rust multi-session harness with memory and coordination | Low-latency/low-incremental-memory story, resident server, memory graph, swarm, ambient/self-dev | Large code surface, Rust workspace and runtime complexity |
+```text
+agentgrep, browser, webfetch, websearch, codesearch,
+lsp, side_panel, session_search, conversation_search
+```
 
-### JCode vs pi
+Harness-level tools:
 
-pi's educational value is "less is more": read/write/edit/bash can already form an effective coding agent. JCode's direction is "more, but governed": more tools, more providers, more server state, which means it must handle cache behavior, truncation, aliases, permissions, sessions, and UI state.
+```text
+subagent, batch, swarm, memory, goal, todo,
+mcp, skill_manage, schedule, selfdev
+```
 
-If you want to learn the agent loop, start with pi.
-If you want to learn product-grade harness engineering, study systems like JCode.
+The important functions are `Registry::base_tools()` and `Registry::new()`.
 
-### JCode vs OpenCode
+Look for these details:
 
-OpenCode and JCode both use client/server and provider-agnostic designs. The difference is the engineering stack:
+- Base tools are cached with `OnceLock` so each session does not deep-copy the same tools.
+- Session-specific tools can bind a provider or registry.
+- Tool definitions are sorted by name to reduce prompt-cache churn.
+- Tool output goes through a context guard to avoid blowing up the context window.
+- MCP tools can be registered dynamically later.
+- self-dev and ambient tools have separate registration paths.
 
-- OpenCode is TypeScript/Bun/Effect/Hono, with strong plugin, LSP, web, and desktop direction.
-- JCode is Rust/Ratatui/Tokio, with strong performance, memory, multi-session, terminal-rendering, and native-runtime direction.
+Exercise: design a read-only `repo_summary` tool.
 
-OpenCode feels more like an open platform. JCode feels more like a high-performance local agent runtime.
+It should return:
 
-### JCode vs Claude Code
+```text
+branch:
+latest commit:
+top-level dirs:
+tracked file count:
+```
 
-Claude Code is an important reference for understanding coding harnesses: tools, context compaction, permissions, subagents, skills, and session recovery have all been validated in the market.
-
-JCode differs in that:
-
-- It tries to support many providers instead of one model ecosystem.
-- It makes memory and session search core capabilities.
-- It moves swarm coordination into the server runtime.
-- It emphasizes Rust performance and multi-session resource efficiency.
-- It includes experimental long-term directions such as self-dev and ambient mode.
-
-Learn Claude Code's harness ideas. Do not copy or distribute non-public implementations.
-
-## Recommended Reading Order
-
-### First Pass: Run It
-
-1. `README.md`
-2. `OAUTH.md`
-3. `docs/SERVER_ARCHITECTURE.md`
-4. `docs/TERMINAL_BENCH.md`
-
-Goal: know why JCode exists, how to install it, how to authenticate, and how to start it.
-
-### Second Pass: Core Loop
-
-1. `src/main.rs`
-2. `src/lib.rs`
-3. `src/cli/startup.rs`
-4. `src/agent/turn_loops.rs`
-5. `src/tool/mod.rs`
-6. `src/provider/mod.rs`
-
-Goal: explain how user input becomes provider streams and tool results.
-
-### Third Pass: Product Mechanisms
-
-1. `docs/MEMORY_ARCHITECTURE.md`
-2. `docs/SWARM_ARCHITECTURE.md`
-3. `docs/AMBIENT_MODE.md`
-4. `docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md`
-5. `src/server/`
-6. `src/tui/`
-
-Goal: understand why JCode is not a simple CLI.
-
-### Fourth Pass: Modify One Thing
-
-Pick a small task:
-
-- Add a read-only tool, such as `repo_stats`.
-- Improve the output summary of an existing tool.
-- Add a provider-profile documentation example.
-- Add a status field to a TUI info widget.
-- Add a concrete example to the memory docs.
-
-Do not start by changing swarm, reload, provider OAuth, or compaction. Those are core paths with high test cost.
-
-## Practice Tasks
-
-### Task 1: Draw the Tool Registration Graph
-
-Read `src/tool/mod.rs` and answer:
-
-- Which tools are base tools?
-- Which tools are session-specific?
-- When are MCP tools registered?
-- When are self-dev and ambient tools registered?
-
-Output a mermaid diagram.
-
-### Task 2: Implement a Read-Only Tool
-
-Goal: add a `repo_summary` tool that returns:
-
-- git branch
-- latest commit
-- file count
-- top-level directories
-
-Requirements:
+Rules:
 
 - Do not write files.
 - Keep output short.
-- Add a test or at least a manual validation note.
+- Do not call the network.
+- Register it in the tool registry.
+- Run at least one manual validation.
 
-This task walks through the full tool path: schema, execute, registry, tool result.
+This is a better exercise than a weather tool because it walks through the real coding-harness path.
 
-### Task 3: Understand One Memory Injection
+### Day 4: Read Provider, Auth, and Session
 
-Read:
+Goal: understand how JCode turns different model platforms into one agent stream.
 
-- `src/agent/turn_loops.rs`
-- `src/memory_agent.rs`
-- `src/memory_graph.rs`
-- `docs/MEMORY_ARCHITECTURE.md`
-
-Answer:
-
-- Why does memory retrieval not block the main agent?
-- In what form is the memory prompt injected?
-- Why must memory injection avoid breaking the provider cache prefix?
-
-### Task 4: Compare JCode and OpenCode Tool Registries
-
-Read:
-
-- JCode: `src/tool/mod.rs`
-- OpenCode: `packages/opencode/src/tool/registry.ts`
-
-Answer:
-
-- How does each project represent a tool definition?
-- How does each project handle permissions/filtering?
-- How does each project handle custom/plugin/MCP tools?
-
-### Task 5: Write Your Own JCode Modification Plan
-
-Use this format:
+Directories:
 
 ```text
-Goal:
-Why JCode is suitable:
-Modules to change:
-Minimum viable implementation:
-Risks:
-Validation command:
-Rollback plan:
+src/provider/
+src/auth/
+src/usage/
+src/session/
+src/storage.rs
+OAUTH.md
 ```
 
-This is better than jumping straight into vibe coding. JCode has a large code surface; plan quality directly affects modification quality.
-
-## Interview and Portfolio Framing
-
-If you turn this into a project, describe it like this:
+Many agent demos treat the provider layer as one line:
 
 ```text
-I studied a Rust coding-agent harness. It is not a simple LLM API wrapper.
-It implements provider adapters, a tool registry, a streaming turn loop,
-session persistence, TUI rendering, semantic memory, an MCP bridge, and
-multi-agent swarm coordination.
-I made a focused modification: a read-only tool / provider-profile example /
-memory documentation improvement / info-widget change, then validated it with
-cargo check and a manual session.
+client.chat.completions.create(...)
 ```
 
-Likely interview follow-ups:
+In a real product, provider integration becomes a large piece of engineering:
+
+- API keys and OAuth both matter.
+- Claude, OpenAI, Gemini, and Copilot stream differently.
+- Some providers expose thinking, some do not.
+- Some support prompt caching, some do not.
+- Some need provider session IDs.
+- Model catalogs, context windows, pricing, and usage must be tracked.
+- Failures need diagnostics and sometimes fallback.
+
+That is why JCode has a serious provider layer.
+
+Start with:
+
+```text
+src/provider/mod.rs
+src/provider/openai.rs
+src/provider/claude.rs
+src/provider/gemini.rs
+src/provider/copilot.rs
+src/provider/dispatch.rs
+src/provider/selection.rs
+src/auth/commands.rs
+src/auth/login_flows.rs
+```
+
+You do not need to finish every provider. Understand three things:
+
+- What the internal `Provider` trait looks like.
+- How provider-specific streams become shared `StreamEvent`s.
+- How login state, account switching, and model selection reach the provider.
+
+Then read session code:
+
+```text
+src/session/model.rs
+src/session/journal.rs
+src/session/render.rs
+src/replay.rs
+src/import.rs
+```
+
+A JCode session is not just a chat transcript. It needs resume, replay, import, crash recovery, and multi-client rendering. This layer separates a long-running agent product from a one-shot script.
+
+Exercise:
+
+```text
+If a Claude Code / Codex / OpenCode session has to be imported into JCode,
+what data-shape differences does JCode need to handle?
+```
+
+JCode's README mentions resuming sessions from Codex, Claude Code, OpenCode, and pi. The import/session/render path is where that kind of feature lives.
+
+### Day 5: Read TUI and Observability
+
+Goal: understand that UI is not decoration. UI is part of the harness.
+
+Directories:
+
+```text
+src/tui/
+src/side_panel.rs
+src/tool/side_panel.rs
+crates/jcode-tui-core/
+crates/jcode-tui-render/
+crates/jcode-tui-markdown/
+crates/jcode-tui-mermaid/
+```
+
+JCode's TUI does more than print markdown:
+
+- tool call summaries
+- stream buffers
+- diff views
+- side panels
+- inline markdown
+- mermaid rendering
+- usage overlays
+- git info widgets
+- memory info widgets
+- todo info widgets
+- swarm/background info widgets
+- account/model pickers
+
+This is one of JCode's most opinionated areas. A coding agent can be capable but still unpleasant if the user cannot see what it is doing. JCode treats observability as terminal UI work.
+
+Do not start by diving into all of `ui.rs`. Pick smaller files first:
+
+```text
+src/tui/info_widget.rs
+src/tui/info_widget_git.rs
+src/tui/info_widget_memory_render.rs
+src/tui/ui_tools.rs
+src/tui/ui_diff.rs
+side panel related files
+```
+
+Exercise: pick one info widget and write down its data path:
+
+```text
+Where does the data come from?
+Which event updates it?
+Where is it rendered?
+```
+
+This helps you understand JCode's event-driven UI instead of only reading rendering code.
+
+### Day 6: Read Memory, Swarm, Ambient, and Self-Dev
+
+Goal: understand where JCode differs most from ordinary coding agents.
+
+#### Memory
+
+Files:
+
+```text
+docs/MEMORY_ARCHITECTURE.md
+docs/MEMORY_BUDGET.md
+src/memory.rs
+src/memory_agent.rs
+src/memory_graph.rs
+src/memory_prompt.rs
+src/tool/memory.rs
+src/tool/session_search.rs
+```
+
+JCode memory is not just "manually save a note." It is closer to background recall:
+
+```text
+current context
+  -> embedding
+  -> similar memory hits
+  -> graph/cascade retrieval
+  -> optional sidecar verification
+  -> memory prompt in the next turn
+```
+
+The important design choice is non-blocking retrieval. The main agent does not wait for memory. A memory query triggered in turn N is usually used in turn N+1. That keeps interaction responsive.
+
+This is different from many RAG demos. A typical demo runs retrieval before answering. JCode is aiming for something closer to long-term experience that surfaces when relevant.
+
+#### Swarm
+
+Files:
+
+```text
+docs/SWARM_ARCHITECTURE.md
+src/server/swarm.rs
+src/server/swarm_channels.rs
+src/server/comm_*.rs
+src/tool/communicate.rs
+src/tool/task.rs
+```
+
+JCode swarm is not just a simple subagent tool. It cares about runtime coordination:
+
+- how a coordinator divides work
+- how workers report back
+- how agents DM, broadcast, or use channels
+- which files were read or modified by whom
+- how plans are updated
+- how blocked or crashed agents recover
+- when worktrees help and when they are unnecessary
+
+This is much more complex than pi, and it is easy to get lost. Read the docs first, draw the state machine, then touch code.
+
+#### Ambient
+
+Files:
+
+```text
+docs/AMBIENT_MODE.md
+src/ambient/
+src/ambient_runner.rs
+src/tool/ambient.rs
+```
+
+Ambient is a background agent. Instead of only responding to a user prompt, it can maintain memory, inspect recent work, and run low-risk proactive tasks when resources allow.
+
+This is experimental, but worth reading because it shows a path from "interactive tool" to "long-running environment maintainer."
+
+#### Self-Dev
+
+Files:
+
+```text
+src/cli/selfdev.rs
+src/tool/selfdev.rs
+src/prompt/selfdev_mode.txt
+src/prompt/selfdev_hint.txt
+docs/UNIFIED_SELFDEV_SERVER_PLAN.md
+```
+
+Self-dev lets JCode modify JCode. It is powerful and easy to break.
+
+If you try it:
+
+- Create a branch.
+- Keep the worktree clean.
+- Commit each step.
+- Start with small changes.
+- Run `cargo check`.
+- Do not begin with provider, server reload, compaction, or swarm changes.
+
+## Differences From Other Projects
+
+### JCode vs pi-mono
+
+pi-mono is valuable because it is small. It teaches a useful lesson: a coding agent does not need 50 tools. `read/write/edit/bash` can already do a lot.
+
+JCode is not trying to be small. It is trying to support long-term use:
+
+- multiple sessions
+- resident server
+- richer TUI
+- memory graph
+- session import/search
+- swarm
+- ambient
+- self-dev
+
+Practical advice:
+
+```text
+Learn the agent loop from pi.
+Learn product-grade harness engineering from JCode.
+```
+
+### JCode vs Learn-OpenClaw
+
+`Learn-OpenClaw` is closer to "quickly build agent intuition and turn pi-mono into your own OpenClaw."
+
+This tutorial is closer to "understand a complex harness like JCode and make one credible modification."
+
+For internships or projects, both paths work:
+
+- OpenClaw path: faster demo, often an IM/Slack/Feishu coding agent.
+- JCode path: deeper discussion of provider, tool registry, server, memory, and swarm mechanisms.
+
+The first is easier to demo. The second shows more engineering depth.
+
+### JCode vs OpenCode
+
+OpenCode and JCode are both open-source coding agents with client/server thinking and provider-agnostic goals.
+
+Roughly:
+
+| Project | Stack | Stronger Direction |
+| --- | --- | --- |
+| OpenCode | TypeScript / Bun / Effect / Hono | Plugins, LSP, Web/Desktop, open platform |
+| JCode | Rust / Tokio / Ratatui | Performance, multi-session runtime, terminal rendering, memory, swarm |
+
+OpenCode feels more like an open agent platform. JCode feels more like a high-performance local agent runtime.
+
+### JCode vs Claude Code
+
+Claude Code is a useful harness reference. Tools, permissions, context compaction, skills, subagents, and session behavior are all worth studying from the outside.
+
+But keep the boundary clean: study public behavior and design ideas only. Do not use, distribute, or summarize non-public or leaked source code.
+
+JCode differs in that it:
+
+- emphasizes multiple providers
+- emphasizes Rust performance
+- makes memory and session search more central
+- moves swarm coordination into the server runtime
+- experiments with ambient and self-dev modes
+
+## Turning JCode Study Into a Project
+
+Do not say "I read the JCode source." That says very little.
+
+Pick one small direction and make it real.
+
+### Direction 1: Add a Read-Only Tool
+
+Examples:
+
+```text
+repo_summary
+dependency_scan_summary
+workspace_health
+recent_session_digest
+```
+
+Value: you touch the tool trait, schema, registry, tool output, and possibly UI display.
+
+### Direction 2: Improve Provider Profile Documentation and Validation
+
+Example:
+
+```text
+Write a JCode provider setup guide for an internal OpenAI-compatible gateway.
+Add auth-test / smoke-test examples.
+Document common failure diagnostics.
+```
+
+Value: it shows you understand provider integration, not only API calls.
+
+### Direction 3: Build a Side Panel Workflow
+
+Examples:
+
+```text
+Ask the agent to keep a review checklist in the side panel.
+Show diff and plan side by side.
+Visualize memory hits.
+```
+
+Value: it shows you understand UI as harness, not decoration.
+
+### Direction 4: Write an Engineering Comparison of JCode, OpenCode, and pi
+
+Compare source-level mechanisms:
+
+```text
+tool registry
+provider abstraction
+session storage
+permission model
+TUI event flow
+subagent/swarm
+```
+
+Value: good interview material. Tradeoffs matter more than memorized buzzwords.
+
+### Direction 5: Write a Real Memory Use Case
+
+Examples:
+
+```text
+How user preferences enter memory.
+How project conventions are recalled.
+How old sessions are searched.
+How memory prompts avoid breaking the cache prefix.
+```
+
+Value: memory is one of JCode's differentiators, and explaining it clearly is useful.
+
+## How to Talk About This in Interviews
+
+A better project description:
+
+```text
+I studied JCode, a Rust coding-agent harness.
+It is not a simple LLM API wrapper. It includes provider adapters,
+a tool registry, a streaming turn loop, session journals, TUI rendering,
+an MCP bridge, semantic memory, and a multi-agent swarm runtime.
+
+I made a focused modification: xxx.
+The change touched xxx files.
+I validated it with cargo check / a manual session / unit tests.
+The main thing I learned was how tool results return to the next model turn,
+and why a resident server helps support multiple sessions.
+```
+
+Questions you may be asked:
 
 - What stops the agent loop?
-- How does a tool result get back into model context?
-- Why is context compaction necessary?
-- How are provider stream formats abstracted?
-- Why is a resident server better than a one-shot CLI?
-- Why does multi-agent work need communication protocols and file-touch tracking?
+- How is a tool call executed?
+- How does a tool result return to `messages`?
+- How are provider stream differences normalized?
+- Why split the system prompt into static and dynamic parts?
+- When does context compaction happen?
 - Why is memory retrieval non-blocking?
+- What does the server/client split solve?
+- What does swarm add beyond subagents?
 - Why must tool output be truncated?
-- Where are permission boundaries enforced?
+- Where should permission boundaries live?
 
-If you can answer these, you are already past the level of a LangChain/RAG demo.
+If you can answer these, you are beyond the level of a LangChain RAG customer-service demo.
 
-## Learning Advice
+## How Not to Learn It
 
-Do not start by scanning all of `crates/`. Follow the main path first:
+Do not start from `crates/`. Workspace boundaries are not the learning entry point.
+
+Do not modify swarm on day one. Communication, state, and lifecycle logic will waste your time if you do not understand the core loop first.
+
+Do not read JCode as a Claude Code replacement. Some concepts overlap, but the engineering direction is different.
+
+Do not stare only at the README performance table. Performance is the result. The interesting part is how server residency, tool caching, rendering, memory strategy, and multi-session design support that result.
+
+Do not over-talk ambient or self-dev before you can explain agent loop, tool registry, provider, and session. Those basics matter more.
+
+## Closing
+
+The best thing to learn from JCode is not one clever function. It is the decision to treat a coding agent as a long-running engineering system.
+
+A toy agent needs:
 
 ```text
-input -> server -> agent -> provider -> tool -> session/TUI
+LLM + tools + loop
 ```
 
-Do not try to "fully understand JCode" on day one. The correct path is:
+A serious coding-agent harness also needs:
 
-1. Run it.
-2. Trace one request lifecycle.
-3. Read tool registration.
-4. Read server/client lifecycle.
-5. Read the differentiating designs: memory, swarm, self-dev.
-6. Make one small change.
+```text
+server
+session
+provider
+auth
+cache
+compaction
+memory
+UI
+permissions
+coordination
+recovery
+```
 
-The most valuable thing in JCode is not a single function. It is the product judgment behind the harness: performance, long-running sessions, tool governance, observable UI, memory, and multi-agent coordination are product capabilities, not prompt tricks.
+That is why JCode is worth studying.
