@@ -53,7 +53,7 @@ learn-jcode-5.5/
 └── .gitignore
 ```
 
-暂时没有照搬 `learn-claude-code` 的 `agents/` 示例目录。原因是这个教程不是从零写一个 toy agent，而是读 JCode 本身。如果后面要加练习代码，更适合放在 `labs/`，而不是伪造一个和 JCode 无关的小 agent。
+没有照搬 `learn-claude-code` 的 `agents/` 示例目录。原因是这个教程不是从零写一个 toy agent，而是读 JCode 本身。需要读者知道的内容直接写进课程，不单独开动手区。
 
 ## 课程
 

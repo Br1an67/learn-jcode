@@ -69,7 +69,7 @@ That is the learning value.
 
 `Learn-OpenClaw` is better for quickly building agent intuition. It explains Node, Workflow, Agent, Tool, MCP, and Skill very directly.
 
-This JCode course does not copy the one-day pacing, but it keeps the practical style: each lesson tells you which files to read, which questions to ask, and which exercise to do.
+This JCode course does not copy the one-day pacing, but it keeps the practical style: each lesson tells you which files to read, which questions to ask, and what conclusion to keep.
 
 ### learn-claude-code
 

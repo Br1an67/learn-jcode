@@ -34,7 +34,7 @@ The root README should stay short. Lessons should live in `docs/{zh,en}`.
 
 `learn-claude-code` has runnable miniature agents because it teaches harness mechanisms by implementing them from scratch.
 
-This project studies JCode itself. Adding a fake miniature agent would make the repository look similar but teach the wrong thing. If we later add executable exercises, use `labs/` and make them directly tied to JCode tasks.
+This project studies JCode itself. Adding a fake miniature agent would make the repository look similar but teach the wrong thing. Things readers need to know should be explained in the lessons, not moved into a separate hands-on section.
 
 ### `skills/`
 
@@ -70,7 +70,7 @@ learn-jcode-5.5/
 
 If the tutorial grows, add these in this order:
 
-1. `labs/zh` and `labs/en` for concrete modification labs.
+1. More `docs/zh` and `docs/en` lessons when a topic deserves its own page.
 2. `assets/` for diagrams and screenshots.
 3. `scripts/` only for validation or content generation, not for unrelated demos.
 4. `web/` only after Markdown content is stable.

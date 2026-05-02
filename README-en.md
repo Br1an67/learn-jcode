@@ -53,7 +53,7 @@ learn-jcode-5.5/
 └── .gitignore
 ```
 
-This repository does not currently copy `learn-claude-code`'s `agents/` example directory. That is intentional: this course is not building a toy agent from scratch; it is reading JCode itself. If we add practice code later, it should probably live under `labs/`, not in an unrelated miniature agent implementation.
+This repository does not copy `learn-claude-code`'s `agents/` example directory. That is intentional: this course is not building a toy agent from scratch; it is reading JCode itself. Things readers need to know are written directly into the lessons, not moved into a separate hands-on area.
 
 ## Lessons
 
