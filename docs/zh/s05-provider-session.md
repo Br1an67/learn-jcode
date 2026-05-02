@@ -51,6 +51,96 @@ Session 最后读，因为它依赖前面的 provider 和 tool result。先看 `
 
 `OAUTH.md` 放在源码之后读。先在代码里看到登录和 provider 选择的分工，再用文档补 OAuth 流程。文档先读会觉得只是登录说明，源码读过后才能看出它为什么影响 provider、session 和 headless 环境。
 
+## 核心代码节选
+
+Provider 层的窄腰是 `Provider` trait：
+
+```rust
+// src/provider/mod.rs，节选
+pub type EventStream =
+    Pin<Box<dyn Stream<Item = Result<StreamEvent>> + Send>>;
+
+pub trait Provider: Send + Sync {
+    async fn complete(
+        &self,
+        messages: &[Message],
+        tools: &[ToolDefinition],
+        system: &str,
+        resume_session_id: Option<&str>,
+    ) -> Result<EventStream>;
+
+    async fn complete_split(
+        &self,
+        messages: &[Message],
+        tools: &[ToolDefinition],
+        system_static: &str,
+        system_dynamic: &str,
+        resume_session_id: Option<&str>,
+    ) -> Result<EventStream> {
+        let dynamic_messages =
+            messages_with_dynamic_system_context(messages, system_dynamic);
+        self.complete(&dynamic_messages, tools, system_static, resume_session_id).await
+    }
+}
+```
+
+这段代码说明 JCode 内部只想面对一种 provider 形状：输入是 `Message`、`ToolDefinition`、system prompt，输出是 `StreamEvent`。OpenAI、Claude、Gemini 的私有格式都应该在 trait 后面被消化掉。
+
+`complete_split()` 的默认实现也很关键。它把动态系统上下文变成靠后的 synthetic message，而不是混进稳定 system prefix。这样做是为了保住 provider prompt cache 的稳定前缀。
+
+Provider 选择不是 agent loop 自己判断，而是 `MultiProvider` 收口：
+
+```rust
+// src/provider/selection.rs，精简版
+enum ActiveProvider {
+    Claude,
+    OpenAi,
+    Gemini,
+    Copilot,
+    OpenRouter,
+    OpenAiCompatible,
+}
+
+impl MultiProvider {
+    fn auto_default_provider(availability: ProviderAvailability) -> ActiveProvider {
+        if availability.is_configured(ActiveProvider::Claude) {
+            ActiveProvider::Claude
+        } else if availability.is_configured(ActiveProvider::OpenAi) {
+            ActiveProvider::OpenAi
+        } else {
+            ActiveProvider::OpenAiCompatible
+        }
+    }
+}
+```
+
+这段是精简版，但能看清设计：provider 选择被集中在 provider 层。agent loop 不应该知道“当前默认用 Claude 还是 OpenAI”。
+
+Session 的存储形状也值得直接看：
+
+```rust
+// src/session/model.rs，字段节选
+pub struct StoredMessage {
+    pub id: String,
+    pub role: Role,
+    pub content: Vec<ContentBlock>,
+    pub display_role: Option<StoredDisplayRole>,
+    pub timestamp: Option<DateTime<Utc>>,
+    pub tool_duration_ms: Option<u64>,
+    pub token_usage: Option<StoredTokenUsage>,
+}
+
+pub struct StoredCompactionState {
+    pub summary_text: String,
+    pub openai_encrypted_content: Option<String>,
+    pub covers_up_to_turn: usize,
+    pub original_turn_count: usize,
+    pub compacted_count: usize,
+}
+```
+
+这段代码说明 session 不是“聊天文本数组”。message 里有结构化 `ContentBlock`、显示角色、时间、工具耗时和 usage；compaction 也有自己的覆盖范围和摘要状态。后面做 resume、replay、import 时，这些字段都会参与恢复。
+
 ## Provider 层解决什么问题
 
 不同 provider 的差异很多：

@@ -42,6 +42,102 @@ src/tool/side_panel.rs
 
 读具体工具时按难度走：先看 `src/tool/read.rs` 或 `src/tool/ls.rs`，再看 `src/tool/edit.rs`、`src/tool/bash.rs`，最后看 `src/tool/task.rs`、`src/tool/communicate.rs`、`src/tool/mcp.rs`。不要第一天读 `swarm` 工具，它会把你拉到 server coordination。
 
+## 核心代码节选
+
+工具系统先看合同，不看具体工具：
+
+```rust
+// src/tool/mod.rs，节选
+pub trait Tool: Send + Sync {
+    fn name(&self) -> &str;
+    fn description(&self) -> &str;
+    fn parameters_schema(&self) -> Value;
+    async fn execute(&self, input: Value, ctx: ToolContext) -> Result<ToolOutput>;
+
+    fn to_definition(&self) -> ToolDefinition {
+        ToolDefinition {
+            name: self.name().to_string(),
+            description: self.description().to_string(),
+            input_schema: self.parameters_schema(),
+        }
+    }
+}
+```
+
+这段代码把工具的两面都放在一起：`to_definition()` 给模型看，`execute()` 给 runtime 调。很多 demo 只写 function call，JCode 这里已经把 provider schema 和执行入口分开了。
+
+`Registry::base_tools()` 能看出 JCode 默认给模型哪些手：
+
+```rust
+// src/tool/mod.rs，精简版
+fn base_tools(skills: &Arc<RwLock<SkillRegistry>>) -> HashMap<String, Arc<dyn Tool>> {
+    static BASE: OnceLock<HashMap<String, Arc<dyn Tool>>> = OnceLock::new();
+    let base = BASE.get_or_init(|| {
+        let mut m = HashMap::new();
+        insert(&mut m, "read", ReadTool::new());
+        insert(&mut m, "write", WriteTool::new());
+        insert(&mut m, "edit", EditTool::new());
+        insert(&mut m, "bash", BashTool::new());
+        insert(&mut m, "memory", MemoryTool::new());
+        insert(&mut m, "swarm", CommunicateTool::new());
+        insert(&mut m, "selfdev", SelfDevTool::new());
+        m
+    });
+    let mut tools = base.clone();
+    insert(&mut tools, "skill_manage", SkillTool::new(skills.clone()));
+    tools
+}
+```
+
+这是精简版，但足够说明结构：基础 coding 工具和 harness 级工具注册在同一个 registry 里。`OnceLock` 说明这些 base tools 被缓存，不会每个 session 都重新构造一遍。
+
+session-specific tools 单独插入：
+
+```rust
+// src/tool/mod.rs，节选
+let mut tools_map = Self::base_tools(&skills);
+
+Self::insert_tool(
+    &mut tools_map,
+    "subagent",
+    task::SubagentTool::new(provider, registry.clone()),
+);
+Self::insert_tool(
+    &mut tools_map,
+    "batch",
+    batch::BatchTool::new(registry.clone()),
+);
+Self::insert_tool(
+    &mut tools_map,
+    "conversation_search",
+    conversation_search::ConversationSearchTool::new(compaction),
+);
+```
+
+`subagent` 需要 provider，`batch` 需要 registry，`conversation_search` 需要 compaction。它们不能像 `read` 那样全局缓存，这就是工具注册里“基础能力”和“会话能力”的边界。
+
+最后看执行入口：
+
+```rust
+// src/tool/mod.rs，节选
+pub async fn execute(&self, name: &str, input: Value, ctx: ToolContext)
+    -> Result<ToolOutput>
+{
+    let resolved_name = Self::resolve_tool_name(name);
+    let tool = tools.get(resolved_name)
+        .ok_or_else(|| anyhow!("Unknown tool: {}", name))?
+        .clone();
+
+    let result = tool.execute(input.clone(), ctx).await;
+    telemetry::record_tool_execution(resolved_name, &input, result.is_ok(), latency_ms);
+
+    let output = result?;
+    Ok(self.guard_context_overflow(name, output).await)
+}
+```
+
+这段代码说明 registry 不只是查表。它还处理 alias、telemetry、错误和上下文截断。工具越多，这一层越重要。
+
 ## Tool trait
 
 JCode 的工具统一实现 `Tool` trait：

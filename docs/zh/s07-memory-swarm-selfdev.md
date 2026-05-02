@@ -33,6 +33,58 @@ src/tool/session_search.rs
 
 最后读 `src/tool/memory.rs` 和 `src/tool/session_search.rs`。前者是模型显式操作 memory 的入口，后者是跨 session 查历史的工具。把它们放最后，是因为工具只是入口；真正的取舍在后台 agent 和 manager。
 
+核心代码先看这个 handle：
+
+```rust
+// src/memory_agent.rs，节选
+pub struct MemoryAgentHandle {
+    tx: mpsc::Sender<AgentMessage>,
+}
+
+impl MemoryAgentHandle {
+    pub fn update_context_sync_with_dir(
+        &self,
+        session_id: &str,
+        messages: Arc<[Message]>,
+        working_dir: Option<String>,
+    ) {
+        let msg = AgentMessage::Context {
+            session_id: session_id.to_string(),
+            messages,
+            working_dir,
+            timestamp: Instant::now(),
+        };
+        let _ = self.tx.try_send(msg);
+    }
+}
+```
+
+`try_send` 是关键。memory 更新被丢到后台 channel，不阻塞主 agent turn。这就是前面说的“第 N 轮触发，第 N+1 轮使用”的代码基础。
+
+后台 agent 收到消息后再处理：
+
+```rust
+// src/memory_agent.rs，节选
+async fn run(mut self) {
+    while let Some(msg) = self.rx.recv().await {
+        match msg {
+            AgentMessage::Reset => self.reset(),
+            AgentMessage::Context { session_id, messages, working_dir, timestamp } => {
+                self.session_state(&session_id).turn_count += 1;
+
+                if let Err(e) =
+                    self.process_context(&session_id, messages, timestamp).await
+                {
+                    logging::error(&format!("Memory agent error: {}", e));
+                }
+            }
+        }
+    }
+}
+```
+
+这段代码说明 memory 是一个 sidecar agent，而不是 `run_turn()` 里同步调用的一段函数。主 agent 只投递上下文，后台 agent 自己维护 session state、turn count 和检索节奏。
+
 JCode 的 memory 不是“用户手动保存一条笔记”。它更像自动召回：
 
 ```text
@@ -78,6 +130,63 @@ src/tool/task.rs
 
 最后读 `src/tool/task.rs` 的 `SubagentTool`。它是单个 subagent 的入口，和 swarm 不是一回事。对比这两个文件，你会看清 JCode 的边界：`subagent` 偏一次性委派，`swarm` 偏长期协作 runtime。
 
+swarm 的任务派发可以先看 `run_swarm_task()`：
+
+```rust
+// src/server/swarm.rs，节选
+pub(super) async fn run_swarm_task(
+    agent: Arc<Mutex<Agent>>,
+    description: &str,
+    subagent_type: &str,
+    prompt: &str,
+) -> Result<String> {
+    let (provider, registry, session_id, working_dir, coordinator_model) = {
+        let agent = agent.lock().await;
+        (
+            agent.provider_fork(),
+            agent.registry(),
+            agent.session_id().to_string(),
+            agent.working_dir().map(PathBuf::from),
+            agent.provider_model(),
+        )
+    };
+
+    let mut session = Session::create(
+        Some(session_id),
+        Some(format!("{} (@{} swarm)", description, subagent_type)),
+    );
+    session.model = Some(coordinator_model);
+    session.save()?;
+
+    let mut allowed: HashSet<String> = registry.tool_names().await.into_iter().collect();
+    for blocked in ["subagent", "task", "todo", "todowrite", "todoread"] {
+        allowed.remove(blocked);
+    }
+
+    let mut worker = Agent::new_with_session(provider, registry, session, Some(allowed));
+    worker.run_once_capture(prompt).await
+}
+```
+
+这段代码解释了 swarm 和普通“函数调用”的差别：它 fork provider、复用 registry、新建 worker session，并且禁掉一部分工具，避免 worker 再递归启动 subagent 或改 todo。swarm 的核心是 runtime coordination，不是多发几个 prompt。
+
+任务进度也放在 server state 里：
+
+```rust
+// src/server/swarm.rs，节选
+let progress = plan.task_progress.entry(task_id.to_string()).or_default();
+progress.assigned_session_id = assigned_session_id.map(str::to_string);
+progress.last_heartbeat_unix_ms = Some(now_ms);
+progress.heartbeat_count = Some(progress.heartbeat_count.unwrap_or(0) + 1);
+
+if let Some(summary) = checkpoint_summary {
+    progress.last_checkpoint_unix_ms = Some(now_ms);
+    progress.checkpoint_summary = Some(truncate_detail(&summary, 120));
+}
+```
+
+这段代码说明 swarm 要追踪 heartbeat、checkpoint 和 assigned session。没有这些状态，多 agent 协作只会变成多个黑盒同时跑。
+
 JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：
 
 - coordinator 怎么分配任务。
@@ -113,6 +222,56 @@ src/tool/ambient.rs
 第四步读 `src/ambient/scheduler.rs`。看 schedule item 怎么排序、怎么被唤醒。ambient 的难点不只是 prompt，而是时间、优先级和资源。
 
 最后读 `src/tool/ambient.rs`。先看 `EndAmbientCycleTool`、`ScheduleAmbientTool`、`RequestPermissionTool`、`ScheduleTool`。这些工具说明 ambient agent 不是随便行动，它需要显式结束 cycle、安排下次运行，必要时请求权限。
+
+ambient 的模块地图在 `src/ambient.rs` 里：
+
+```rust
+// src/ambient.rs，节选
+mod directives;
+mod manager;
+mod paths;
+mod persistence;
+mod prompt;
+pub mod runner;
+pub mod scheduler;
+
+pub use directives::{add_directive, has_pending_directives, take_pending_directives};
+pub use manager::AmbientManager;
+pub use persistence::{AmbientLock, ScheduledQueue};
+pub use prompt::{
+    ResourceBudget,
+    build_ambient_system_prompt,
+    gather_recent_sessions,
+    gather_memory_graph_health,
+};
+```
+
+这段代码说明 ambient 不是一个工具文件。它有指令、管理器、持久化、prompt、runner、scheduler。真正要读的是后台循环和预算，不是只看工具 schema。
+
+ambient cycle 结束也必须通过工具显式上报：
+
+```rust
+// src/tool/ambient.rs，节选
+struct EndCycleInput {
+    summary: String,
+    memories_modified: u32,
+    compactions: u32,
+    proactive_work: Option<String>,
+    next_schedule: Option<NextScheduleInput>,
+}
+
+impl Tool for EndAmbientCycleTool {
+    fn name(&self) -> &str { "end_ambient_cycle" }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "required": ["summary", "memories_modified", "compactions"]
+        })
+    }
+}
+```
+
+这段代码说明 ambient agent 不是跑完就消失。它必须汇报本轮做了什么、改了多少 memory、是否做了 compaction、下次什么时候醒。
 
 Ambient 是后台 agent。它不是用户发一句做一句，而是在资源允许时做维护：
 
@@ -151,6 +310,63 @@ docs/UNIFIED_SELFDEV_SERVER_PLAN.md
 第四步读 `src/tool/selfdev/build_queue.rs` 和 `src/tool/selfdev/reload.rs`。前者管 build 请求、去重、锁和后台状态，后者管新 binary 怎么接管旧 server。这里不要急着改，先画出 build -> publish -> reload -> resume 的链路。
 
 最后读 `src/prompt/selfdev_mode.txt` 和 `src/prompt/selfdev_hint.txt`。prompt 放最后读，是为了验证工具和 CLI 的边界，而不是把 self-dev 理解成“换一段系统提示词”。
+
+Self-dev 工具的 action schema 先看这一段：
+
+```rust
+// src/tool/selfdev/mod.rs，节选
+impl Tool for SelfDevTool {
+    fn name(&self) -> &str {
+        "selfdev"
+    }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "properties": {
+                "action": {
+                    "enum": [
+                        "enter",
+                        "build",
+                        "test",
+                        "cancel-build",
+                        "reload",
+                        "status",
+                        "socket-info",
+                        "socket-help"
+                    ]
+                }
+            },
+            "required": ["action"]
+        })
+    }
+}
+```
+
+这段代码说明 self-dev 不是一个隐藏命令，而是模型能调用的工具。它暴露的是一组受控动作：进入 self-dev、build、test、reload、看状态。
+
+再看风险边界：
+
+```rust
+// src/tool/selfdev/mod.rs，节选
+match action.as_str() {
+    "enter" => self.do_enter(params.prompt, &ctx).await,
+    "build" => self.do_build(params.reason, params.target, params.notify, params.wake, &ctx).await,
+    "test" => self.do_test(params.command, params.reason, params.notify, params.wake, &ctx).await,
+    "reload" => {
+        if !SelfDevTool::session_is_selfdev(&ctx.session_id) {
+            Ok(ToolOutput::new(
+                "`selfdev reload` is only available inside a self-dev session. Use `selfdev enter` first.",
+            ))
+        } else {
+            self.do_reload(params.context, &ctx.session_id, ctx.execution_mode).await
+        }
+    }
+    "status" => self.do_status().await,
+    _ => Ok(ToolOutput::new(format!("Unknown action: {}", action))),
+}
+```
+
+这段代码说明 self-dev 的危险动作不是所有 session 都能用。`reload` 必须在 self-dev session 里执行，这是 JCode 给“让 agent 改自己”加的边界。
 
 Self-dev 是让 JCode 改自己。
 

@@ -53,6 +53,102 @@ Side panel 最后读。先看 `src/tool/side_panel.rs` 的 `SidePanelTool`，尤
 
 如果你想接到事件流，再回 `src/protocol.rs` 和 `src/server/runtime.rs`。先知道 UI 渲染什么，再看这些状态怎么从 server/client 传过来。反过来读协议，会很难判断哪些事件对用户判断 agent 状态有用。
 
+## 核心代码节选
+
+Info widget 的入口不是某个具体 widget，而是布局和统一渲染：
+
+```rust
+// src/tui/info_widget.rs，节选
+pub fn calculate_placements(
+    messages_area: Rect,
+    margins: &Margins,
+    data: &InfoWidgetData,
+) -> Vec<WidgetPlacement> {
+    let placements = info_widget_layout::calculate_placements(
+        messages_area,
+        margins,
+        data,
+        state.enabled,
+        &state.placements,
+    );
+    state.placements = placements.clone();
+    placements
+}
+
+pub fn render_all(frame: &mut Frame, placements: &[WidgetPlacement], data: &InfoWidgetData) {
+    for placement in placements {
+        render_single_widget(frame, placement, data);
+    }
+}
+```
+
+这段代码说明 widget 不是随便画在右边。JCode 先根据消息区域、边距和当前数据算 placement，再统一 render。可观察性在这里先变成布局问题。
+
+工具摘要也有单独的压缩层：
+
+```rust
+// src/tui/ui_tools.rs，节选
+pub(crate) fn get_tool_summary(tool: &ToolCall) -> String {
+    get_tool_summary_with_budget(tool, 50, None)
+}
+
+fn get_tool_summary_with_budget(tool: &ToolCall, bash_max_chars: usize, max_width: Option<usize>)
+    -> String
+{
+    match canonical_tool_name(&tool.name) {
+        "bash" => format!("$ {}", truncate_command_display(cmd, cmd_budget)),
+        "read" => path_summary(tool),
+        "grep" => query_summary(tool),
+        _ => String::new(),
+    }
+}
+```
+
+这是精简版，但能看出 UI 层的责任：模型调用工具时，用户不应该看到完整 JSON。TUI 要把工具名和 input 压成一行可扫的摘要。
+
+diff 也不是只等工具输出：
+
+```rust
+// src/tui/ui_diff.rs，节选
+pub(super) fn generate_diff_lines_from_tool_input(tool: &ToolCall)
+    -> Vec<ParsedDiffLine>
+{
+    match canonical_tool_name(&tool.name) {
+        "edit" => {
+            let old = tool.input.get("old_string").and_then(|v| v.as_str()).unwrap_or("");
+            let new = tool.input.get("new_string").and_then(|v| v.as_str()).unwrap_or("");
+            generate_diff_lines_from_strings(old, new)
+        }
+        "multiedit" => { /* 对每个 edit 生成 diff lines */ }
+        _ => Vec::new(),
+    }
+}
+```
+
+这段代码说明 JCode 可以从 tool input 提前生成 diff 线索。用户看到的“改了多少”不是最后才从文件系统算出来，TUI 在工具开始阶段就能推断一部分。
+
+Side panel 是模型能操作的状态，不只是 UI 组件：
+
+```rust
+// src/tool/side_panel.rs，节选
+impl Tool for SidePanelTool {
+    fn name(&self) -> &str { "side_panel" }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "properties": {
+                "action": {
+                    "enum": ["status", "write", "append", "load", "focus", "delete"]
+                }
+            },
+            "required": ["action"]
+        })
+    }
+}
+```
+
+这段代码说明 side panel 被注册成工具。模型可以写入、追加、加载、聚焦、删除页面，所以它是 harness 状态的一部分，不只是前端展示。
+
 ## JCode TUI 展示什么
 
 JCode 的 TUI 不只是打印 assistant text。它还处理：

@@ -39,6 +39,96 @@ docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md
 
 文档 `docs/SERVER_ARCHITECTURE.md` 和 `docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md` 放在最后读。先看源码，再用文档校准你画出来的流程图。反过来读容易记住概念，但不知道概念落在哪个函数上。
 
+## 核心代码节选
+
+先把入口压成三段代码。读者不需要打开 IDE，也能看到控制权怎么从 binary 交到 CLI。
+
+```rust
+// src/main.rs，节选
+fn main() -> Result<()> {
+    configure_system_allocator();
+
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?;
+
+    runtime.block_on(async { jcode::run().await })
+}
+```
+
+这段代码证明 `main()` 不处理 agent 逻辑。它只准备 Rust 进程环境和 tokio runtime，然后把事情交给 `jcode::run()`。
+
+```rust
+// src/lib.rs，节选
+pub async fn run() -> Result<()> {
+    cli::startup::run().await
+}
+```
+
+这段更直接：crate root 只是转发。真正的启动逻辑不在 `lib.rs`，而在 `src/cli/startup.rs`。
+
+```rust
+// src/cli/startup.rs，精简版
+pub async fn run() -> Result<()> {
+    startup_profile::init();
+    terminal::install_panic_hook();
+    logging::init();
+    storage::harden_user_config_permissions();
+    perf::init_background();
+    telemetry::record_install_if_first_run();
+
+    let args = parse_and_prepare_args()?;
+    spawn_background_update_check(&args);
+    dispatch::run_main(args).await?;
+    Ok(())
+}
+```
+
+这里能看出 `startup` 的边界：它做进程级准备和参数预处理，不创建 agent，不执行工具，也不直接渲染 TUI。它最后只做一件事：把 `Args` 交给 `dispatch`。
+
+默认启动路径的关键分支在 `src/cli/dispatch.rs`：
+
+```rust
+// src/cli/dispatch.rs，节选
+if !server_running {
+    maybe_prompt_server_bootstrap_login(&args.provider).await?;
+    spawn_server(
+        &args.provider,
+        args.model.as_deref(),
+        args.provider_profile.as_deref(),
+    )
+    .await?;
+}
+
+tui_launch::run_tui_client(
+    args.resume,
+    startup_hints,
+    !server_running,
+    args.fresh_spawn,
+)
+.await?;
+```
+
+这段代码把 JCode 的启动模型讲清楚了：默认命令不是“新建一个本地 agent 然后开始聊天”，而是先保证 server 存在，再启动 TUI client 去连接它。
+
+server 侧的状态也可以直接从结构体看出来：
+
+```rust
+// src/server/runtime.rs，字段节选
+struct ServerRuntime {
+    sessions: Arc<RwLock<HashMap<String, Arc<Mutex<Agent>>>>>,
+    event_tx: broadcast::Sender<ServerEvent>,
+    provider: Arc<dyn Provider>,
+    client_connections: Arc<RwLock<HashMap<String, ClientConnectionInfo>>>,
+    swarm_state: SwarmState,
+    shared_context: Arc<RwLock<HashMap<String, HashMap<String, SharedContext>>>>,
+    mcp_pool: Arc<OnceCell<Arc<SharedMcpPool>>>,
+    shutdown_signals: Arc<RwLock<HashMap<String, InterruptSignal>>>,
+}
+```
+
+这不是一个薄代理。`sessions`、`provider`、`swarm_state`、`mcp_pool` 都在 server runtime 里，说明长期会话、多 client、MCP、swarm 都依赖这个常驻进程。
+
 ## 启动链路
 
 简化以后是：
