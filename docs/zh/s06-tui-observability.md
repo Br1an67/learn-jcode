@@ -2,7 +2,7 @@
 
 ## 本课目标
 
-**本课一句话：TUI 不是皮肤，它决定用户能不能判断 agent 此刻在做什么、值不值得继续等。**
+**本课一句话：JCode 的 TUI 是运行时仪表盘，server event 先进入状态，再被压成用户能判断继续、打断还是信任的信号。**
 
 理解 UI 为什么是 harness 的一部分。
 
@@ -27,6 +27,21 @@ flowchart LR
 
 这张图说明 TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能判断 agent 状态的界面。
 
+```mermaid
+sequenceDiagram
+  participant Server as server
+  participant Event as ServerEvent
+  participant App as TUI App
+  participant Data as InfoWidgetData
+  participant Render as render
+  Server->>Event: ToolStart / TokenUsage / SwarmStatus / SidePanelState
+  Event->>App: handle_server_event()
+  App->>Data: info_widget_data()
+  Data->>Render: calculate_placements() + render_all()
+```
+
+这张图比“看起来有哪些 widget”更重要。TUI 的第一性问题不是怎么画，而是谁把 runtime 事件翻译成可观察状态。
+
 ## 本课直接讲清楚的主线
 
 TUI 的主线是事件变成判断。server/runtime 事件进入 app state，然后分别变成 info widget、tool summary、diff、side panel 和流式文本。用户看到的不是原始 protocol，而是被压缩成“我能不能继续信任这个 agent”的状态。
@@ -38,6 +53,125 @@ Tool summary 和 diff 是另外两层压缩。模型工具调用通常是 JSON�
 ## 核心代码节选
 
 下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
+真正的 TUI 边界在 `handle_server_event()`。它把 server event 改写成 `App` 状态，而不是等到 render 阶段才临时判断：
+
+```rust
+// src/tui/app/remote/server_events.rs，节选
+pub fn handle_server_event(app: &mut App, event: ServerEvent, remote: &mut impl RemoteEventState)
+    -> bool
+{
+    match event {
+        ServerEvent::ToolStart { id, name } => {
+            app.pause_streaming_tps(false);
+            remote.handle_tool_start(&id, &name);
+            app.commit_pending_streaming_assistant_message();
+            app.status = ProcessingStatus::RunningTool(name.clone());
+            app.streaming_tool_calls.push(ToolCall {
+                id,
+                name,
+                input: serde_json::Value::Null,
+                intent: None,
+            });
+            eager_stream_redraw
+        }
+        ServerEvent::ToolExec { id, name } => {
+            let parsed_input = remote.get_current_tool_input();
+            let tool_call = ToolCall {
+                id: id.clone(),
+                name: name.clone(),
+                input: parsed_input.clone(),
+                intent: ToolCall::intent_from_input(&parsed_input),
+            };
+            app.observe_tool_call(&tool_call);
+            eager_stream_redraw
+        }
+        ServerEvent::TokenUsage { input, output, cache_read_input, cache_creation_input } => {
+            app.streaming_input_tokens = input;
+            app.streaming_output_tokens = output;
+            app.streaming_cache_read_tokens = cache_read_input;
+            app.streaming_cache_creation_tokens = cache_creation_input;
+            eager_stream_redraw
+        }
+        ServerEvent::SidePanelState { snapshot } => {
+            app.set_side_panel_snapshot(snapshot);
+            false
+        }
+        ServerEvent::SwarmStatus { members } => {
+            app.remote_swarm_members = members;
+            false
+        }
+        ServerEvent::McpStatus { servers } => {
+            app.mcp_server_names = servers
+                .iter()
+                .filter_map(|s| {
+                    let (name, count_str) = s.split_once(':')?;
+                    Some((name.to_string(), count_str.parse::<usize>().unwrap_or(0)))
+                })
+                .collect();
+            false
+        }
+        _ => false,
+    }
+}
+```
+
+这段代码说明一件很硬的事：TUI 不是被动消费文本流。`ToolStart` 会提交 pending assistant text、暂停 TPS、更新状态并记录正在流式出现的工具；`ToolExec` 会把累积的 JSON input 变成 `ToolCall`，交给 `observe_tool_call()`；usage、side panel、swarm、MCP 都在这里落到 app state。
+
+换句话说，render 只是最后一步。真正决定“用户能看到什么状态”的地方，是 event handler。
+
+`InfoWidgetData` 是第二个收口点。它把分散在 session、provider、memory、swarm、ambient、usage 里的状态压成一个可渲染快照：
+
+```rust
+// src/tui/app/tui_state.rs，节选
+fn info_widget_data(&self) -> crate::tui::info_widget::InfoWidgetData {
+    let todos = if self.swarm_enabled && !self.swarm_plan_items.is_empty() {
+        self.swarm_plan_items
+            .iter()
+            .map(|item| crate::todo::TodoItem {
+                content: item.content.clone(),
+                status: item.status.clone(),
+                priority: item.priority.clone(),
+                id: item.id.clone(),
+                blocked_by: item.blocked_by.clone(),
+                assigned_to: item.assigned_to.clone(),
+            })
+            .collect()
+    } else {
+        gather_todos_for_session(session_id)
+    };
+
+    let memory_info = gather_memory_info(self.memory_enabled);
+    let swarm_info = if self.swarm_enabled {
+        // remote_swarm_members / local ProcessingStatus become SwarmInfo here
+        Some(crate::tui::info_widget::SwarmInfo { /* fields omitted */ })
+    } else {
+        None
+    };
+    let usage_info = self.widget_usage_info(self.widget_route_info(model.as_deref()));
+
+    crate::tui::info_widget::InfoWidgetData {
+        todos,
+        context_info,
+        model,
+        reasoning_effort,
+        service_tier,
+        memory_info,
+        swarm_info,
+        background_info,
+        usage_info,
+        tokens_per_second,
+        provider_name: Some(self.provider.name().to_string()),
+        connection_type: self.connection_type.clone(),
+        ambient_info: gather_ambient_info(crate::config::config().ambient.enabled),
+        cache_hit_info,
+        is_compacting,
+        git_info,
+    }
+}
+```
+
+这段不是完整源码，但结构够用了：widget 不应该各自乱查状态。JCode 先准备 `InfoWidgetData`，再让布局和 render 消费它。这样 TUI 才能在信息很多的时候保持一致。
 
 Info widget 的入口不是某个具体 widget，而是布局和统一渲染：
 
@@ -204,6 +338,7 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 ## 读完你应该能解释什么
 
 - 为什么 TUI 是 harness 的一部分，而不是皮肤。
+- 为什么 `handle_server_event()` 才是真正的 TUI 状态边界。
 - `InfoWidgetData` 和 `calculate_placements()` 解决什么问题。
 - tool summary 为什么不能直接展示原始 JSON。
 - side panel 为什么是模型可操作的状态，而不是临时展示区域。

@@ -2,7 +2,7 @@
 
 ## Goal
 
-**The One-Line Takeaway: TUI is not skin; it decides whether the user can judge what the agent is doing and whether it is worth waiting.**
+**The One-Line Takeaway: JCode's TUI is a runtime dashboard: server events enter state first, then become signals the user can use to continue, interrupt, or trust the agent.**
 
 Understand why UI is part of the harness.
 
@@ -27,6 +27,21 @@ flowchart LR
 
 This diagram shows that the TUI is not stdout wrapping. Server/runtime events enter TUI state, become widgets, tool summaries, and diffs, then render into the interface the user uses to judge agent state.
 
+```mermaid
+sequenceDiagram
+  participant Server as server
+  participant Event as ServerEvent
+  participant App as TUI App
+  participant Data as InfoWidgetData
+  participant Render as render
+  Server->>Event: ToolStart / TokenUsage / SwarmStatus / SidePanelState
+  Event->>App: handle_server_event()
+  App->>Data: info_widget_data()
+  Data->>Render: calculate_placements() + render_all()
+```
+
+This diagram matters more than a widget inventory. The first TUI question is not how drawing works; it is who translates runtime events into observable state.
+
 ## Main Line Covered Here
 
 The TUI path is event to judgment. Server/runtime events enter app state, then become info widgets, tool summaries, diffs, side panels, and streamed text. Users do not see raw protocol; they see state compressed into "can I still trust what this agent is doing?"
@@ -38,6 +53,125 @@ Tool summaries and diffs are another compression layer. Model tool calls are usu
 ## Core Source Excerpts
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
+The real TUI boundary is `handle_server_event()`. It rewrites server events into `App` state instead of leaving render code to infer state at the last moment:
+
+```rust
+// src/tui/app/remote/server_events.rs, excerpt
+pub fn handle_server_event(app: &mut App, event: ServerEvent, remote: &mut impl RemoteEventState)
+    -> bool
+{
+    match event {
+        ServerEvent::ToolStart { id, name } => {
+            app.pause_streaming_tps(false);
+            remote.handle_tool_start(&id, &name);
+            app.commit_pending_streaming_assistant_message();
+            app.status = ProcessingStatus::RunningTool(name.clone());
+            app.streaming_tool_calls.push(ToolCall {
+                id,
+                name,
+                input: serde_json::Value::Null,
+                intent: None,
+            });
+            eager_stream_redraw
+        }
+        ServerEvent::ToolExec { id, name } => {
+            let parsed_input = remote.get_current_tool_input();
+            let tool_call = ToolCall {
+                id: id.clone(),
+                name: name.clone(),
+                input: parsed_input.clone(),
+                intent: ToolCall::intent_from_input(&parsed_input),
+            };
+            app.observe_tool_call(&tool_call);
+            eager_stream_redraw
+        }
+        ServerEvent::TokenUsage { input, output, cache_read_input, cache_creation_input } => {
+            app.streaming_input_tokens = input;
+            app.streaming_output_tokens = output;
+            app.streaming_cache_read_tokens = cache_read_input;
+            app.streaming_cache_creation_tokens = cache_creation_input;
+            eager_stream_redraw
+        }
+        ServerEvent::SidePanelState { snapshot } => {
+            app.set_side_panel_snapshot(snapshot);
+            false
+        }
+        ServerEvent::SwarmStatus { members } => {
+            app.remote_swarm_members = members;
+            false
+        }
+        ServerEvent::McpStatus { servers } => {
+            app.mcp_server_names = servers
+                .iter()
+                .filter_map(|s| {
+                    let (name, count_str) = s.split_once(':')?;
+                    Some((name.to_string(), count_str.parse::<usize>().unwrap_or(0)))
+                })
+                .collect();
+            false
+        }
+        _ => false,
+    }
+}
+```
+
+This is the hard boundary: the TUI is not passively consuming text. `ToolStart` commits pending assistant text, pauses TPS, updates status, and records the streaming tool call. `ToolExec` turns accumulated JSON input into a `ToolCall` and passes it to `observe_tool_call()`. Usage, side panels, swarm, and MCP all land in app state here.
+
+Render is only the last step. The event handler decides which runtime state can become visible.
+
+`InfoWidgetData` is the second convergence point. It compresses state from session, provider, memory, swarm, ambient, and usage into one renderable snapshot:
+
+```rust
+// src/tui/app/tui_state.rs, excerpt
+fn info_widget_data(&self) -> crate::tui::info_widget::InfoWidgetData {
+    let todos = if self.swarm_enabled && !self.swarm_plan_items.is_empty() {
+        self.swarm_plan_items
+            .iter()
+            .map(|item| crate::todo::TodoItem {
+                content: item.content.clone(),
+                status: item.status.clone(),
+                priority: item.priority.clone(),
+                id: item.id.clone(),
+                blocked_by: item.blocked_by.clone(),
+                assigned_to: item.assigned_to.clone(),
+            })
+            .collect()
+    } else {
+        gather_todos_for_session(session_id)
+    };
+
+    let memory_info = gather_memory_info(self.memory_enabled);
+    let swarm_info = if self.swarm_enabled {
+        // remote_swarm_members / local ProcessingStatus become SwarmInfo here
+        Some(crate::tui::info_widget::SwarmInfo { /* fields omitted */ })
+    } else {
+        None
+    };
+    let usage_info = self.widget_usage_info(self.widget_route_info(model.as_deref()));
+
+    crate::tui::info_widget::InfoWidgetData {
+        todos,
+        context_info,
+        model,
+        reasoning_effort,
+        service_tier,
+        memory_info,
+        swarm_info,
+        background_info,
+        usage_info,
+        tokens_per_second,
+        provider_name: Some(self.provider.name().to_string()),
+        connection_type: self.connection_type.clone(),
+        ambient_info: gather_ambient_info(crate::config::config().ambient.enabled),
+        cache_hit_info,
+        is_compacting,
+        git_info,
+    }
+}
+```
+
+This is not the full source, but the shape is enough: widgets should not each rummage through runtime state. JCode prepares `InfoWidgetData`, then layout and render consume it. That keeps a dense TUI coherent.
 
 The info widget entrypoint is layout and unified rendering, not one specific widget:
 
@@ -204,6 +338,7 @@ To judge whether a widget matters, ask: if this were removed, what would the use
 ## What You Should Be Able To Explain
 
 - Why TUI is part of the harness rather than a skin.
+- Why `handle_server_event()` is the real TUI state boundary.
 - What problem `InfoWidgetData` and `calculate_placements()` solve.
 - Why tool summaries should not show raw JSON.
 - Why the side panel is model-operable state rather than temporary display space.
