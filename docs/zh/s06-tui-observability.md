@@ -13,16 +13,26 @@ JCode 在 TUI 上投入很多，这不是装饰。
 判断一个 UI 模块是不是 harness 的一部分，看它是否影响用户判断 agent 状态。tool 状态、diff、usage、memory 命中都影响判断，所以它们不是皮肤。
 
 ```mermaid
-flowchart LR
-  Server["server / runtime events"] --> Protocol["protocol events"]
-  Protocol --> AppState["TUI app state"]
-  AppState --> Widgets["InfoWidgetData"]
-  AppState --> Tools["ui_tools summaries"]
-  AppState --> Diff["ui_diff"]
+flowchart TD
+  Server["server<br/>runtime events"] --> Protocol["protocol<br/>events"]
+  Protocol --> AppState["TUI<br/>app state"]
+
+  subgraph ViewState["state compression"]
+    Widgets["InfoWidgetData"]
+    Tools["tool<br/>summaries"]
+    Diff["ui_diff"]
+    Panel["side<br/>panel"]
+  end
+
+  AppState --> Widgets
+  AppState --> Tools
+  AppState --> Diff
+  AppState --> Panel
   Widgets --> Render["render_all"]
   Tools --> Render
   Diff --> Render
-  Render --> User["terminal view"]
+  Panel --> Render
+  Render --> User["terminal<br/>view"]
 ```
 
 这张图说明 TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能判断 agent 状态的界面。
@@ -34,10 +44,10 @@ sequenceDiagram
   participant App as TUI App
   participant Data as InfoWidgetData
   participant Render as render
-  Server->>Event: ToolStart / TokenUsage / SwarmStatus / SidePanelState
+  Server->>Event: tool / usage / swarm / panel
   Event->>App: handle_server_event()
   App->>Data: info_widget_data()
-  Data->>Render: calculate_placements() + render_all()
+  Data->>Render: layout + render_all()
 ```
 
 这张图比“看起来有哪些 widget”更重要。TUI 的第一性问题不是怎么画，而是谁把 runtime 事件翻译成可观察状态。

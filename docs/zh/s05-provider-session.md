@@ -16,12 +16,12 @@ sequenceDiagram
   participant P as Concrete provider
   participant Stream as StreamEvent
 
-  Agent->>MP: complete_split(messages, tools, static, dynamic)
-  MP->>Sel: choose active provider / model
-  MP->>P: provider-specific request
-  P-->>MP: provider-specific stream
-  MP-->>Stream: normalize events
-  Stream-->>Agent: TextDelta / ToolUse / Usage / Error
+  Agent->>MP: complete_split(...)
+  MP->>Sel: choose provider / model
+  MP->>P: vendor request
+  P-->>MP: vendor stream
+  MP-->>Stream: normalize
+  Stream-->>Agent: text / tool / usage / error
 ```
 
 这张图说明 provider 层的职责：agent loop 不应该理解每个平台的私有 stream 格式，`MultiProvider` 和具体 provider 负责把它们统一成 `StreamEvent`。

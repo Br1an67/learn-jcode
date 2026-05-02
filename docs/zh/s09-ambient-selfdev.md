@@ -12,12 +12,12 @@
 
 ```mermaid
 flowchart TD
-  Scheduler["scheduler"] --> Cycle["ambient cycle"]
-  Cycle --> Prompt["ambient system prompt"]
-  Prompt --> Agent["background agent"]
-  Agent --> EndTool["end_ambient_cycle"]
-  EndTool --> Result["cycle result"]
-  EndTool --> Next["next schedule"]
+  Scheduler["scheduler"] --> Cycle["ambient<br/>cycle"]
+  Cycle --> Prompt["ambient<br/>system prompt"]
+  Prompt --> Agent["background<br/>agent"]
+  Agent --> EndTool["end<br/>ambient cycle"]
+  EndTool --> Result["cycle<br/>result"]
+  EndTool --> Next["next<br/>schedule"]
   Next --> Scheduler
 ```
 
@@ -216,13 +216,14 @@ ambient 调度可以对照 [mini/07_ambient_scheduler.py](../../mini/07_ambient_
 ## Self-Dev
 
 ```mermaid
-flowchart LR
-  Normal["normal session"] --> Enter["selfdev enter"]
-  Enter --> Canary["self-dev / canary session"]
-  Canary --> Build["selfdev build / test"]
-  Build --> Reload["selfdev reload"]
-  Reload --> Server["shared server"]
-  Server --> Resume["resume sessions"]
+flowchart TD
+  Normal["normal<br/>session"] --> Enter["selfdev<br/>enter"]
+  Enter --> Canary["self-dev<br/>canary session"]
+  Canary --> Build["build<br/>test"]
+  Build --> Gate{"safe to<br/>reload?"}
+  Gate --> Reload["selfdev<br/>reload"]
+  Reload --> Server["shared<br/>server"]
+  Server --> Resume["resume<br/>sessions"]
 ```
 
 这张图说明 self-dev 的边界：先切到 self-dev session，再 build/test，最后 reload shared server 并恢复会话。危险动作不应该从普通 session 直接执行。
@@ -419,10 +420,10 @@ sequenceDiagram
   participant Agent as ambient agent
   participant Tool as end_ambient_cycle
 
-  Queue-->>Runner: pop_ready()
-  Runner->>Agent: start ambient cycle
-  Agent->>Tool: summary / budget / next_schedule
-  Tool->>Queue: schedule next item
+  Queue-->>Runner: pop ready
+  Runner->>Agent: start cycle
+  Agent->>Tool: summary / budget / next
+  Tool->>Queue: schedule next
 ```
 
 Self-dev 的状态流：
@@ -434,11 +435,11 @@ sequenceDiagram
   participant Manifest as canary manifest
   participant Server as shared server
 
-  Session->>Build: request build/test
+  Session->>Build: request build / test
   Build-->>Session: usable binary
   Session->>Manifest: pending activation
   Session->>Server: reload signal
-  Server-->>Session: reload handoff / recovery
+  Server-->>Session: handoff / recovery
 ```
 
 这两条线都在讲同一件事：后台能力必须能恢复。ambient 用 queue 恢复下一次唤醒，self-dev 用 manifest 和 reload context 恢复正在做的修改。

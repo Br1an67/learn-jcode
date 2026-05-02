@@ -28,18 +28,26 @@ Harness = Tools
 ```
 
 ```mermaid
-flowchart LR
-  User["user goal"] --> Model["model / agent"]
-  Model --> Decision["next decision"]
-  Decision --> Harness["JCode harness"]
-  Harness --> Tools["tools"]
-  Harness --> Context["context"]
-  Harness --> Runtime["server / session"]
-  Harness --> UI["TUI / observability"]
-  Harness --> Storage["storage / memory"]
-  Tools --> World["codebase / shell / provider"]
-  Runtime --> World
+flowchart TD
+  User["user goal"] --> Model["model<br/>agent"]
+  Model --> Decision["next<br/>decision"]
+  Decision --> Harness["JCode<br/>harness"]
+
+  subgraph Env["harness env"]
+    Tools["tools<br/>read / write / shell"]
+    Runtime["runtime<br/>server / session"]
+    UI["UI<br/>TUI / diff / status"]
+    Storage["storage<br/>memory / journal"]
+    Context["context<br/>messages / results"]
+  end
+
+  Harness --> Tools
+  Harness --> Runtime
+  Harness --> UI
+  Harness --> Storage
   Storage --> Context
+  Tools --> World["codebase<br/>shell / provider"]
+  Runtime --> World
   World --> Context
   Context --> Model
 ```

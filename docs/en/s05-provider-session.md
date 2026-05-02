@@ -16,12 +16,12 @@ sequenceDiagram
   participant P as Concrete provider
   participant Stream as StreamEvent
 
-  Agent->>MP: complete_split(messages, tools, static, dynamic)
-  MP->>Sel: choose active provider / model
-  MP->>P: provider-specific request
-  P-->>MP: provider-specific stream
-  MP-->>Stream: normalize events
-  Stream-->>Agent: TextDelta / ToolUse / Usage / Error
+  Agent->>MP: complete_split(...)
+  MP->>Sel: choose provider / model
+  MP->>P: vendor request
+  P-->>MP: vendor stream
+  MP-->>Stream: normalize
+  Stream-->>Agent: text / tool / usage / error
 ```
 
 This diagram shows the provider layer's job: the agent loop should not understand every private provider stream format. `MultiProvider` and concrete providers normalize those formats into `StreamEvent`.

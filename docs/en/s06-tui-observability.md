@@ -13,16 +13,26 @@ JCode invests heavily in TUI for this reason.
 A UI module belongs to the harness if it changes how the user judges agent state. Tool status, diffs, usage, and memory hits all affect that judgment.
 
 ```mermaid
-flowchart LR
-  Server["server / runtime events"] --> Protocol["protocol events"]
-  Protocol --> AppState["TUI app state"]
-  AppState --> Widgets["InfoWidgetData"]
-  AppState --> Tools["ui_tools summaries"]
-  AppState --> Diff["ui_diff"]
+flowchart TD
+  Server["server<br/>runtime events"] --> Protocol["protocol<br/>events"]
+  Protocol --> AppState["TUI<br/>app state"]
+
+  subgraph ViewState["state compression"]
+    Widgets["InfoWidgetData"]
+    Tools["tool<br/>summaries"]
+    Diff["ui_diff"]
+    Panel["side<br/>panel"]
+  end
+
+  AppState --> Widgets
+  AppState --> Tools
+  AppState --> Diff
+  AppState --> Panel
   Widgets --> Render["render_all"]
   Tools --> Render
   Diff --> Render
-  Render --> User["terminal view"]
+  Panel --> Render
+  Render --> User["terminal<br/>view"]
 ```
 
 This diagram shows that the TUI is not stdout wrapping. Server/runtime events enter TUI state, become widgets, tool summaries, and diffs, then render into the interface the user uses to judge agent state.
@@ -34,10 +44,10 @@ sequenceDiagram
   participant App as TUI App
   participant Data as InfoWidgetData
   participant Render as render
-  Server->>Event: ToolStart / TokenUsage / SwarmStatus / SidePanelState
+  Server->>Event: tool / usage / swarm / panel
   Event->>App: handle_server_event()
   App->>Data: info_widget_data()
-  Data->>Render: calculate_placements() + render_all()
+  Data->>Render: layout + render_all()
 ```
 
 This diagram matters more than a widget inventory. The first TUI question is not how drawing works; it is who translates runtime events into observable state.

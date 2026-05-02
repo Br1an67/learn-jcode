@@ -10,11 +10,19 @@ Memory 很容易被误读成普通 RAG。JCode 这部分真正要看的不是“
 
 ```mermaid
 flowchart TD
-  TurnN["第 N 轮 messages"] --> TrySend["try_send Context"]
-  TrySend --> MemoryAgent["MemoryAgent sidecar"]
-  MemoryAgent --> Retrieve["relevance / retrieval / maintenance"]
-  Retrieve --> Pending["pending memory prompt"]
-  Pending --> TurnNext["第 N+1 轮注入"]
+  TurnN["第 N 轮<br/>messages"] --> TrySend["try_send<br/>Context"]
+  TrySend --> Sidecar["MemoryAgent<br/>sidecar"]
+
+  subgraph Work["后台 memory work"]
+    Relevance["relevance<br/>context"]
+    Retrieve["retrieval<br/>maintenance"]
+    Pending["pending<br/>memory prompt"]
+  end
+
+  Sidecar --> Relevance
+  Relevance --> Retrieve
+  Retrieve --> Pending
+  Pending -. 下一轮 .-> TurnNext["第 N+1 轮<br/>注入"]
 ```
 
 这张图是 memory 的关键：主 agent 只投递上下文，检索和维护在 sidecar 里跑，结果下一轮再进入主上下文。
@@ -171,13 +179,13 @@ sequenceDiagram
   participant Store as MemoryManager
   participant Next as 下一轮 turn
 
-  Turn->>Handle: update_context_sync_with_dir(messages)
-  Handle-->>Sidecar: try_send(Context)
-  Sidecar->>Sidecar: format_context_for_relevance
-  Sidecar->>Store: embedding / retrieval / cascade
+  Turn->>Handle: update context
+  Handle-->>Sidecar: try_send
+  Sidecar->>Sidecar: format relevance
+  Sidecar->>Store: retrieve / cascade
   Store-->>Sidecar: relevant memories
-  Sidecar->>Sidecar: format_relevant_prompt
-  Sidecar-->>Next: pending memory prompt
+  Sidecar->>Sidecar: build prompt
+  Sidecar-->>Next: pending prompt
 ```
 
 这条状态流解释了为什么 memory 不是普通 RAG：主 turn 只投递上下文，sidecar 才做检索和 prompt 组装。当前轮不会等它，下一轮才使用 pending prompt。

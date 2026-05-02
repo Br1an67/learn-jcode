@@ -10,10 +10,10 @@
 
 ```mermaid
 flowchart TD
-  JCode["JCode\n本地 Rust runtime"] --> Lessons["learn-jcode-5.5\n源码走读"]
-  Pi["pi-mono\n最小 coding harness"] --> Lessons
-  OpenCode["OpenCode\n开放平台取向"] --> Lessons
-  Claude["Claude Code\n闭源产品公开能力"] --> Lessons
+  Pi["pi-mono<br/>最小 harness"] --> Lessons["learn-jcode<br/>源码走读"]
+  OpenCode["OpenCode<br/>平台取向"] --> Lessons
+  Claude["Claude Code<br/>公开能力"] --> Lessons
+  JCode["JCode<br/>本地 Rust runtime"] --> Lessons
 ```
 
 这张图说明本课的边界：教程主体只读 JCode；pi、OpenCode、Claude Code 只用来校准取舍，不是本项目的依赖对象。

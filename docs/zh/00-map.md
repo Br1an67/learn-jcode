@@ -10,34 +10,42 @@ JCode 可以先看成一个本地 coding-agent runtime。模型负责判断下�
 
 ```mermaid
 flowchart TD
-  User["用户 / terminal"] --> TUI["TUI client"]
-  TUI <--> Server["resident server"]
+  User["用户<br/>terminal"] --> TUI["TUI client"]
+  TUI <--> Server["resident<br/>server"]
 
-  Server --> Sessions["session / journal / replay"]
-  Server --> Runtime["agent runtime"]
-  Server --> Events["protocol events"]
-  Server --> Swarm["swarm state / channels"]
-  Server --> MCP["MCP pool"]
+  subgraph ServerState["server state"]
+    Sessions["session<br/>journal / replay"]
+    Events["protocol<br/>events"]
+    Swarm["swarm<br/>plan / channels"]
+    MCP["MCP<br/>pool"]
+    Runtime["agent<br/>runtime"]
+  end
 
-  Runtime --> Loop["agent loop"]
-  Loop --> Provider["provider layer"]
-  Provider --> Model["LLM provider"]
-  Model --> Provider
-  Provider --> Loop
-
-  Loop --> Registry["tool registry"]
-  Registry --> Tools["read / edit / bash / memory / swarm / selfdev"]
-  Tools --> World["repo / shell / filesystem / server state"]
-  World --> Tools
-  Tools --> Loop
-
-  Loop --> MemorySidecar["memory sidecar"]
-  MemorySidecar --> MemoryStore["memory store / graph"]
-  MemoryStore --> MemorySidecar
-  MemorySidecar --> Loop
-
+  Server --> Runtime
+  Server --> Sessions
+  Server --> Events
+  Server --> Swarm
+  Server --> MCP
   Events --> TUI
+
+  subgraph Turn["一轮 agent turn"]
+    Loop["agent<br/>loop"]
+    Provider["provider<br/>layer"]
+    Registry["tool<br/>registry"]
+    Tools["基础工具<br/>memory / swarm<br/>selfdev"]
+  end
+
+  Runtime --> Loop
   Sessions --> Loop
+  Loop --> Provider
+  Provider <--> Model["LLM<br/>provider"]
+  Loop --> Registry
+  Registry --> Tools
+  Tools <--> World["repo / shell<br/>fs / server"]
+
+  Loop --> MemorySidecar["memory<br/>sidecar"]
+  MemorySidecar <--> MemoryStore["memory store<br/>graph"]
+  MemorySidecar -. 下一轮注入 .-> Loop
 ```
 
 这张图先抓三个边界：

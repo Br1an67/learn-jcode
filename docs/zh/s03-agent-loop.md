@@ -30,14 +30,20 @@ messages
 
 ```mermaid
 flowchart TD
-  User["用户输入"] --> Prep["整理 messages / tools / split prompt"]
-  Prep --> Provider["provider.complete_split"]
+  User["用户输入"] --> Prep["整理请求<br/>messages<br/>tools / prompt"]
+  Prep --> Provider["provider<br/>complete_split"]
   Provider --> Stream["StreamEvent"]
-  Stream --> Text["TextDelta: assistant text"]
-  Stream --> ToolUse["ToolUseStart / InputDelta / End"]
-  ToolUse --> Registry["Registry::execute"]
-  Registry --> Blocks["tool_output_to_content_blocks"]
-  Blocks --> History["Role::User tool result"]
+
+  subgraph Output["provider stream"]
+    Text["TextDelta<br/>assistant text"]
+    ToolUse["ToolUse<br/>start / input / end"]
+  end
+
+  Stream --> Text
+  Stream --> ToolUse
+  ToolUse --> Registry["Registry<br/>execute"]
+  Registry --> Blocks["ToolOutput<br/>to content blocks"]
+  Blocks --> History["Role::User<br/>tool result"]
   History --> Prep
 ```
 

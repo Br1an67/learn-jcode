@@ -254,6 +254,43 @@ body {
   box-shadow: inset 0 0 0 1px rgba(253, 246, 227, 0.35);
 }
 
+.content .mermaid svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
+.content .mermaid .edgeLabel,
+.content .mermaid .labelBkg {
+  background: var(--jcode-paper) !important;
+  fill: var(--jcode-paper) !important;
+  color: var(--jcode-ink) !important;
+}
+
+.content .mermaid .edgeLabel p {
+  margin: 0;
+  padding: 0.08rem 0.24rem;
+  border-radius: 5px;
+  background: var(--jcode-paper);
+  line-height: 1.25;
+}
+
+.content .mermaid .nodeLabel,
+.content .mermaid .edgeLabel {
+  line-height: 1.24 !important;
+}
+
+.content .mermaid .nodeLabel p {
+  margin: 0 !important;
+  line-height: 1.24 !important;
+}
+
+.content .mermaid .messageText,
+.content .mermaid .actor {
+  font-family: var(--jcode-sans) !important;
+}
+
 .ayu .content tr:nth-child(even) td,
 .coal .content tr:nth-child(even) td,
 .navy .content tr:nth-child(even) td {

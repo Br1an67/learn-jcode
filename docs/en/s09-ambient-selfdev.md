@@ -12,12 +12,12 @@ Neither module is just a prompt. Ambient is about scheduling, budgets, and cycle
 
 ```mermaid
 flowchart TD
-  Scheduler["scheduler"] --> Cycle["ambient cycle"]
-  Cycle --> Prompt["ambient system prompt"]
-  Prompt --> Agent["background agent"]
-  Agent --> EndTool["end_ambient_cycle"]
-  EndTool --> Result["cycle result"]
-  EndTool --> Next["next schedule"]
+  Scheduler["scheduler"] --> Cycle["ambient<br/>cycle"]
+  Cycle --> Prompt["ambient<br/>system prompt"]
+  Prompt --> Agent["background<br/>agent"]
+  Agent --> EndTool["end<br/>ambient cycle"]
+  EndTool --> Result["cycle<br/>result"]
+  EndTool --> Next["next<br/>schedule"]
   Next --> Scheduler
 ```
 
@@ -216,13 +216,14 @@ Real JCode adds active-session pause, permission requests, visible mode, notific
 ## Self-Dev
 
 ```mermaid
-flowchart LR
-  Normal["normal session"] --> Enter["selfdev enter"]
-  Enter --> Canary["self-dev / canary session"]
-  Canary --> Build["selfdev build / test"]
-  Build --> Reload["selfdev reload"]
-  Reload --> Server["shared server"]
-  Server --> Resume["resume sessions"]
+flowchart TD
+  Normal["normal<br/>session"] --> Enter["selfdev<br/>enter"]
+  Enter --> Canary["self-dev<br/>canary session"]
+  Canary --> Build["build<br/>test"]
+  Build --> Gate{"safe to<br/>reload?"}
+  Gate --> Reload["selfdev<br/>reload"]
+  Reload --> Server["shared<br/>server"]
+  Server --> Resume["resume<br/>sessions"]
 ```
 
 This diagram shows the self-dev boundary: enter a self-dev session first, then build/test, then reload the shared server and resume sessions. Dangerous actions should not run directly from a normal session.
@@ -417,10 +418,10 @@ sequenceDiagram
   participant Agent as ambient agent
   participant Tool as end_ambient_cycle
 
-  Queue-->>Runner: pop_ready()
-  Runner->>Agent: start ambient cycle
-  Agent->>Tool: summary / budget / next_schedule
-  Tool->>Queue: schedule next item
+  Queue-->>Runner: pop ready
+  Runner->>Agent: start cycle
+  Agent->>Tool: summary / budget / next
+  Tool->>Queue: schedule next
 ```
 
 Self-dev state flow:
@@ -432,11 +433,11 @@ sequenceDiagram
   participant Manifest as canary manifest
   participant Server as shared server
 
-  Session->>Build: request build/test
+  Session->>Build: request build / test
   Build-->>Session: usable binary
   Session->>Manifest: pending activation
   Session->>Server: reload signal
-  Server-->>Session: reload handoff / recovery
+  Server-->>Session: handoff / recovery
 ```
 
 Both lines point to the same rule: background capabilities must be recoverable. Ambient uses a queue to recover the next wake-up. Self-dev uses manifest and reload context to recover the active modification.

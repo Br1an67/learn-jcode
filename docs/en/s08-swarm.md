@@ -10,13 +10,20 @@ The boundary is server-level coordination: plans, communication, recovery, file 
 
 ```mermaid
 flowchart TD
-  Coordinator["coordinator session"] --> Plan["server swarm plan"]
-  Plan --> Worker["worker session"]
-  Worker --> Heartbeat["heartbeat / checkpoint"]
+  Coordinator["coordinator<br/>session"]
+
+  subgraph ServerState["server coordination state"]
+    Plan["server<br/>swarm plan"]
+    Channels["DM / broadcast<br/>channels"]
+  end
+
+  Coordinator --> Plan
+  Plan --> Worker["worker<br/>session"]
+  Worker --> Heartbeat["heartbeat<br/>checkpoint"]
   Heartbeat --> Plan
-  Worker --> Report["completion report"]
+  Worker --> Report["completion<br/>report"]
   Report --> Coordinator
-  Plan --> Channels["DM / broadcast / channels"]
+  Plan --> Channels
   Channels --> Worker
 ```
 
@@ -220,11 +227,11 @@ sequenceDiagram
   participant Server as server swarm state
   participant Worker as worker session
 
-  Coord->>Tool: propose_plan / assign_task / spawn
-  Tool->>Server: Comm* request
+  Coord->>Tool: plan / assign / spawn
+  Tool->>Server: swarm request
   Server->>Worker: task / channel / DM
-  Worker->>Server: heartbeat / checkpoint / report
-  Server-->>Coord: plan status / completion report
+  Worker->>Server: heartbeat / report
+  Server-->>Coord: status / completion
 ```
 
 This line shows the core of swarm: cooperation facts live in the server. Who owns a task, who is still alive, who is in which channel, and who reported completion are runtime state, not guesses from chat history.

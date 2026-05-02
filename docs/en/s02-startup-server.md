@@ -13,17 +13,26 @@ The startup path is the first key to the project. JCode does not create one isol
 Compress the lesson into this diagram first:
 
 ```mermaid
-flowchart LR
-  CLI[jcode command] --> Startup[cli startup]
-  Startup -->|no server| Spawn[spawn daemon server]
-  Startup -->|server exists| Connect[connect socket]
-  Spawn --> Server[JCode server]
-  Connect --> Client[TUI client]
+flowchart TD
+  CLI["jcode<br/>command"] --> Startup["cli<br/>startup"]
+  Startup --> Check{"server<br/>exists?"}
+  Check -- "no" --> Spawn["spawn<br/>daemon server"]
+  Check -- "yes" --> Connect["connect<br/>socket"]
+  Spawn --> Server["JCode<br/>server"]
+  Connect --> Client["TUI<br/>client"]
   Client <--> Server
-  Server --> Sessions[session map]
-  Server --> Provider[provider]
-  Server --> Swarm[swarm state]
-  Server --> MCP[MCP pool]
+
+  subgraph State["server-owned state"]
+    Sessions["session<br/>map"]
+    Provider["provider"]
+    Swarm["swarm<br/>state"]
+    MCP["MCP<br/>pool"]
+  end
+
+  Server --> Sessions
+  Server --> Provider
+  Server --> Swarm
+  Server --> MCP
 ```
 
 JCode does not keep all state inside the TUI client because clients can disconnect, restart, and reconnect. Sessions, providers, MCP pools, and swarm state live in the server so long-running work and multiple clients can survive. The cost is that the server must handle lifecycle, sockets, reload, and state recovery.

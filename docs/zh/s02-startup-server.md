@@ -13,17 +13,26 @@ JCode 的启动链路是理解整个项目的第一把钥匙。它不是每次�
 把本课内容先压成一张图：
 
 ```mermaid
-flowchart LR
-  CLI[jcode command] --> Startup[cli startup]
-  Startup -->|no server| Spawn[spawn daemon server]
-  Startup -->|server exists| Connect[connect socket]
-  Spawn --> Server[JCode server]
-  Connect --> Client[TUI client]
+flowchart TD
+  CLI["jcode<br/>command"] --> Startup["cli<br/>startup"]
+  Startup --> Check{"server<br/>exists?"}
+  Check -- "no" --> Spawn["spawn<br/>daemon server"]
+  Check -- "yes" --> Connect["connect<br/>socket"]
+  Spawn --> Server["JCode<br/>server"]
+  Connect --> Client["TUI<br/>client"]
   Client <--> Server
-  Server --> Sessions[session map]
-  Server --> Provider[provider]
-  Server --> Swarm[swarm state]
-  Server --> MCP[MCP pool]
+
+  subgraph State["server-owned state"]
+    Sessions["session<br/>map"]
+    Provider["provider"]
+    Swarm["swarm<br/>state"]
+    MCP["MCP<br/>pool"]
+  end
+
+  Server --> Sessions
+  Server --> Provider
+  Server --> Swarm
+  Server --> MCP
 ```
 
 JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。

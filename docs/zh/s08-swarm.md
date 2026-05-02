@@ -10,13 +10,20 @@ Swarm 的重点是 server-level coordination：计划、通信、状态恢复、
 
 ```mermaid
 flowchart TD
-  Coordinator["coordinator session"] --> Plan["server swarm plan"]
-  Plan --> Worker["worker session"]
-  Worker --> Heartbeat["heartbeat / checkpoint"]
+  Coordinator["coordinator<br/>session"]
+
+  subgraph ServerState["server coordination state"]
+    Plan["server<br/>swarm plan"]
+    Channels["DM / broadcast<br/>channels"]
+  end
+
+  Coordinator --> Plan
+  Plan --> Worker["worker<br/>session"]
+  Worker --> Heartbeat["heartbeat<br/>checkpoint"]
   Heartbeat --> Plan
-  Worker --> Report["completion report"]
+  Worker --> Report["completion<br/>report"]
   Report --> Coordinator
-  Plan --> Channels["DM / broadcast / channels"]
+  Plan --> Channels
   Channels --> Worker
 ```
 
@@ -220,11 +227,11 @@ sequenceDiagram
   participant Server as server swarm state
   participant Worker as worker session
 
-  Coord->>Tool: propose_plan / assign_task / spawn
-  Tool->>Server: Comm* request
+  Coord->>Tool: plan / assign / spawn
+  Tool->>Server: swarm request
   Server->>Worker: task / channel / DM
-  Worker->>Server: heartbeat / checkpoint / report
-  Server-->>Coord: plan status / completion report
+  Worker->>Server: heartbeat / report
+  Server-->>Coord: status / completion
 ```
 
 这条线说明 swarm 的核心不是“多开模型”，而是把协作事实放进 server：谁被分配了任务、谁还活着、谁在哪个 channel、谁交了 report。没有这些状态，coordinator 只能靠聊天记录猜。

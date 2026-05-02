@@ -9,15 +9,15 @@
 工具系统是 coding-agent harness 的核心。没有工具，模型只能聊天。有了工具，模型才能读代码、改代码、跑测试、查历史、和其他 agent 协作。
 
 ```mermaid
-flowchart LR
+flowchart TD
   ToolImpl["Tool impl"] --> Registry["Registry"]
-  Registry --> Definitions["definitions(): ToolDefinition[]"]
-  Definitions --> Provider["Provider request"]
-  Provider --> Model["Model sees tools"]
-  Model --> ToolCall["tool call"]
-  ToolCall --> Execute["Registry::execute"]
+  Registry --> Definitions["definitions()<br/>ToolDefinition[]"]
+  Definitions --> Provider["Provider<br/>request"]
+  Provider --> Model["Model<br/>sees tools"]
+  Model --> ToolCall["tool<br/>call"]
+  ToolCall --> Execute["Registry<br/>execute"]
   Execute --> ToolImpl
-  Execute --> Guard["context guard / telemetry"]
+  Execute --> Guard["context guard<br/>telemetry"]
   Guard --> Result["ToolOutput"]
 ```
 

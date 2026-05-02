@@ -10,11 +10,19 @@ Memory is easy to misread as normal RAG. The important part is not merely whethe
 
 ```mermaid
 flowchart TD
-  TurnN["turn N messages"] --> TrySend["try_send Context"]
-  TrySend --> MemoryAgent["MemoryAgent sidecar"]
-  MemoryAgent --> Retrieve["relevance / retrieval / maintenance"]
-  Retrieve --> Pending["pending memory prompt"]
-  Pending --> TurnNext["inject into turn N+1"]
+  TurnN["turn N<br/>messages"] --> TrySend["try_send<br/>Context"]
+  TrySend --> Sidecar["MemoryAgent<br/>sidecar"]
+
+  subgraph Work["background memory work"]
+    Relevance["relevance<br/>context"]
+    Retrieve["retrieval<br/>maintenance"]
+    Pending["pending<br/>memory prompt"]
+  end
+
+  Sidecar --> Relevance
+  Relevance --> Retrieve
+  Retrieve --> Pending
+  Pending -. next turn .-> TurnNext["turn N+1<br/>injection"]
 ```
 
 This is the key memory path: the main agent only submits context, retrieval and maintenance run in the sidecar, and the result enters the main context on the next turn.
@@ -171,13 +179,13 @@ sequenceDiagram
   participant Store as MemoryManager
   participant Next as next turn
 
-  Turn->>Handle: update_context_sync_with_dir(messages)
-  Handle-->>Sidecar: try_send(Context)
-  Sidecar->>Sidecar: format_context_for_relevance
-  Sidecar->>Store: embedding / retrieval / cascade
+  Turn->>Handle: update context
+  Handle-->>Sidecar: try_send
+  Sidecar->>Sidecar: format relevance
+  Sidecar->>Store: retrieve / cascade
   Store-->>Sidecar: relevant memories
-  Sidecar->>Sidecar: format_relevant_prompt
-  Sidecar-->>Next: pending memory prompt
+  Sidecar->>Sidecar: build prompt
+  Sidecar-->>Next: pending prompt
 ```
 
 This state flow explains why memory is not ordinary RAG. The main turn only submits context; the sidecar does retrieval and prompt assembly. The current turn does not wait, and the next turn consumes the pending prompt.

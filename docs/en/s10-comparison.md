@@ -10,10 +10,10 @@ This lesson only discusses public behavior, public documentation, and open-sourc
 
 ```mermaid
 flowchart TD
-  JCode["JCode\nlocal Rust runtime"] --> Lessons["learn-jcode-5.5\nsource walkthrough"]
-  Pi["pi-mono\nminimal coding harness"] --> Lessons
-  OpenCode["OpenCode\nopen platform direction"] --> Lessons
-  Claude["Claude Code\nclosed product public behavior"] --> Lessons
+  Pi["pi-mono<br/>minimal harness"] --> Lessons["learn-jcode<br/>source walkthrough"]
+  OpenCode["OpenCode<br/>platform direction"] --> Lessons
+  Claude["Claude Code<br/>public behavior"] --> Lessons
+  JCode["JCode<br/>local Rust runtime"] --> Lessons
 ```
 
 This diagram sets the boundary: the course reads JCode. pi, OpenCode, and Claude Code public behavior are only used to calibrate tradeoffs.

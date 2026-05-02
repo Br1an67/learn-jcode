@@ -28,14 +28,20 @@ Do not overcomplicate the loop. The complexity lives around it: cache, compactio
 
 ```mermaid
 flowchart TD
-  User["User input"] --> Prep["prepare messages / tools / split prompt"]
-  Prep --> Provider["provider.complete_split"]
+  User["User input"] --> Prep["prepare<br/>messages<br/>tools / prompt"]
+  Prep --> Provider["provider<br/>complete_split"]
   Provider --> Stream["StreamEvent"]
-  Stream --> Text["TextDelta: assistant text"]
-  Stream --> ToolUse["ToolUseStart / InputDelta / End"]
-  ToolUse --> Registry["Registry::execute"]
-  Registry --> Blocks["tool_output_to_content_blocks"]
-  Blocks --> History["Role::User tool result"]
+
+  subgraph Output["provider stream"]
+    Text["TextDelta<br/>assistant text"]
+    ToolUse["ToolUse<br/>start / input / end"]
+  end
+
+  Stream --> Text
+  Stream --> ToolUse
+  ToolUse --> Registry["Registry<br/>execute"]
+  Registry --> Blocks["ToolOutput<br/>to content blocks"]
+  Blocks --> History["Role::User<br/>tool result"]
   History --> Prep
 ```
 
