@@ -2,7 +2,7 @@
 
 ## Goal
 
-**The One-Line Takeaway: JCode's TUI is a runtime dashboard: server events enter state first, then become signals the user can use to continue, interrupt, or trust the agent.**
+**The One-Line Takeaway: JCode's TUI is a runtime dashboard: server events are written into state before they become signals the user can use to continue, interrupt, or trust the agent.**
 
 Understand why UI is part of the harness.
 
