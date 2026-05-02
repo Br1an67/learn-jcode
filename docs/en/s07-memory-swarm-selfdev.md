@@ -10,6 +10,17 @@ These modules are easy to turn into a pile of nouns. Read each one with one ques
 
 ## Memory
 
+```mermaid
+flowchart TD
+  TurnN["turn N messages"] --> TrySend["try_send Context"]
+  TrySend --> MemoryAgent["MemoryAgent sidecar"]
+  MemoryAgent --> Retrieve["relevance / retrieval / maintenance"]
+  Retrieve --> Pending["pending memory prompt"]
+  Pending --> TurnNext["inject into turn N+1"]
+```
+
+This is the key memory path: the main agent only submits context, retrieval and maintenance run in the sidecar, and the result enters the main context on the next turn.
+
 Read:
 
 ```text
@@ -109,6 +120,20 @@ The cost is a one-turn delay. That delay is intentional, not a missing synchrono
 
 ## Swarm
 
+```mermaid
+flowchart TD
+  Coordinator["coordinator session"] --> Plan["server swarm plan"]
+  Plan --> Worker["worker session"]
+  Worker --> Heartbeat["heartbeat / checkpoint"]
+  Heartbeat --> Plan
+  Worker --> Report["completion report"]
+  Report --> Coordinator
+  Plan --> Channels["DM / broadcast / channels"]
+  Channels --> Worker
+```
+
+This diagram shows that swarm state is centered on the server plan, not inside one worker's messages. Workers return to the coordinator and plan through heartbeat, checkpoint, and reports.
+
 Read:
 
 ```text
@@ -203,6 +228,19 @@ Do not read swarm as "open several subagents." The hard parts are plan ownership
 
 ## Ambient
 
+```mermaid
+flowchart TD
+  Scheduler["scheduler"] --> Cycle["ambient cycle"]
+  Cycle --> Prompt["ambient system prompt"]
+  Prompt --> Agent["background agent"]
+  Agent --> EndTool["end_ambient_cycle"]
+  EndTool --> Result["cycle result"]
+  EndTool --> Next["next schedule"]
+  Next --> Scheduler
+```
+
+This diagram shows why ambient needs an ending and scheduling mechanism. The background agent does not run forever; it reports the cycle result through `end_ambient_cycle` and schedules the next wake-up.
+
 Read:
 
 ```text
@@ -286,6 +324,18 @@ This is experimental, but important because it points toward long-running agent 
 When reading ambient, watch resource limits. A background agent without budget and priority rules becomes another source of interference.
 
 ## Self-Dev
+
+```mermaid
+flowchart LR
+  Normal["normal session"] --> Enter["selfdev enter"]
+  Enter --> Canary["self-dev / canary session"]
+  Canary --> Build["selfdev build / test"]
+  Build --> Reload["selfdev reload"]
+  Reload --> Server["shared server"]
+  Server --> Resume["resume sessions"]
+```
+
+This diagram shows the self-dev boundary: enter a self-dev session first, then build/test, then reload the shared server and resume sessions. Dangerous actions should not run directly from a normal session.
 
 Read:
 

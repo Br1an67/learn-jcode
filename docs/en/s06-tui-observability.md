@@ -10,6 +10,21 @@ JCode invests heavily in TUI for this reason.
 
 A UI module belongs to the harness if it changes how the user judges agent state. Tool status, diffs, usage, and memory hits all affect that judgment.
 
+```mermaid
+flowchart LR
+  Server["server / runtime events"] --> Protocol["protocol events"]
+  Protocol --> AppState["TUI app state"]
+  AppState --> Widgets["InfoWidgetData"]
+  AppState --> Tools["ui_tools summaries"]
+  AppState --> Diff["ui_diff"]
+  Widgets --> Render["render_all"]
+  Tools --> Render
+  Diff --> Render
+  Render --> User["terminal view"]
+```
+
+This diagram shows that the TUI is not stdout wrapping. Server/runtime events enter TUI state, become widgets, tool summaries, and diffs, then render into the interface the user uses to judge agent state.
+
 ## Read First
 
 ```text

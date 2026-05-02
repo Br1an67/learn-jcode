@@ -24,6 +24,21 @@ messages
 
 Do not overcomplicate the loop. The complexity lives around it: cache, compaction, streaming, memory, UI events, and error recovery.
 
+```mermaid
+flowchart TD
+  User["User input"] --> Prep["prepare messages / tools / split prompt"]
+  Prep --> Provider["provider.complete_split"]
+  Provider --> Stream["StreamEvent"]
+  Stream --> Text["TextDelta: assistant text"]
+  Stream --> ToolUse["ToolUseStart / InputDelta / End"]
+  ToolUse --> Registry["Registry::execute"]
+  Registry --> Blocks["tool_output_to_content_blocks"]
+  Blocks --> History["Role::User tool result"]
+  History --> Prep
+```
+
+This diagram shows the normal path only: the model streams output, JCode collects a tool call, executes it, and writes the tool result back into the next messages. Compaction, memory, and UI events are engineering around this path.
+
 ## Read First
 
 ```text

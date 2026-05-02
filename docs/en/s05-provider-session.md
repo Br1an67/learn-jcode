@@ -6,6 +6,24 @@ Understand how JCode connects different model platforms and long-running session
 
 Many agent demos reduce the provider layer to one API call. In a real product, provider integration becomes a large piece of engineering.
 
+```mermaid
+sequenceDiagram
+  participant Agent as Agent loop
+  participant MP as MultiProvider
+  participant Sel as Provider selection
+  participant P as Concrete provider
+  participant Stream as StreamEvent
+
+  Agent->>MP: complete_split(messages, tools, static, dynamic)
+  MP->>Sel: choose active provider / model
+  MP->>P: provider-specific request
+  P-->>MP: provider-specific stream
+  MP-->>Stream: normalize events
+  Stream-->>Agent: TextDelta / ToolUse / Usage / Error
+```
+
+This diagram shows the provider layer's job: the agent loop should not understand every private provider stream format. `MultiProvider` and concrete providers normalize those formats into `StreamEvent`.
+
 ## Read First
 
 ```text

@@ -6,6 +6,21 @@ Understand how JCode gives tools to the model.
 
 The tool system is the core of a coding-agent harness. Without tools, the model can only chat. With tools, it can read code, edit code, run tests, search history, and coordinate with other agents.
 
+```mermaid
+flowchart LR
+  ToolImpl["Tool impl"] --> Registry["Registry"]
+  Registry --> Definitions["definitions(): ToolDefinition[]"]
+  Definitions --> Provider["Provider request"]
+  Provider --> Model["Model sees tools"]
+  Model --> ToolCall["tool call"]
+  ToolCall --> Execute["Registry::execute"]
+  Execute --> ToolImpl
+  Execute --> Guard["context guard / telemetry"]
+  Guard --> Result["ToolOutput"]
+```
+
+This diagram puts the two tool paths together: `definitions()` exposes schemas to the model, while `execute()` is the runtime entrypoint. Both start from the `Tool` trait and `Registry`.
+
 ## Read First
 
 ```text
