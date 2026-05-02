@@ -40,6 +40,20 @@ src/protocol.rs
 
 Do not try to memorize every branch in that file. Follow one normal path first: user input, provider stream, model tool call, tool execution, tool result, next turn.
 
+## How to Read `turn_loops.rs`
+
+Open `src/agent/turn_loops.rs` and only look at `run_turn()` inside `impl Agent`. The function is long. Do not line-read it on the first pass. Split it into three parts.
+
+The first part is request preparation. Read `repair_missing_tool_outputs()`, `messages_for_provider()`, `tool_definitions().await`, `build_memory_prompt_nonblocking_shared()`, and `build_system_prompt_split()`. These calls show what JCode must prepare before a provider request: message repair, compaction, tool definitions, pending memory, and split prompts.
+
+The second part is the provider stream. Find `provider.complete_split(...)`, then read the `while let Some(event) = stream.next().await` loop. Ignore most events at first. Track only `TextDelta`, `ToolUseStart`, `ToolInputDelta`, and `ToolUseEnd`. Together they show the model streaming text while JCode assembles a JSON tool input.
+
+The third part is tool execution. Search for `registry.execute`. You will find two paths: `StreamEvent::NativeToolCall` and the normal collected `tool_calls` path. Read the normal path first: build `ToolContext`, publish `ToolStatus::Running`, call `self.registry.execute(&tc.name, tc.input.clone(), ctx).await`, then convert the result with `tool_output_to_content_blocks()` into the next `Role::User` message.
+
+Then jump to `src/agent/tools.rs` and read `tool_output_to_content_blocks()`. It is small, but it is the bridge from Rust tool output to provider-readable `ContentBlock::ToolResult`. After that, go back to the end of `run_turn()` and look at `self.session.save()`. That connects tool execution to session history.
+
+Read `src/agent/messages.rs` and `src/message.rs` after this path. Inspect the shape of `Message`, `Role`, and `ContentBlock`, then come back to why `messages_for_provider()` normalizes history. Read `src/protocol.rs` last; it explains how these events become visible to the TUI or remote clients.
+
 ## What One JCode Turn Does
 
 Inside `run_turn()`, roughly:

@@ -104,3 +104,13 @@ That sentence changes how you read the source:
 - `src/memory*` is not a normal RAG demo. It is recall built from long-term use.
 
 A good reading also tracks cost. A resident server reuses state, but it also brings reload, socket, and lifecycle management. Most major JCode designs have this shape: benefit and cost together.
+
+## How to Read This Course
+
+The rest of the course will not stop at file lists. Each lesson follows a source path: which file to open first, which function or struct to inspect, what signal to take from it, and why the next file follows.
+
+On the first pass, do not read too much. For startup, only trace `main()`, `jcode::run()`, `cli::startup::run()`, `dispatch::run_main()`, `spawn_server()`, and `Server::run()`. First understand how control moves. Then come back for swarm, ambient, debug sockets, and reload.
+
+The agent loop works the same way. First trace the normal path inside `run_turn()`: prepare messages and tools, call the provider stream, collect a tool call, execute the tool, and write the tool result into the next turn. Once that path is clear, read compaction, memory, native tools, and soft interrupts.
+
+There is no separate task area in this course. The important judgments are written directly into the lessons because the value of a source walkthrough is knowing why a function sits where it sits.

@@ -23,6 +23,16 @@ src/tool/memory.rs
 src/tool/session_search.rs
 ```
 
+Open `docs/MEMORY_ARCHITECTURE.md` first and only read the main path: context enters the memory agent, candidate memories are retrieved and filtered, and a result is injected into the next turn. Do not begin with `memory_agent.rs`; it is long.
+
+Then read `src/memory_agent.rs`. On the first pass, only trace `MemoryAgentHandle::update_context_sync_with_dir()`, `MemoryAgent::run()`, and `process_context()`. This answers how a completed agent turn schedules memory work in the background. Stop at `process_context()` before digging into cluster refinement.
+
+Next read `src/memory_prompt.rs`. Inspect `format_context_for_relevance()`, `format_context_for_extraction()`, and `format_relevant_prompt()`. These functions decide what context the memory agent sees and what text is eventually injected into the main model.
+
+Then read `src/memory.rs`. Start with `MemoryManager::remember_project()`, `find_similar_scoped()`, `get_relevant_parallel()`, and `find_similar_with_cascade_scoped()`. These functions show how memory moves from simple storage into parallel recall and cascade retrieval.
+
+Read `src/tool/memory.rs` and `src/tool/session_search.rs` last. The first is the model's explicit memory tool; the second searches across sessions. They are entrypoints. The main tradeoffs live in the background agent and manager.
+
 JCode memory is not "manually save a note." It is closer to automatic recall:
 
 ```text
@@ -58,6 +68,16 @@ src/tool/communicate.rs
 src/tool/task.rs
 ```
 
+Read `docs/SWARM_ARCHITECTURE.md` first, but only for boundaries: coordinator, worker, channel, plan, and file touches. Then go to source.
+
+Start source reading in `src/server/swarm.rs`. On the first pass, inspect `broadcast_swarm_status()`, `broadcast_swarm_plan_with_previous()`, `update_member_status()`, and `run_swarm_task()`. These cover status broadcast, plan broadcast, member status updates, and actual task dispatch.
+
+Then read `src/server/swarm_channels.rs`. Focus on `subscribe_session_to_channel()`, `unsubscribe_session_from_channel()`, and `list_channels_for_swarm()`. This pulls swarm back from "many agents" into a communication system: agents need channel subscriptions before messages have somewhere to go.
+
+Next read `src/tool/communicate.rs`. Do not treat it as a chat tool. It is the model-facing entrypoint into swarm runtime: DM, broadcast, plan updates, waiting for members, and worker spawn. While reading it, keep jumping back to server state and ask which state each action mutates.
+
+Finally read `src/tool/task.rs::SubagentTool`. This is the single-subagent entrypoint and it is not the same thing as swarm. Comparing these two files clarifies the boundary: `subagent` is mostly one-off delegation; `swarm` is long-running coordination.
+
 JCode swarm is not a normal subagent. It is concerned with multi-agent runtime coordination:
 
 - how a coordinator assigns work
@@ -78,10 +98,21 @@ Read:
 
 ```text
 docs/AMBIENT_MODE.md
+src/ambient.rs
 src/ambient/
 src/ambient_runner.rs
 src/tool/ambient.rs
 ```
+
+Read `docs/AMBIENT_MODE.md` first for startup conditions, budgets, and safety boundaries. A background agent without boundaries is not assistance; it is noise.
+
+Then read `src/ambient.rs` to see how `directives`, `manager`, `runner`, `scheduler`, and `persistence` fit together. It is a better map than starting inside a child module.
+
+Next read `src/ambient/runner.rs` and `src/ambient_runner.rs`. Look for how one ambient cycle starts, how results are recorded, and how the next wake-up is decided. Keep one judgment in mind: background work must not interrupt the user's main line of work.
+
+Then read `src/ambient/scheduler.rs`. Inspect how schedule items are ordered and woken. The hard part of ambient is not just prompting; it is time, priority, and resources.
+
+Read `src/tool/ambient.rs` last. Start with `EndAmbientCycleTool`, `ScheduleAmbientTool`, `RequestPermissionTool`, and `ScheduleTool`. These tools show that an ambient agent cannot just act freely. It must end cycles, schedule future work, and request permission when needed.
 
 Ambient is a background agent. Instead of responding only to user prompts, it can do maintenance when resources allow:
 
@@ -101,11 +132,25 @@ Read:
 
 ```text
 src/cli/selfdev.rs
-src/tool/selfdev.rs
+src/tool/selfdev/mod.rs
+src/tool/selfdev/launch.rs
+src/tool/selfdev/build_queue.rs
+src/tool/selfdev/reload.rs
+src/tool/selfdev/status.rs
 src/prompt/selfdev_mode.txt
 src/prompt/selfdev_hint.txt
 docs/UNIFIED_SELFDEV_SERVER_PLAN.md
 ```
+
+Start with `src/cli/selfdev.rs::run_self_dev()`. This explains how explicit `jcode self-dev` creates or resumes a self-dev session, marks it canary, decides whether a build is required, and launches the TUI.
+
+Then read `src/tool/selfdev/mod.rs`. Start with the `SelfDevTool` action schema, then inspect how `execute()` dispatches `enter/build/cancel-build/reload/status/socket-info`. Notice that `reload`, `socket-info`, and `socket-help` check whether the current session is self-dev. That is the risk boundary.
+
+Next read `src/tool/selfdev/launch.rs`. Inspect `enter_selfdev_session()` and `schedule_selfdev_prompt_delivery()`. This answers how a normal session moves into a self-dev session and why a new terminal may be spawned.
+
+Then read `src/tool/selfdev/build_queue.rs` and `src/tool/selfdev/reload.rs`. The first manages build requests, dedupe, locks, and background status. The second manages how a new binary takes over the old server. Do not edit here early. First draw the build -> publish -> reload -> resume path.
+
+Read `src/prompt/selfdev_mode.txt` and `src/prompt/selfdev_hint.txt` last. Use prompts to check the tool and CLI boundaries, not to reduce self-dev to "a different system prompt."
 
 Self-dev lets JCode modify itself.
 

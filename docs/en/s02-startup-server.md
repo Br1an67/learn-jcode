@@ -21,6 +21,24 @@ docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md
 
 Do not start by reading all of `src/server/`. Trace the startup path first. Otherwise client lifecycle, swarm, comms, debug sockets, and reload all arrive at once.
 
+## How to Read These Files
+
+Start with `src/main.rs` and only read `main()`. Do not look for product logic here. It configures the allocator, builds a tokio multi-thread runtime, and `block_on(jcode::run())`. Stop there. The entrypoint has already handed control away.
+
+Then open `src/lib.rs` and read `run()`. It is a single handoff to `cli::startup::run().await`. That tells you the crate root is not the real startup logic. The CLI layer is.
+
+Next read `src/cli/startup.rs::run()`. Follow the order: startup profile, panic hook, logging, permission hardening, perf, telemetry, `parse_and_prepare_args()`, then `dispatch::run_main(args)`. The point is that startup prepares the process. It does not decide how the agent runs.
+
+Now move to `src/cli/dispatch.rs`. Start with `run_main()` and its `match args.command`. If the command is `serve`, it initializes the provider, builds `server::Server::new(provider)`, and calls `server.run().await`. If there is no explicit command, keep reading into `run_default_command()`.
+
+`run_default_command()` is the important default `jcode` path. First read how it detects the JCode repo and marks a self-dev session. Then read the `server_is_running()`, `wait_for_existing_reload_server()`, and `spawn_server()` sequence. The conclusion should be concrete: normal startup does not immediately create an agent. It first ensures a local server exists.
+
+Then read `spawn_server()` in the same file. Focus on socket path, spawn lock, and the `ProcessCommand` arguments. It starts the same binary with the `serve` subcommand and detaches stdout while keeping stderr. This explains why the first run starts a daemon and the second run mostly connects to a socket.
+
+Finally read `src/server.rs::Server::run()` and `src/server/runtime.rs::ServerRuntime`. `Server::run()` binds main/debug sockets, sets owner-only permissions, clears stale reload markers, starts background tasks, and enters accept loops. `ServerRuntime` carries `sessions`, `provider`, `event_tx`, `swarm_state`, `mcp_pool`, and related state into `handle_client()`. At this point the server is no longer "a background process"; it is the long-running runtime.
+
+Read `docs/SERVER_ARCHITECTURE.md` and `docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md` after the source. Use them to check the diagram you drew from code. Reading docs first can leave you with nouns that you cannot place on functions.
+
 ## Startup Path
 
 Simplified:
