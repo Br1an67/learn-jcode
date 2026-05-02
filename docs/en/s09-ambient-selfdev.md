@@ -27,6 +27,8 @@ The module relationship is straightforward: `directives` supplies pending work, 
 
 The source excerpts below show two things directly: ambient is not a single tool file, and an ambient cycle must report summary, resource usage, and next schedule through `end_ambient_cycle`.
 
+### Ambient Core Source Excerpts
+
 The module map lives in `src/ambient.rs`:
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
@@ -79,6 +81,40 @@ impl Tool for EndAmbientCycleTool {
 
 This shows the ambient agent does not just run and vanish. It must report what happened, how many memories changed, whether compaction happened, and when to wake next.
 
+The schedule queue shows that "wake next" is a persisted item, not just a promise in text:
+
+```rust
+// src/ambient/persistence.rs, excerpt
+pub struct ScheduledQueue {
+    items: Vec<ScheduledItem>,
+    path: PathBuf,
+}
+
+impl ScheduledQueue {
+    pub fn push(&mut self, item: ScheduledItem) {
+        self.items.push(item);
+        let _ = self.save();
+    }
+
+    pub fn pop_ready(&mut self) -> Vec<ScheduledItem> {
+        let now = Utc::now();
+        let (ready, remaining): (Vec<_>, Vec<_>) =
+            self.items.drain(..).partition(|i| i.scheduled_for <= now);
+
+        self.items = remaining;
+        let mut ready = ready;
+        ready.sort_by(|a, b| {
+            b.priority
+                .cmp(&a.priority)
+                .then_with(|| a.scheduled_for.cmp(&b.scheduled_for))
+        });
+        ready
+    }
+}
+```
+
+This makes ambient scheduling concrete: only due items are popped, higher priority runs first, and equal priority falls back to scheduled time. The background agent is constrained by queue and scheduler, not an infinite loop.
+
 Ambient is a background agent. Instead of responding only to user prompts, it can do maintenance when resources allow:
 
 - clean up memory
@@ -110,6 +146,8 @@ The self-dev line is that "let JCode modify itself" must pass through a controll
 `SelfDevTool` exposes a controlled action set: `enter/build/test/cancel-build/reload/status/socket-info`. `reload`, `socket-info`, and `socket-help` check whether the current session is self-dev; that is the risk boundary. Launch moves a normal session into self-dev, build queue handles dedupe, locks, and background state, and reload lets a new binary take over the old server and resume sessions.
 
 Prompts are not the core of self-dev. They tell the model the rules; the real boundary is CLI, tool actions, build/test, session gates, and reload recovery.
+
+### Self-Dev Core Source Excerpts
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
 
@@ -167,6 +205,49 @@ match action.as_str() {
 ```
 
 This shows dangerous self-dev actions are not available in every session. `reload` must run inside a self-dev session. That is one of JCode's guardrails for letting the agent modify itself.
+
+Before reload, JCode also saves recovery context, updates the canary manifest, and signals the server:
+
+```rust
+// src/tool/selfdev/reload.rs, excerpt
+pub(super) async fn do_reload(
+    &self,
+    context: Option<String>,
+    session_id: &str,
+    execution_mode: ToolExecutionMode,
+) -> Result<ToolOutput> {
+    let source = build::current_source_state(&repo_dir)?;
+    let hash = source.version_label.clone();
+
+    let mut manifest = build::BuildManifest::load()?;
+    manifest.canary = Some(hash.clone());
+    manifest.canary_status = Some(build::CanaryStatus::Testing);
+    manifest.set_pending_activation(build::PendingActivation {
+        session_id: session_id.to_string(),
+        new_version: hash.clone(),
+        source_fingerprint: Some(source.fingerprint.clone()),
+        requested_at: chrono::Utc::now(),
+        // other version fields omitted
+    })?;
+    manifest.save()?;
+
+    let reload_ctx = ReloadContext {
+        task_context: context,
+        version_after: hash.clone(),
+        session_id: session_id.to_string(),
+        timestamp: chrono::Utc::now().to_rfc3339(),
+        // other fields omitted
+    };
+    reload_ctx.save()?;
+
+    let request_id =
+        server::send_reload_signal(hash.clone(), Some(session_id.to_string()), true);
+    let timeout = std::time::Duration::from_secs(SelfDevTool::reload_timeout_secs());
+    server::wait_for_reload_ack(&request_id, timeout).await?;
+}
+```
+
+This shows self-dev reload is not just "restart." It records the version to activate, saves continuation context, and asks the server to enter reload handoff. Without that, an agent modifying itself would easily lose the current task.
 
 Self-dev lets JCode modify itself.
 

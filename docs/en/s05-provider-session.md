@@ -99,6 +99,38 @@ impl MultiProvider {
 
 This is simplified, but the design is clear: provider selection belongs to the provider layer. The agent loop should not know whether Claude or OpenAI is the current default.
 
+Auth complexity is visible in code too. When JCode runs an external login command, it can hand the terminal out of raw mode and restore it afterward:
+
+```rust
+// src/auth/login_flows.rs, excerpt
+fn run_external_login_command_inner(
+    program: &str,
+    args: &[String],
+    suspend_raw_mode: bool,
+) -> Result<()> {
+    let raw_was_enabled =
+        suspend_raw_mode && crossterm::terminal::is_raw_mode_enabled().unwrap_or(false);
+    if raw_was_enabled {
+        let _ = crossterm::terminal::disable_raw_mode();
+    }
+
+    let status_result = std::process::Command::new(program).args(args).status();
+
+    if raw_was_enabled {
+        let _ = crossterm::terminal::enable_raw_mode();
+    }
+
+    let status = status_result
+        .with_context(|| format!("Failed to start command: {} {}", program, args.join(" ")))?;
+    if !status.success() {
+        anyhow::bail!("Command exited with non-zero status: {}", status);
+    }
+    Ok(())
+}
+```
+
+This is why auth is not a small config feature. JCode runs inside TUI, SSH, headless, and external CLI login environments. Login flow has to handle real terminal state, not just read one environment variable.
+
 The session storage shape is also worth seeing directly:
 
 ```rust
@@ -175,17 +207,7 @@ A JCode session is not just a chat transcript. It needs:
 - memory profile
 - active process tracking
 
-Files:
-
-```text
-src/session/model.rs
-src/session/journal.rs
-src/session/render.rs
-src/replay.rs
-src/import.rs
-```
-
-This layer determines whether JCode is a long-running tool or a one-shot script.
+The `StoredMessage` and `StoredCompactionState` excerpts above are only the model layer. Journals append events, rendering turns structured state back into displayable content, and replay/import turn history back into something the agent can continue. This layer determines whether JCode is a long-running tool or a one-shot script.
 
 ## Why Session Import Matters
 

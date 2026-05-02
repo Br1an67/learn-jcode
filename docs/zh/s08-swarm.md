@@ -89,6 +89,55 @@ if let Some(summary) = checkpoint_summary {
 
 这段代码说明 swarm 要追踪 heartbeat、checkpoint 和 assigned session。没有这些状态，多 agent 协作只会变成多个黑盒同时跑。
 
+`communicate` tool 把这些 server 能力暴露给模型。注意它不是普通聊天工具，它的 action 集合直接覆盖 spawn、计划、channel、等待成员这些 runtime 动作：
+
+```rust
+// src/tool/communicate.rs，节选
+impl Tool for CommunicateTool {
+    fn name(&self) -> &str {
+        "swarm"
+    }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "required": ["action"],
+            "properties": {
+                "action": {
+                    "enum": [
+                        "message", "broadcast", "dm", "channel",
+                        "propose_plan", "approve_plan", "spawn",
+                        "assign_task", "run_plan", "subscribe_channel",
+                        "unsubscribe_channel", "await_members"
+                    ]
+                }
+            }
+        })
+    }
+}
+```
+
+channel 也有 server 侧索引，不是消息字符串里约定一个 `#name` 就算完成：
+
+```rust
+// src/server/swarm_channels.rs，节选
+pub(super) async fn subscribe_session_to_channel(
+    session_id: &str,
+    swarm_id: &str,
+    channel: &str,
+    channel_subscriptions: &ChannelSubscriptions,
+    channel_subscriptions_by_session: &ChannelSubscriptions,
+) {
+    with_channel_index_mut(
+        channel_subscriptions,
+        channel_subscriptions_by_session,
+        |index| index.subscribe(session_id, swarm_id, channel),
+    )
+    .await;
+}
+```
+
+这两段补上了 swarm 的通信边界：模型调用 tool，tool 发 server request，server 维护 channel/session 索引。协作状态不放在 prompt 里临时约定。
+
 ## JCode 的 Swarm 关心什么
 
 JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：

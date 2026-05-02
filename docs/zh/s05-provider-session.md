@@ -99,6 +99,38 @@ impl MultiProvider {
 
 这段是精简版，但能看清设计：provider 选择被集中在 provider 层。agent loop 不应该知道“当前默认用 Claude 还是 OpenAI”。
 
+Auth 的复杂度也能在代码里看到。外部登录命令运行时，JCode 会临时把终端 raw mode 交出去，命令结束后再恢复：
+
+```rust
+// src/auth/login_flows.rs，节选
+fn run_external_login_command_inner(
+    program: &str,
+    args: &[String],
+    suspend_raw_mode: bool,
+) -> Result<()> {
+    let raw_was_enabled =
+        suspend_raw_mode && crossterm::terminal::is_raw_mode_enabled().unwrap_or(false);
+    if raw_was_enabled {
+        let _ = crossterm::terminal::disable_raw_mode();
+    }
+
+    let status_result = std::process::Command::new(program).args(args).status();
+
+    if raw_was_enabled {
+        let _ = crossterm::terminal::enable_raw_mode();
+    }
+
+    let status = status_result
+        .with_context(|| format!("Failed to start command: {} {}", program, args.join(" ")))?;
+    if !status.success() {
+        anyhow::bail!("Command exited with non-zero status: {}", status);
+    }
+    Ok(())
+}
+```
+
+这段代码解释了为什么 auth 不是配置项小功能。JCode 运行在 TUI、SSH、headless、外部 CLI 登录这些环境里，登录流程要处理真实终端状态，不是读取一个环境变量就结束。
+
 Session 的存储形状也值得直接看：
 
 ```rust
@@ -175,17 +207,7 @@ JCode session 不是纯聊天记录。它要支持：
 - memory profile
 - active process tracking
 
-相关文件：
-
-```text
-src/session/model.rs
-src/session/journal.rs
-src/session/render.rs
-src/replay.rs
-src/import.rs
-```
-
-这层决定了 JCode 能不能成为长期工作的工具，而不是一次性脚本。
+上面的 `StoredMessage` 和 `StoredCompactionState` 只是 session 的模型层。journal 负责追加事件，render 负责把结构化状态变成可展示内容，replay/import 负责把历史重新变成可继续运行的状态。这层决定了 JCode 能不能成为长期工作的工具，而不是一次性脚本。
 
 ## Session import 的意义
 

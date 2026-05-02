@@ -89,6 +89,55 @@ if let Some(summary) = checkpoint_summary {
 
 This shows swarm tracks heartbeat, checkpoint, and assigned session. Without that state, multi-agent work becomes several black boxes running at once.
 
+The `communicate` tool exposes those server capabilities to the model. It is not a normal chat tool; its action set covers spawn, planning, channels, and member waits:
+
+```rust
+// src/tool/communicate.rs, excerpt
+impl Tool for CommunicateTool {
+    fn name(&self) -> &str {
+        "swarm"
+    }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "required": ["action"],
+            "properties": {
+                "action": {
+                    "enum": [
+                        "message", "broadcast", "dm", "channel",
+                        "propose_plan", "approve_plan", "spawn",
+                        "assign_task", "run_plan", "subscribe_channel",
+                        "unsubscribe_channel", "await_members"
+                    ]
+                }
+            }
+        })
+    }
+}
+```
+
+Channels also have server-side indexes. They are not just `#name` strings agreed in a prompt:
+
+```rust
+// src/server/swarm_channels.rs, excerpt
+pub(super) async fn subscribe_session_to_channel(
+    session_id: &str,
+    swarm_id: &str,
+    channel: &str,
+    channel_subscriptions: &ChannelSubscriptions,
+    channel_subscriptions_by_session: &ChannelSubscriptions,
+) {
+    with_channel_index_mut(
+        channel_subscriptions,
+        channel_subscriptions_by_session,
+        |index| index.subscribe(session_id, swarm_id, channel),
+    )
+    .await;
+}
+```
+
+These excerpts close the communication boundary: the model calls a tool, the tool sends a server request, and the server maintains channel/session indexes. Coordination state is not improvised inside prompt text.
+
 ## What JCode Swarm Cares About
 
 JCode swarm is concerned with multi-agent runtime coordination:

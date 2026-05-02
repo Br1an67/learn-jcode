@@ -81,6 +81,64 @@ async fn run(mut self) {
 
 This shows memory is a sidecar agent, not a synchronous function inside `run_turn()`. The main agent submits context; the background agent manages session state, turn count, and retrieval cadence.
 
+`process_context()` turns messages into retrieval material, then stores relevant results as a pending prompt:
+
+```rust
+// src/memory_agent.rs, excerpt
+async fn process_context(
+    &mut self,
+    session_id: &str,
+    messages: Arc<[Message]>,
+    _timestamp: Instant,
+) -> Result<()> {
+    let memory_manager = self.manager_for_session(session_id);
+    let context = memory::format_context_for_relevance(&messages);
+    if context.is_empty() {
+        return Ok(());
+    }
+
+    // embedding / retrieval / validation omitted
+
+    if let Some(prompt) =
+        memory::format_relevant_prompt(&relevant, MAX_MEMORIES_PER_TURN)
+    {
+        memory::set_pending_memory_with_ids_and_display(
+            session_id,
+            prompt,
+            count,
+            ids,
+            display_prompt,
+        );
+    }
+}
+```
+
+That explains "inject on the next turn": the sidecar does not mutate the current provider request. It writes pending memory for the main agent to pick up later.
+
+Prompt assembly is also split. JCode separates relevance context, extraction context, and the final injected text:
+
+```rust
+// src/memory_prompt.rs, excerpt
+pub fn format_context_for_relevance(messages: &[Message]) -> String {
+    for message in messages.iter().rev().take(MEMORY_CONTEXT_MAX_MESSAGES) {
+        // keep only the context used to judge relevance, truncate on budget
+    }
+}
+
+pub(crate) fn format_context_for_extraction(messages: &[Message]) -> String {
+    for message in messages.iter().rev().take(EXTRACTION_CONTEXT_MAX_MESSAGES) {
+        // extraction uses a wider window
+    }
+}
+
+pub(crate) fn format_relevant_prompt(entries: &[MemoryEntry], limit: usize) -> Option<String> {
+    format_entries_for_prompt(entries, limit)
+        .map(|formatted| format!("# Memory\n\n{}", formatted))
+}
+```
+
+Those are the three prompt roles from the main line: relevance finds candidates, extraction saves new memory, and relevant prompt injects recall.
+
 JCode memory is not "manually save a note." It is closer to automatic recall:
 
 ```text

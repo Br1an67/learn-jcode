@@ -81,6 +81,64 @@ async fn run(mut self) {
 
 这段代码说明 memory 是一个 sidecar agent，而不是 `run_turn()` 里同步调用的一段函数。主 agent 只投递上下文，后台 agent 自己维护 session state、turn count 和检索节奏。
 
+`process_context()` 里会把上下文转成检索材料，找到相关 memory 后只写入 pending prompt：
+
+```rust
+// src/memory_agent.rs，节选
+async fn process_context(
+    &mut self,
+    session_id: &str,
+    messages: Arc<[Message]>,
+    _timestamp: Instant,
+) -> Result<()> {
+    let memory_manager = self.manager_for_session(session_id);
+    let context = memory::format_context_for_relevance(&messages);
+    if context.is_empty() {
+        return Ok(());
+    }
+
+    // embedding / retrieval / validation 省略
+
+    if let Some(prompt) =
+        memory::format_relevant_prompt(&relevant, MAX_MEMORIES_PER_TURN)
+    {
+        memory::set_pending_memory_with_ids_and_display(
+            session_id,
+            prompt,
+            count,
+            ids,
+            display_prompt,
+        );
+    }
+}
+```
+
+这段代码把“下一轮注入”说清楚了：memory sidecar 不直接改当前 provider request，而是把结果放到 pending memory，等主 agent 下一轮取。
+
+prompt 组装也不是随便把历史拼起来。JCode 分开了 relevance context、extraction context 和最终注入文本：
+
+```rust
+// src/memory_prompt.rs，节选
+pub fn format_context_for_relevance(messages: &[Message]) -> String {
+    for message in messages.iter().rev().take(MEMORY_CONTEXT_MAX_MESSAGES) {
+        // 只保留用于判断相关性的上下文，超过预算就截断
+    }
+}
+
+pub(crate) fn format_context_for_extraction(messages: &[Message]) -> String {
+    for message in messages.iter().rev().take(EXTRACTION_CONTEXT_MAX_MESSAGES) {
+        // 提取新 memory 用更大的窗口
+    }
+}
+
+pub(crate) fn format_relevant_prompt(entries: &[MemoryEntry], limit: usize) -> Option<String> {
+    format_entries_for_prompt(entries, limit)
+        .map(|formatted| format!("# Memory\n\n{}", formatted))
+}
+```
+
+这就是本课主线里说的三种 prompt：relevance 负责找，extraction 负责沉淀，relevant prompt 负责注入。
+
 JCode 的 memory 不是“用户手动保存一条笔记”。它更像自动召回：
 
 ```text
