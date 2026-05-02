@@ -88,6 +88,30 @@ pub async fn run() -> Result<()> {
 
 规则：关键流程必须给源码节选、精简版源码或结构体字段摘录。每个代码块后面必须解释“这段代码证明了什么”。不要整段搬大文件，只摘最能说明问题的 5-25 行。
 
+### 复杂流程优先画 Mermaid
+
+正面示例：
+
+```mermaid
+flowchart LR
+  User[User input] --> Turn[run_turn]
+  Turn --> Provider[provider.complete_split]
+  Provider --> ToolCall[tool call]
+  ToolCall --> Registry[Registry::execute]
+  Registry --> Result[tool result]
+  Result --> Turn
+```
+
+这张图说明 agent loop 的闭合路径。代码节选解释函数细节，Mermaid 负责让读者先看到结构。
+
+反面示例：
+
+```text
+JCode 的 agent loop 会经过 provider、tool registry、tool result、message。
+```
+
+规则：启动链路、agent loop、tool registry、provider stream、server/client event、memory sidecar、swarm coordination 这类内容应优先配 Mermaid。图要解释状态归属或数据流，不画纯装饰图。每张图后面必须有一句解释图里最重要的边界。
+
 ### 解释设计取舍，不写功能清单
 
 正面示例：
