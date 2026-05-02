@@ -27,6 +27,12 @@ If agents are completely new to you, read `Learn-OpenClaw` or pi-mono first, the
 learn-jcode-5.5/
 ├── README.md                 # Chinese entry
 ├── README-en.md              # English entry
+├── mini/                     # reduced mechanism specimens, not a task track
+│   ├── README.md
+│   ├── 01_server_client.py
+│   ├── 02_tool_registry.py
+│   ├── 03_provider_stream.py
+│   └── 04_memory_sidecar.py
 ├── docs/
 │   ├── zh/                   # Chinese lesson docs
 │   │   ├── README.md
@@ -61,6 +67,8 @@ learn-jcode-5.5/
 
 This repository does not copy `learn-claude-code`'s `agents/` example directory. That is intentional: this course is not building a toy agent from scratch; it is reading JCode itself. Things readers need to know are written directly into the lessons, not moved into a separate hands-on area.
 
+It does keep the useful part of `learn-claude-code`: small code can make a mechanism easier to see. `mini/` contains four reduced specimens for server/client, tool registry, provider stream, and memory sidecar. They are not another task track; they reduce the cognitive load before reading JCode source.
+
 ## Lessons
 
 Read in order, one or two lessons per day.
@@ -77,6 +85,8 @@ Read in order, one or two lessons per day.
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
 | s10 | [对比课](./docs/zh/s10-comparison.md) | [Comparison](./docs/en/s10-comparison.md) |
+
+If a lesson's source path feels too large, read the corresponding specimen in [mini/](./mini/README.md), then return to the lesson.
 
 ## Suggested Pace
 

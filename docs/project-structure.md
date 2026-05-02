@@ -30,11 +30,22 @@ The root README should stay short. Lessons should live in `docs/{zh,en}`.
 
 ## What We Do Not Copy Yet
 
-### `agents/`
+### `mini/`
 
 `learn-claude-code` has runnable miniature agents because it teaches harness mechanisms by implementing them from scratch.
 
-This project studies JCode itself, so the main course stays source-first. If we add miniature code, it should be a small mechanism specimen that clarifies JCode concepts, not a detached exercise track.
+This project studies JCode itself, so the main course stays source-first. The `mini/` directory is intentionally smaller than `learn-claude-code`'s `agents/`: it contains mechanism specimens, not a second course.
+
+Current specimens:
+
+```text
+mini/01_server_client.py
+mini/02_tool_registry.py
+mini/03_provider_stream.py
+mini/04_memory_sidecar.py
+```
+
+Each file maps to a JCode lesson and removes real provider calls, sockets, and file writes. The goal is to make the mechanism visible before readers return to the JCode source.
 
 ### `skills/`
 
@@ -52,6 +63,13 @@ This repository can add `skills/` later only if we create actual reusable Codex/
 learn-jcode-5.5/
 ├── README.md
 ├── README-en.md
+├── mini/
+│   ├── README.md
+│   ├── 01_server_client.py
+│   ├── 02_tool_registry.py
+│   ├── 03_provider_stream.py
+│   ├── 04_memory_sidecar.py
+│   └── mini_compat.py
 ├── docs/
 │   ├── zh/
 │   │   ├── README.md

@@ -27,6 +27,12 @@
 learn-jcode-5.5/
 ├── README.md                 # 中文入口
 ├── README-en.md              # English entry
+├── mini/                     # 缩小版机制标本，不是任务区
+│   ├── README.md
+│   ├── 01_server_client.py
+│   ├── 02_tool_registry.py
+│   ├── 03_provider_stream.py
+│   └── 04_memory_sidecar.py
 ├── docs/
 │   ├── zh/                   # 中文分课文档
 │   │   ├── README.md
@@ -61,6 +67,8 @@ learn-jcode-5.5/
 
 没有照搬 `learn-claude-code` 的 `agents/` 示例目录。原因是这个教程不是从零写一个 toy agent，而是读 JCode 本身。需要读者知道的内容直接写进课程，不单独开动手区。
 
+但保留了 `learn-claude-code` 最有价值的一点：小代码能帮助读者看清机制。`mini/` 里是 4 个缩小版机制标本，对应 server/client、tool registry、provider stream、memory sidecar。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
+
 ## 课程
 
 建议按顺序读，每天 1-2 课。
@@ -77,6 +85,8 @@ learn-jcode-5.5/
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
 | s10 | [对比课](./docs/zh/s10-comparison.md) | [Comparison](./docs/en/s10-comparison.md) |
+
+如果某课的源码太大，可以先看 [mini/](./mini/README.md) 里的对应标本，再回到课程正文。
 
 ## 推荐学习节奏
 
