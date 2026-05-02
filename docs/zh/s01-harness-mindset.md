@@ -6,6 +6,8 @@ JCode 不是一个“Rust 写的聊天壳”。它是一个 coding-agent harness
 
 这句话要先理解，不然后面读源码会很痛苦。因为你会看到大量看起来和 LLM 无关的代码：server、socket、TUI、OAuth、provider catalog、session journal、memory、MCP、swarm、reload。这些不是旁枝，它们就是 harness。
 
+本课不读具体实现，只定学习视角。视角错了，后面会把 server、TUI、session 都误读成“额外功能”。
+
 ## Agent 和 Harness 的边界
 
 沿用 `learn-claude-code` 的说法：模型才是 agent。模型负责判断下一步该做什么。外部工程负责给模型提供环境。
@@ -98,3 +100,5 @@ OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。Ope
 - 必须提到模型和 harness 的边界。
 - 必须提到至少 4 个 JCode harness 组件。
 - 不要写成项目宣传稿，写成你自己的理解。
+
+一个合格答案应该能解释代价。比如：常驻 server 能复用状态，但也带来 reload、socket、生命周期管理这些复杂度。

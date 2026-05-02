@@ -8,6 +8,8 @@
 
 JCode 在 TUI 上投入很多，这不是装饰。
 
+判断一个 UI 模块是不是 harness 的一部分，看它是否影响用户判断 agent 状态。tool 状态、diff、usage、memory 命中都影响判断，所以它们不是皮肤。
+
 ## 先读这些文件
 
 ```text
@@ -66,6 +68,8 @@ Side panel 是一个很实用的设计。它可以放：
 
 这让用户不用在主聊天流里翻来翻去。
 
+Side panel 的价值不是“多一个面板”。它把稳定参考信息从聊天流里拿出来。聊天流适合时间线，side panel 适合当前状态。
+
 ## Info Widget 的意义
 
 Info widget 解决的是“状态显示不能抢主输出空间”的问题。比如：
@@ -98,3 +102,5 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 ```
 
 推荐从 `info_widget_git` 或 `info_widget_todos` 开始，别从最复杂的 swarm widget 开始。
+
+写完后检查一句话：这个 widget 如果删掉，用户会少知道什么？答不上来，就说明你还没理解它的用途。

@@ -19,6 +19,8 @@ docs/SERVER_ARCHITECTURE.md
 docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md
 ```
 
+不要先读整个 `src/server/`。先把启动链路追通，再回来看 server 子模块。不然你会同时遇到 client lifecycle、swarm、comm、debug socket、reload，信息量太大。
+
 ## 启动链路
 
 简化以后是：
@@ -51,6 +53,8 @@ JCode 的 server 负责：
 - 支持 `/reload` 后继续工作。
 
 你可以把 client 理解成显示器和键盘，把 server 理解成真正运行 agent 的地方。
+
+这个设计的代价也要记住：server 需要处理断连、重连、idle timeout、reload、状态持久化。JCode 不是“多一个 server 更高级”，而是用复杂度换长期会话体验。
 
 ## `ServerRuntime` 里值得看的字段
 

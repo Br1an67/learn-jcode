@@ -40,6 +40,8 @@ src/protocol.rs
 
 其中 `src/agent/turn_loops.rs` 是重点。
 
+读这个文件时不要试图一次性记住所有分支。先只追一条正常路径：用户输入、provider stream、模型发 tool call、工具执行、tool result 回到下一轮。
+
 ## JCode 一轮 turn 做什么
 
 在 `run_turn()` 里，大致会发生：
@@ -77,6 +79,8 @@ Memory、时间、动态状态这类内容如果混进静态 prefix，会破坏 
 
 这样主 agent 不会因为 memory search 变慢。
 
+这是一种取舍：memory 不是每次都立刻最完整，但交互不会被检索拖住。教程里讲 memory 时都按这个取舍理解。
+
 ## Tool Result 怎么回到模型
 
 工具执行后会返回 `ToolOutput`。然后 `tool_output_to_content_blocks()` 把它转成 provider 能理解的 content block。
@@ -106,3 +110,5 @@ JCode 如何解析 tool input？
 ```
 
 写成一段笔记，不要超过 500 字。
+
+如果笔记里只写“JCode 支持工具调用”，说明你还没追到关键路径。至少要写出一个函数名和一个数据结构名。

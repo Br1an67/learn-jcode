@@ -31,6 +31,8 @@ src/auth/commands.rs
 src/auth/login_flows.rs
 ```
 
+不要一口气读完所有 provider。先选一个你熟悉的，比如 OpenAI 或 Claude，把 trait、stream event、auth 这三条线追通。
+
 ## Provider 层解决什么问题
 
 不同 provider 的差异很多：
@@ -66,6 +68,8 @@ ollama
 这说明它不是简单面向一个 API key 的 CLI。
 
 OAuth、账号切换、headless login、callback URL、pending login state，这些都是 coding-agent 产品会遇到的实际问题。
+
+如果你做过只读 `OPENAI_API_KEY` 的 demo，这部分会显得啰嗦。但 JCode 面向的是长期本地工具，用户会换账号、换 provider、在 SSH 环境登录、恢复 pending login。这些都不是 prompt 能解决的问题。
 
 ## Session 为什么重要
 
@@ -121,3 +125,5 @@ JCode README 提到可以从 Codex、Claude Code、OpenCode、pi 恢复会话。
 ```text
 为什么 provider stream 需要统一成 JCode 内部的 StreamEvent？
 ```
+
+答案里必须提到至少两个 provider 差异。只写“为了统一接口”不够。

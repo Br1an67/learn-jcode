@@ -78,6 +78,8 @@ conversation_search
 
 这些不是最小 agent 必需，但能显著改善效率和可观察性。
 
+这里不要只数工具数量。工具越多，越容易污染 prompt、撑爆上下文、让模型误选工具。JCode 的重点是工具治理，不是“工具越多越好”。
+
 ### Harness 级工具
 
 ```text
@@ -121,6 +123,8 @@ pi: 最小有效 coding harness
 JCode: 长期多会话本地 agent runtime
 ```
 
+读到这里要能说出代价：pi 小，所以容易改；JCode 大，所以必须处理缓存、截断、动态注册、权限和 UI 状态。
+
 ## 练习：设计 repo_summary 工具
 
 新增一个只读工具 `repo_summary`，输出：
@@ -141,3 +145,5 @@ tracked file count:
 - 至少做一次手动验证。
 
 这个练习能走通完整工具路径，比写一个天气 API 工具更接近 coding harness。
+
+做这个练习时先不要接入 TUI。先让工具能被模型调用，再考虑要不要显示成 widget。顺序反了会把问题搞复杂。

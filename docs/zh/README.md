@@ -2,6 +2,8 @@
 
 这部分是中文分课文档。README 只做入口，真正学习时按这里的顺序读。
 
+写法按 [../writing-style.md](../writing-style.md) 里的约定来：像源码走查，不像项目宣传。每一课都尽量回答三个问题：先读哪个文件、看什么设计取舍、读完做什么练习。
+
 课程安排：
 
 | 课次 | 主题 | 目标 |
@@ -14,4 +16,4 @@
 | [s06](./s06-tui-observability.md) | TUI 和可观察性 | 理解 UI 为什么是 harness 的一部分 |
 | [s07](./s07-memory-swarm-selfdev.md) | Memory、Swarm、Ambient、Self-Dev | 看 JCode 最有差异化也最难的部分 |
 
-建议一天读一课或两课。JCode 不适合硬压成一天速成。
+建议一天读一课或两课。JCode 不适合硬压成一天速成。遇到看不懂的模块，先写下问题，不要为了“读完”把目录硬扫过去。
