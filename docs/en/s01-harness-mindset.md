@@ -133,10 +133,10 @@ A good reading also tracks cost. A resident server reuses state, but it also bri
 
 ## How to Read This Course
 
-The rest of the course will not stop at file lists. Each lesson follows a source path: which file to open first, which function or struct to inspect, what signal to take from it, and why the next file follows.
+The rest of the course should not make you jump between the IDE and the lesson. Each lesson excerpts the important source directly and explains function boundaries, state flow, and tradeoffs. Paths mark source provenance; they are not homework.
 
-On the first pass, do not read too much. For startup, only trace `main()`, `jcode::run()`, `cli::startup::run()`, `dispatch::run_main()`, `spawn_server()`, and `Server::run()`. First understand how control moves. Then come back for swarm, ambient, debug sockets, and reload.
+For startup, the first pass only needs the control path: `main()` hands off to `jcode::run()`, CLI startup prepares the process, the default command ensures a server exists, and the client connects to the long-running runtime. The lesson excerpts that path instead of asking you to browse all of `src/server/` first.
 
-The agent loop works the same way. First trace the normal path inside `run_turn()`: prepare messages and tools, call the provider stream, collect a tool call, execute the tool, and write the tool result into the next turn. Once that path is clear, read compaction, memory, native tools, and soft interrupts.
+The agent loop uses the same approach. You first see the normal path in the lesson: prepare messages and tools, call the provider stream, collect a tool call, execute the tool, and write the tool result into the next turn. Compaction, memory, native tools, and soft interrupts are explained in their own lessons instead of being left as file names.
 
 There is no separate task area in this course. The important judgments are written directly into the lessons because the value of a source walkthrough is knowing why a function sits where it sits.

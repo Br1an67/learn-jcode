@@ -87,14 +87,14 @@ Tool / MCP / Skill all orbit tool calling
 
 That helps `learn-jcode-5.5` because JCode can drown readers in server, provider, session, memory, and swarm details. We should borrow the directness, not the one-day pacing.
 
-JCode is not a one-day project. Read it over several days:
+JCode is not a one-day project. Absorb it over several days:
 
 ```text
-Start with the harness stance.
-Then startup and server.
-Then agent loop and tool registry.
-Then provider/session/TUI.
-Then memory, swarm, ambient, self-dev.
+Day 1: harness stance.
+Day 2: startup and server.
+Day 3: agent loop and tool registry.
+Day 4: provider/session/TUI.
+Day 5 and later: memory, swarm, ambient, self-dev.
 ```
 
 ## What You Should Be Able To Explain

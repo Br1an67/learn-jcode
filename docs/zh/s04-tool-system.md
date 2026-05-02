@@ -21,41 +21,13 @@ flowchart LR
 
 这张图把工具系统的两条线放在一起：`definitions()` 是给模型看的 schema，`execute()` 是 runtime 真正执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
 
-## 先读这些文件
+## 本课直接讲清楚的主线
 
-```text
-src/tool/mod.rs
-src/tool/read.rs
-src/tool/write.rs
-src/tool/edit.rs
-src/tool/bash.rs
-src/tool/grep.rs
-src/tool/task.rs
-src/tool/communicate.rs
-src/tool/mcp.rs
-src/tool/memory.rs
-src/tool/side_panel.rs
-```
+工具系统先看合同：每个工具都要同时给出模型可见的 schema 和 runtime 可调用的 `execute()`。这就是 `Tool` trait 的意义。模型看到的是 `ToolDefinition`，真正执行时走 registry。
 
-重点先看 `src/tool/mod.rs`。
+Registry 不是一个普通 map。它同时管理 base tools、session-specific tools、skill registry、compaction 相关状态、allowed tool 过滤、别名解析、telemetry、错误和输出截断。下面的代码节选会直接展示这几层，不需要读者自己从一堆工具文件里拼。
 
-## 这组文件怎么读
-
-先打开 `src/tool/mod.rs`，从 `Tool` trait 开始读。不要先看 `read` 或 `bash` 的实现。`Tool` trait 定了工具在 JCode 里的合同：工具名、描述、JSON schema、执行函数。模型看到的是 definition，runtime 调的是 `execute()`，这两个动作都从这里开始。
-
-接着读 `Tool::to_definition()`。它把 trait 方法转成 `ToolDefinition`。这一步连接了工具系统和 provider 层：没有 definition，模型不知道工具存在；没有 execute，工具只是 prompt 里的说明。
-
-然后读 `Registry` 结构体。先看字段：`tools`、`skills`、`compaction`。这说明 registry 不是简单 map。它还要知道 skill registry，并且给 `conversation_search` 这类工具保存 compaction 相关状态。
-
-下一步读 `Registry::base_tools()`。这里能看到哪些工具是无状态、可复用、通过 `OnceLock` 缓存的。重点不是背工具名，而是看 JCode 把 `read/write/edit/bash/grep/ls` 这类基础工具，和 `memory/goal/schedule/selfdev/swarm` 这类 harness 工具放进同一个 registry。
-
-再看 `Registry::new(provider)`。它先拿 base tools，再插入 `subagent`、`batch`、`conversation_search` 这些 session-specific tools。原因很直接：这些工具需要当前 provider、registry 或 compaction manager，不能像 `read` 一样全局复用。
-
-然后读 `Registry::definitions()`。注意它会过滤 allowed tools，并按 name 排序。排序不是洁癖，它减少 prompt cache 抖动。这个点和 `s03` 的 split prompt 是一条线：harness 要控制每次请求的稳定性。
-
-最后读 `Registry::execute()`。先看 `resolve_tool_name()`，它把 `shell_exec`、`file_read`、`task` 这些 alias 转成 JCode 内部名字；再看执行后调用 `guard_context_overflow()`。这说明工具输出不是直接塞回上下文，registry 会管别名、telemetry、错误和截断。
-
-读具体工具时按难度走：先看 `src/tool/read.rs` 或 `src/tool/ls.rs`，再看 `src/tool/edit.rs`、`src/tool/bash.rs`，最后看 `src/tool/task.rs`、`src/tool/communicate.rs`、`src/tool/mcp.rs`。不要第一天读 `swarm` 工具，它会把你拉到 server coordination。
+JCode 把基础 coding 工具和 harness 工具放在同一个系统里：`read/write/edit/bash/grep/ls` 是手，`memory/selfdev/swarm/side_panel/mcp` 是环境能力。这个统一 registry 是 agent loop 能把模型 tool call 变成真实行为的关键。
 
 ## 核心代码节选
 

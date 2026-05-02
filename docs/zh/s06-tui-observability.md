@@ -25,48 +25,13 @@ flowchart LR
 
 这张图说明 TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能判断 agent 状态的界面。
 
-## 先读这些文件
+## 本课直接讲清楚的主线
 
-```text
-src/tui/
-src/side_panel.rs
-src/tool/side_panel.rs
-crates/jcode-tui-core/
-crates/jcode-tui-render/
-crates/jcode-tui-markdown/
-crates/jcode-tui-mermaid/
-```
+TUI 的主线是事件变成判断。server/runtime 事件进入 app state，然后分别变成 info widget、tool summary、diff、side panel 和流式文本。用户看到的不是原始 protocol，而是被压缩成“我能不能继续信任这个 agent”的状态。
 
-不要一开始就扎进 `src/tui/ui.rs`。先看小块：
+Info widget 解决布局和信息密度：`InfoWidgetData` 收集状态，`calculate_placements()` 决定位置，`render_all()` 统一渲染。Git、todo、memory、swarm 这些 widget 的差别不在画法，而在它们各自回答用户什么问题。
 
-```text
-src/tui/info_widget.rs
-src/tui/info_widget_git.rs
-src/tui/info_widget_memory_render.rs
-src/tui/info_widget_todos.rs
-src/tui/info_widget_swarm_background.rs
-src/tui/ui_tools.rs
-src/tui/ui_diff.rs
-src/tui/stream_buffer.rs
-```
-
-## 这组文件怎么读
-
-先打开 `src/tui/info_widget.rs`，不要直接读 render 细节。先看 `WidgetKind`、`InfoWidgetData`、`calculate_placements()`、`render_all()`。这几处告诉你 JCode 怎么决定哪些状态值得显示、放在哪边、什么时候合并成 overview。
-
-然后选一个小 widget 追完整链路。建议先读 `src/tui/info_widget_git.rs` 的 `render_git_widget()` 和 `render_git_compact()`。Git 信息很适合入门，因为它没有复杂异步协议。读的时候只问：`InfoWidgetData.git` 里有什么，compact 和 expanded 两种视图各删掉了什么信息。
-
-第二个 widget 读 `src/tui/info_widget_todos.rs`。看 `render_todos_widget()`、`render_todos_expanded()`、`render_todos_compact()`。这里能看到一个状态模块怎么在窄空间里取舍：不是所有 todo 都能完整显示，UI 必须决定摘要、截断和展开页。
-
-第三个再读 `src/tui/info_widget_memory_render.rs`。先看 `render_memory_widget()`，再看 `memory_status_badge()`、`render_memory_pipeline_lines()`。这部分和 `s07` 的 memory 对上：TUI 展示的不是“有 memory 功能”，而是 memory 当前在检索、提取、维护还是空闲。
-
-工具展示放在后面读。打开 `src/tui/ui_tools.rs`，先看 `resolve_display_tool_name()`、`canonical_tool_name()`、`get_tool_summary()`，再看 `summarize_apply_patch_input()` 和 `summarize_unified_patch_input()`。这条线解释 JCode 为什么能把一堆工具调用压成用户能扫一眼的摘要。
-
-Diff 再单独看 `src/tui/ui_diff.rs`。先读 `diff_change_counts_for_tool()`，再读 `generate_diff_lines_from_tool_input()` 和 `collect_diff_lines()`。你会看到 UI 不是等工具输出完整 diff 才显示，它会尝试从 tool input 里提前计算增删行。
-
-Side panel 最后读。先看 `src/tool/side_panel.rs` 的 `SidePanelTool`，尤其是 action enum：`status/write/append/load/focus/delete`。再跳到 `src/side_panel.rs` 看 `write_markdown_page()`、`append_markdown_page()`、`focus_page()`、`snapshot_for_session()`。这条线说明 side panel 是模型可操作的持久页面，不只是 TUI 临时区域。
-
-如果你想接到事件流，再回 `src/protocol.rs` 和 `src/server/runtime.rs`。先知道 UI 渲染什么，再看这些状态怎么从 server/client 传过来。反过来读协议，会很难判断哪些事件对用户判断 agent 状态有用。
+Tool summary 和 diff 是另外两层压缩。模型工具调用通常是 JSON，TUI 要把它压成一行可扫的动作摘要；文件编辑还可以从 tool input 提前推断 diff，而不是等完整工具结果回来。Side panel 则更进一步：它是模型能写入、追加、聚焦和删除的持久页面，不只是临时展示区。
 
 ## 核心代码节选
 
@@ -220,9 +185,9 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 
 两者都说明一件事：coding agent 的 UI 不是 shell stdout 就够了。
 
-## 一个 widget 应该怎么看
+## 一个 widget 的判断标准
 
-读 `info_widget_git` 或 `info_widget_todos` 时，按这条数据链路看：
+判断 `info_widget_git` 或 `info_widget_todos` 这类 widget 是否成立，就看这条数据链路：
 
 ```text
 数据从哪里来？
@@ -232,7 +197,7 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 用户为什么需要这个信息？
 ```
 
-不要从最复杂的 swarm widget 开始。先看 git 或 todo，因为数据来源清楚。判断一个 widget 是否必要，就问一句：删掉它，用户会少知道什么？答不上来，这个 widget 的用途还没读懂。
+判断一个 widget 是否必要，就问一句：删掉它，用户会少知道什么？答不上来，这个 widget 的用途还没讲清楚。
 
 ## 读完你应该能解释什么
 

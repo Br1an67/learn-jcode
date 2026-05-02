@@ -21,25 +21,11 @@ flowchart TD
 
 This diagram shows why ambient needs an ending and scheduling mechanism. The background agent does not run forever; it reports the cycle result through `end_ambient_cycle` and schedules the next wake-up.
 
-Read:
+The ambient line is that background loops need boundaries. Ambient needs startup conditions, resource budget, safety boundaries, runner, scheduler, and a persistent queue. Without those, a background agent is not assistance; it is noise.
 
-```text
-docs/AMBIENT_MODE.md
-src/ambient.rs
-src/ambient/
-src/ambient_runner.rs
-src/tool/ambient.rs
-```
+The module relationship is straightforward: `directives` supplies pending work, `manager` owns runtime state, `runner` starts one ambient cycle, `scheduler` decides the next wake-up, `persistence` stores queues and locks, and `tool/ambient` lets the background agent end a cycle, schedule future work, or request permission.
 
-Read `docs/AMBIENT_MODE.md` first for startup conditions, budgets, and safety boundaries. A background agent without boundaries is not assistance; it is noise.
-
-Then read `src/ambient.rs` to see how `directives`, `manager`, `runner`, `scheduler`, and `persistence` fit together. It is a better map than starting inside a child module.
-
-Next read `src/ambient/runner.rs` and `src/ambient_runner.rs`. Look for how one ambient cycle starts, how results are recorded, and how the next wake-up is decided. Keep one judgment in mind: background work must not interrupt the user's main line of work.
-
-Then read `src/ambient/scheduler.rs`. Inspect how schedule items are ordered and woken. The hard part of ambient is not just prompting; it is time, priority, and resources.
-
-Read `src/tool/ambient.rs` last. Start with `EndAmbientCycleTool`, `ScheduleAmbientTool`, `RequestPermissionTool`, and `ScheduleTool`. These tools show that an ambient agent cannot just act freely. It must end cycles, schedule future work, and request permission when needed.
+The source excerpts below show two things directly: ambient is not a single tool file, and an ambient cycle must report summary, resource usage, and next schedule through `end_ambient_cycle`.
 
 The module map lives in `src/ambient.rs`:
 
@@ -119,31 +105,11 @@ flowchart LR
 
 This diagram shows the self-dev boundary: enter a self-dev session first, then build/test, then reload the shared server and resume sessions. Dangerous actions should not run directly from a normal session.
 
-Read:
+The self-dev line is that "let JCode modify itself" must pass through a controlled session. Explicit `jcode self-dev` creates or resumes a self-dev session, marks it canary, requires build when needed, and launches the TUI. A normal session should not run dangerous reload actions directly.
 
-```text
-src/cli/selfdev.rs
-src/tool/selfdev/mod.rs
-src/tool/selfdev/launch.rs
-src/tool/selfdev/build_queue.rs
-src/tool/selfdev/reload.rs
-src/tool/selfdev/status.rs
-src/prompt/selfdev_mode.txt
-src/prompt/selfdev_hint.txt
-docs/UNIFIED_SELFDEV_SERVER_PLAN.md
-```
+`SelfDevTool` exposes a controlled action set: `enter/build/test/cancel-build/reload/status/socket-info`. `reload`, `socket-info`, and `socket-help` check whether the current session is self-dev; that is the risk boundary. Launch moves a normal session into self-dev, build queue handles dedupe, locks, and background state, and reload lets a new binary take over the old server and resume sessions.
 
-Start with `src/cli/selfdev.rs::run_self_dev()`. This explains how explicit `jcode self-dev` creates or resumes a self-dev session, marks it canary, decides whether a build is required, and launches the TUI.
-
-Then read `src/tool/selfdev/mod.rs`. Start with the `SelfDevTool` action schema, then inspect how `execute()` dispatches `enter/build/cancel-build/reload/status/socket-info`. Notice that `reload`, `socket-info`, and `socket-help` check whether the current session is self-dev. That is the risk boundary.
-
-Next read `src/tool/selfdev/launch.rs`. Inspect `enter_selfdev_session()` and `schedule_selfdev_prompt_delivery()`. This answers how a normal session moves into a self-dev session and why a new terminal may be spawned.
-
-Then read `src/tool/selfdev/build_queue.rs` and `src/tool/selfdev/reload.rs`. The first manages build requests, dedupe, locks, and background status. The second manages how a new binary takes over the old server. Do not edit here early. First draw the build -> publish -> reload -> resume path.
-
-Read `src/prompt/selfdev_mode.txt` and `src/prompt/selfdev_hint.txt` last. Use prompts to check the tool and CLI boundaries, not to reduce self-dev to "a different system prompt."
-
-Start with the self-dev tool action schema:
+Prompts are not the core of self-dev. They tell the model the rules; the real boundary is CLI, tool actions, build/test, session gates, and reload recovery.
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
 
@@ -178,7 +144,7 @@ impl Tool for SelfDevTool {
 
 This shows self-dev is not only a hidden command. It is a model-callable tool exposing a controlled action set: enter self-dev, build, test, reload, and inspect status.
 
-Then read the risk boundary:
+The risk boundary is enforced in dispatch:
 
 ```rust
 // src/tool/selfdev/mod.rs, excerpt

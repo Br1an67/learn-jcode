@@ -20,26 +20,13 @@ flowchart TD
 
 This diagram shows that swarm state is centered on the server plan, not inside one worker's messages. Workers return to the coordinator and plan through heartbeat, checkpoint, and reports.
 
-## Read First
+## Main Line Covered Here
 
-```text
-docs/SWARM_ARCHITECTURE.md
-src/server/swarm.rs
-src/server/swarm_channels.rs
-src/server/comm_*.rs
-src/tool/communicate.rs
-src/tool/task.rs
-```
+Swarm is not "start several models." The server owns a coordination plan. The coordinator updates the plan, workers write heartbeat, checkpoint, and reports back into progress, channels route DM/broadcast messages, and completion reports return to the coordinator.
 
-Read `docs/SWARM_ARCHITECTURE.md` first, but only for boundaries: coordinator, worker, channel, plan, and file touches. Then go to source.
+The source excerpts below focus on two boundaries. `run_swarm_task()` shows how a worker session is created, inherits provider/registry state, and has recursive tools blocked. Task progress updates show why heartbeat, checkpoint, and assigned session belong in server state.
 
-Start source reading in `src/server/swarm.rs`. On the first pass, inspect `broadcast_swarm_status()`, `broadcast_swarm_plan_with_previous()`, `update_member_status()`, and `run_swarm_task()`. These cover status broadcast, plan broadcast, member status updates, and actual task dispatch.
-
-Then read `src/server/swarm_channels.rs`. Focus on `subscribe_session_to_channel()`, `unsubscribe_session_from_channel()`, and `list_channels_for_swarm()`. This pulls swarm back from "many agents" into a communication system: agents need channel subscriptions before messages have somewhere to go.
-
-Next read `src/tool/communicate.rs`. Do not treat it as a chat tool. It is the model-facing entrypoint into swarm runtime: DM, broadcast, plan updates, waiting for members, and worker spawn. While reading it, keep jumping back to server state and ask which state each action mutates.
-
-Finally read `src/tool/task.rs::SubagentTool`. This is the single-subagent entrypoint and it is not the same thing as swarm. Comparing these two files clarifies the boundary: `subagent` is mostly one-off delegation; `swarm` is long-running coordination.
+The `communicate` tool is the model-facing entrypoint into swarm runtime. `SubagentTool` is one-off delegation. Keeping them separate is the design point: subagent means "send one worker to do one thing"; swarm means "maintain a long-running coordination scene."
 
 ## Core Source Excerpts
 

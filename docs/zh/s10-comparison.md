@@ -87,14 +87,14 @@ Tool / MCP / Skill 本质上都围绕工具调用
 
 这对 `learn-jcode-5.5` 有帮助，因为 JCode 太容易把新读者淹没在 server、provider、session、memory、swarm 里。我们应该借它的直白，但不能借它的一天节奏。
 
-JCode 不是一天上手项目。它适合按几天拆开读：
+JCode 不是一天上手项目。它适合按几天拆开吸收：
 
 ```text
-先理解 harness 视角。
-再读启动和 server。
-再读 agent loop 和 tool registry。
-再读 provider/session/TUI。
-最后读 memory、swarm、ambient、self-dev。
+第 1 天：harness 视角。
+第 2 天：启动和 server。
+第 3 天：agent loop 和 tool registry。
+第 4 天：provider/session/TUI。
+第 5 天以后：memory、swarm、ambient、self-dev。
 ```
 
 ## 读完你应该能解释什么

@@ -25,48 +25,13 @@ flowchart LR
 
 This diagram shows that the TUI is not stdout wrapping. Server/runtime events enter TUI state, become widgets, tool summaries, and diffs, then render into the interface the user uses to judge agent state.
 
-## Read First
+## Main Line Covered Here
 
-```text
-src/tui/
-src/side_panel.rs
-src/tool/side_panel.rs
-crates/jcode-tui-core/
-crates/jcode-tui-render/
-crates/jcode-tui-markdown/
-crates/jcode-tui-mermaid/
-```
+The TUI path is event to judgment. Server/runtime events enter app state, then become info widgets, tool summaries, diffs, side panels, and streamed text. Users do not see raw protocol; they see state compressed into "can I still trust what this agent is doing?"
 
-Do not start by reading all of `src/tui/ui.rs`. Start smaller:
+Info widgets solve layout and information density. `InfoWidgetData` gathers state, `calculate_placements()` decides where it goes, and `render_all()` renders it consistently. Git, todo, memory, and swarm widgets differ less by drawing code and more by the question they answer for the user.
 
-```text
-src/tui/info_widget.rs
-src/tui/info_widget_git.rs
-src/tui/info_widget_memory_render.rs
-src/tui/info_widget_todos.rs
-src/tui/info_widget_swarm_background.rs
-src/tui/ui_tools.rs
-src/tui/ui_diff.rs
-src/tui/stream_buffer.rs
-```
-
-## How to Read These Files
-
-Start with `src/tui/info_widget.rs`, but do not jump into render details. First inspect `WidgetKind`, `InfoWidgetData`, `calculate_placements()`, and `render_all()`. These tell you how JCode decides which state is worth showing, where it goes, and when widgets merge into an overview.
-
-Then pick one small widget and trace the whole path. Start with `src/tui/info_widget_git.rs`, especially `render_git_widget()` and `render_git_compact()`. Git is a good first widget because it does not involve a complicated async protocol. Ask only: what is inside `InfoWidgetData.git`, and what gets removed between compact and expanded views?
-
-Read `src/tui/info_widget_todos.rs` next. Look at `render_todos_widget()`, `render_todos_expanded()`, and `render_todos_compact()`. This shows how a state module makes choices in narrow terminal space: not every todo can be shown fully, so the UI must summarize, truncate, and offer an expanded page.
-
-Then read `src/tui/info_widget_memory_render.rs`. Start with `render_memory_widget()`, then inspect `memory_status_badge()` and `render_memory_pipeline_lines()`. This connects to `s07`: the TUI does not merely show "memory exists"; it shows whether memory is retrieving, extracting, maintaining, or idle.
-
-Read tool display after widgets. Open `src/tui/ui_tools.rs` and inspect `resolve_display_tool_name()`, `canonical_tool_name()`, `get_tool_summary()`, then `summarize_apply_patch_input()` and `summarize_unified_patch_input()`. This explains how JCode compresses many tool calls into summaries the user can scan.
-
-Read diff handling separately in `src/tui/ui_diff.rs`. Start with `diff_change_counts_for_tool()`, then read `generate_diff_lines_from_tool_input()` and `collect_diff_lines()`. You will see that the UI does not always wait for a full diff output; it can infer added/deleted lines from tool input.
-
-Read side panel last. Start with `src/tool/side_panel.rs::SidePanelTool`, especially the action set: `status/write/append/load/focus/delete`. Then jump to `src/side_panel.rs` and read `write_markdown_page()`, `append_markdown_page()`, `focus_page()`, and `snapshot_for_session()`. This path shows that the side panel is a model-operable persistent page, not just a temporary TUI region.
-
-If you want the event path, go back to `src/protocol.rs` and `src/server/runtime.rs`. First know what the UI renders, then inspect how state moves from server/client into that rendering. Reading protocol first makes it hard to judge which events matter to the user.
+Tool summaries and diffs are another compression layer. Model tool calls are usually JSON, so the TUI turns them into one-line action summaries. File edits can also infer diff lines from tool input before the final tool result arrives. Side panel goes further: it is a persistent page the model can write, append, focus, and delete, not just a temporary display area.
 
 ## Core Source Excerpts
 
@@ -220,9 +185,9 @@ OpenCode also cares about UI, but its direction is different. OpenCode also targ
 
 Both projects show the same lesson: stdout is not enough for a serious coding agent.
 
-## How to Read a Widget
+## Widget Judgment Standard
 
-When reading `info_widget_git` or `info_widget_todos`, follow this data path:
+To judge whether a widget such as `info_widget_git` or `info_widget_todos` earns its place, use this data path:
 
 ```text
 Where does the data come from?
@@ -232,7 +197,7 @@ Where is it rendered?
 Why does the user need this information?
 ```
 
-Do not start with the more complex swarm widget. Git and todo widgets have clearer data sources. To judge whether a widget matters, ask: if this were removed, what would the user stop knowing? If you cannot answer, you have not understood the widget.
+To judge whether a widget matters, ask: if this were removed, what would the user stop knowing? If you cannot answer, the widget's purpose is not clear enough.
 
 ## What You Should Be Able To Explain
 

@@ -133,10 +133,10 @@ OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。Ope
 
 ## 这份教程怎么读
 
-后面的章节不会只给文件清单。每一课都按一条源码路径走：先打开哪个文件，只看哪个函数或结构体，读到什么判断，再跳到下一个文件。
+后面的章节不会要求你在 IDE 和教程之间来回切。每一课会把关键源码摘出来，直接讲函数边界、状态流向和设计取舍。路径只用于标明来源，不是让你自己去补课。
 
-第一遍读源码时不要贪多。比如启动链路只追 `main()`、`jcode::run()`、`cli::startup::run()`、`dispatch::run_main()`、`spawn_server()`、`Server::run()`。先把控制权怎么移动看清楚，再回头补 server 里的 swarm、ambient、debug socket。
+第一遍理解启动链路时，只需要抓住控制权怎么移动：`main()` 交给 `jcode::run()`，再到 CLI startup，默认命令确保 server 存在，client 连接长期 runtime。教程会把这条链路拆成代码节选，不要求你先翻完整 `src/server/`。
 
-读 agent loop 也是一样。先把 `run_turn()` 的正常路径跑通：准备 messages 和 tools，调用 provider stream，收集 tool call，执行工具，把 tool result 写回下一轮。等这条线清楚了，再看 compaction、memory、native tool、soft interrupt。
+Agent loop 也是一样。你先在教程里看到正常路径：准备 messages 和 tools，调用 provider stream，收集 tool call，执行工具，把 tool result 写回下一轮。compaction、memory、native tool、soft interrupt 会在相关课程里补，不会只丢文件名。
 
 这份教程不另开题目区。需要你知道的判断会直接放在课里，因为源码导读的价值不在“做题”，而在你读到某个函数时知道它为什么在这里。

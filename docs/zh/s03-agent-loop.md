@@ -41,35 +41,13 @@ flowchart TD
 
 这张图只画正常路径：模型流式输出，JCode 收集 tool call，执行工具，再把 tool result 写回下一轮 messages。compaction、memory、UI event 都是这条主线旁边的工程。
 
-## 先读这些文件
+## 本课直接讲清楚的主线
 
-```text
-src/agent/turn_loops.rs
-src/agent/tools.rs
-src/agent/messages.rs
-src/agent/compaction.rs
-src/agent/provider.rs
-src/message.rs
-src/protocol.rs
-```
+Agent loop 的正常路径分三段。第一段是请求前准备：修复缺失的 tool result、整理 provider messages、生成工具定义、取上一轮 memory pending result、构造 split prompt。JCode 不是把聊天记录原样丢给模型。
 
-其中 `src/agent/turn_loops.rs` 是重点。
+第二段是 provider stream：模型流式输出文本，同时用 `ToolUseStart`、`ToolInputDelta`、`ToolUseEnd` 拼出工具调用。这里的关键不是 event 名字，而是 JCode 要把“模型一边说话一边组 JSON 参数”的过程恢复成可执行的 `ToolCall`。
 
-读这个文件时不要试图一次性记住所有分支。先只追一条正常路径：用户输入、provider stream、模型发 tool call、工具执行、tool result 回到下一轮。
-
-## `turn_loops.rs` 怎么读
-
-先打开 `src/agent/turn_loops.rs`，只看 `impl Agent` 里的 `run_turn()`。这个函数很长，第一遍不要从头到尾精读。把它切成三段看。
-
-第一段是 provider 调用前的准备。读 `repair_missing_tool_outputs()`、`messages_for_provider()`、`tool_definitions().await`、`build_memory_prompt_nonblocking_shared()`、`build_system_prompt_split()`。这几行告诉你 JCode 发请求前要同时处理消息修复、compaction、工具定义、memory pending result 和 split prompt。
-
-第二段是 provider stream。找到 `provider.complete_split(...)`，再往下看 `while let Some(event) = stream.next().await`。这里不要先看所有 event，先只看四个：`TextDelta`、`ToolUseStart`、`ToolInputDelta`、`ToolUseEnd`。它们对应模型一边输出文本，一边拼出一个 JSON tool input。
-
-第三段是工具执行。搜索 `registry.execute`，你会看到两处：一处处理 `StreamEvent::NativeToolCall`，另一处处理普通 `tool_calls`。先读普通路径：构造 `ToolContext`，发布 `ToolStatus::Running`，执行 `self.registry.execute(&tc.name, tc.input.clone(), ctx).await`，再用 `tool_output_to_content_blocks()` 把结果变成下一轮 `Role::User` message。
-
-然后跳到 `src/agent/tools.rs` 看 `tool_output_to_content_blocks()`。这个函数小，但位置很关键：它把 Rust 工具输出翻译成 provider 能继续消费的 `ContentBlock::ToolResult`。读完它，再回到 `run_turn()` 末尾看 `self.session.save()`，你就能连上“工具结果进入会话历史”这一步。
-
-`src/agent/messages.rs` 和 `src/message.rs` 放在这条线后面读。先看 `Message`、`Role`、`ContentBlock` 的形状，再回头理解 `messages_for_provider()` 为什么要整理历史。`src/protocol.rs` 最后读，它解释这些事件怎样给 TUI 或远程 client 看。
+第三段是工具结果回灌：registry 执行工具，工具输出被转成 provider 能理解的 `ToolResult` content block，再作为下一轮 `Role::User` message 进入 history。session 保存的是这条完整循环后的历史，不只是 assistant 文本。
 
 ## 核心代码节选
 

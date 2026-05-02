@@ -17,34 +17,19 @@ flowchart TD
 
 This is the key memory path: the main agent only submits context, retrieval and maintenance run in the sidecar, and the result enters the main context on the next turn.
 
-## Read First
+## Main Line Covered Here
 
-```text
-docs/MEMORY_ARCHITECTURE.md
-docs/MEMORY_BUDGET.md
-src/memory.rs
-src/memory_agent.rs
-src/memory_graph.rs
-src/memory_prompt.rs
-src/tool/memory.rs
-src/tool/session_search.rs
-```
+The memory path fits in one sentence: the main agent submits context to a sidecar after a turn, the sidecar retrieves, maintains, and builds a pending prompt in the background, and the next turn injects that result into the main context.
 
-Open `docs/MEMORY_ARCHITECTURE.md` first and only read the main path: context enters the memory agent, candidate memories are retrieved and filtered, and a result is injected into the next turn. Do not begin with `memory_agent.rs`; it is long.
+Three pieces of code carry that design. `MemoryAgentHandle` uses `try_send`, so the main turn does not wait for memory. The background `MemoryAgent::run()` consumes the channel, maintains session state, and delegates retrieval to `process_context()`. The prompt layer then separates relevance context, extraction context, and the final relevant prompt injected into the main model.
 
-Then read `src/memory_agent.rs`. On the first pass, only trace `MemoryAgentHandle::update_context_sync_with_dir()`, `MemoryAgent::run()`, and `process_context()`. This answers how a completed agent turn schedules memory work in the background. Stop at `process_context()` before digging into cluster refinement.
-
-Next read `src/memory_prompt.rs`. Inspect `format_context_for_relevance()`, `format_context_for_extraction()`, and `format_relevant_prompt()`. These functions decide what context the memory agent sees and what text is eventually injected into the main model.
-
-Then read `src/memory.rs`. Start with `MemoryManager::remember_project()`, `find_similar_scoped()`, `get_relevant_parallel()`, and `find_similar_with_cascade_scoped()`. These functions show how memory moves from simple storage into parallel recall and cascade retrieval.
-
-Read `src/tool/memory.rs` and `src/tool/session_search.rs` last. The first is the model's explicit memory tool; the second searches across sessions. They are entrypoints. The main tradeoffs live in the background agent and manager.
+The `memory` and `session_search` tools are model-facing entrypoints for explicit memory/history operations, but they are not the center of this lesson. JCode's tradeoff is in the sidecar: accept one-turn delay so retrieval does not slow down the main interaction.
 
 ## Core Source Excerpts
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
 
-Start with this handle:
+The handle is the first boundary:
 
 ```rust
 // src/memory_agent.rs, excerpt

@@ -26,38 +26,13 @@ flowchart LR
 
 JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。
 
-## 先读这些文件
+## 本课直接讲清楚的主线
 
-```text
-src/main.rs
-src/lib.rs
-src/cli/startup.rs
-src/cli/dispatch.rs
-src/server.rs
-src/server/runtime.rs
-docs/SERVER_ARCHITECTURE.md
-docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md
-```
+启动链路的控制权移动很短：binary 入口只创建 tokio runtime，crate root 只转发到 CLI startup，startup 做进程级准备，dispatch 决定是进入 `serve` 还是默认 client 路径。
 
-不要先读整个 `src/server/`。先把启动链路追通，再回来看 server 子模块。不然你会同时遇到 client lifecycle、swarm、comm、debug socket、reload，信息量太大。
+默认 `jcode` 命令不会直接创建 agent。它先判断 server 是否存在：没有就启动同一个 binary 的 `serve` 子命令，有就连接本地 socket。这样第一次运行会拉起常驻 server，后面的 client 可以断开、重连，而 session、provider、MCP pool、swarm state 仍留在 server。
 
-## 这组文件怎么读
-
-先打开 `src/main.rs`，只看 `main()`。这里不要找业务逻辑，它只做两件事：配置 allocator，创建 tokio multi-thread runtime，然后 `block_on(jcode::run())`。读到这里就停，入口已经交出去了。
-
-接着跳到 `src/lib.rs`，看 `run()`。它只有一层转发：`cli::startup::run().await`。这说明 crate root 不是业务入口，真正启动逻辑在 CLI 层。
-
-第三步读 `src/cli/startup.rs` 的 `run()`。按顺序看它做了什么：初始化 startup profile、panic hook、logging、权限修复、perf、telemetry，然后调用 `parse_and_prepare_args()`，最后把 `Args` 交给 `dispatch::run_main(args)`。这里的判断是：startup 负责进程级准备，不负责决定 agent 怎么跑。
-
-第四步到 `src/cli/dispatch.rs`，先看 `run_main()` 的 `match args.command`。如果命令是 `serve`，它初始化 provider，创建 `server::Server::new(provider)`，然后 `server.run().await`。如果没有显式命令，就继续看 `run_default_command()`。
-
-`run_default_command()` 是默认 `jcode` 命令的关键。先看它怎么判断当前目录是不是 JCode repo，并设置 self-dev session 标记；再看 `server_is_running()`、`wait_for_existing_reload_server()`、`spawn_server()` 这一段。你要读到的结论是：普通启动路径不是直接创建 agent，而是先保证本地 server 存在。
-
-然后读同一个文件里的 `spawn_server()`。重点看 socket path、spawn lock、`ProcessCommand` 参数。它启动的是同一个 binary，但追加 `serve` 子命令，并把 stdout 丢掉、stderr 接起来。这个函数解释了为什么第一次运行会拉 daemon，第二次运行只需要连 socket。
-
-最后再看 `src/server.rs` 的 `Server::run()` 和 `src/server/runtime.rs` 的 `ServerRuntime`。`Server::run()` 负责绑定 main/debug socket、设置 owner-only 权限、清理 stale reload marker、启动后台任务和 accept loop。`ServerRuntime` 负责把 `sessions`、`provider`、`event_tx`、`swarm_state`、`mcp_pool` 等状态传给 `handle_client()`。读到这里，server 才从“后台进程”变成“长期 runtime”。
-
-文档 `docs/SERVER_ARCHITECTURE.md` 和 `docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md` 放在最后读。先看源码，再用文档校准你画出来的流程图。反过来读容易记住概念，但不知道概念落在哪个函数上。
+下面的代码节选会把这条线压成四段：入口交权、startup 准备、dispatch 选择、server runtime 承载状态。读完这四段，就能解释为什么 JCode 是 resident-server 架构，不是普通 CLI wrapper。
 
 ## 核心代码节选
 

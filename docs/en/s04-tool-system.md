@@ -21,47 +21,19 @@ flowchart LR
 
 This diagram puts the two tool paths together: `definitions()` exposes schemas to the model, while `execute()` is the runtime entrypoint. Both start from the `Tool` trait and `Registry`.
 
-## Read First
+## Main Line Covered Here
 
-```text
-src/tool/mod.rs
-src/tool/read.rs
-src/tool/write.rs
-src/tool/edit.rs
-src/tool/bash.rs
-src/tool/grep.rs
-src/tool/task.rs
-src/tool/communicate.rs
-src/tool/mcp.rs
-src/tool/memory.rs
-src/tool/side_panel.rs
-```
+Start from the contract: every tool exposes model-visible schema and runtime execution. That is the point of the `Tool` trait. The model sees `ToolDefinition`; execution goes through the registry.
 
-Start with `src/tool/mod.rs`.
+The registry is not a plain map. It owns base tools, session-specific tools, the skill registry, compaction-related state, allowed-tool filtering, alias resolution, telemetry, errors, and output truncation. The excerpts below show those layers directly so the reader does not have to assemble them from many tool files.
 
-## How to Read These Files
-
-Open `src/tool/mod.rs` and start with the `Tool` trait. Do not begin with `read` or `bash`. The trait defines the contract for every tool in JCode: name, description, JSON schema, and execution. The model sees definitions; the runtime calls `execute()`. Both start here.
-
-Next read `Tool::to_definition()`. It turns trait methods into `ToolDefinition`. This is the bridge between the tool system and the provider layer: without the definition, the model does not know the tool exists; without `execute()`, the definition is only text.
-
-Then read the `Registry` struct. Look at `tools`, `skills`, and `compaction`. The registry is not just a map. It also knows about the skill registry and keeps compaction-related state for tools such as `conversation_search`.
-
-Now read `Registry::base_tools()`. This shows which tools are stateless enough to share and cache through `OnceLock`. Do not memorize the list. Notice that JCode puts basic tools like `read/write/edit/bash/grep/ls` and harness tools like `memory/goal/schedule/selfdev/swarm` into the same registry.
-
-After that, read `Registry::new(provider)`. It starts from base tools, then inserts `subagent`, `batch`, and `conversation_search` as session-specific tools. Those tools need the current provider, registry, or compaction manager, so they cannot be global in the same way as `read`.
-
-Then read `Registry::definitions()`. It filters allowed tools and sorts by name. Sorting is not cosmetic. It reduces prompt-cache churn. This is the same theme as split prompts in `s03`: a harness tries to keep request prefixes stable.
-
-Finally read `Registry::execute()`. Start with `resolve_tool_name()`, which maps aliases such as `shell_exec`, `file_read`, and `task` to internal JCode names. Then read the call to `guard_context_overflow()`. Tool output is not blindly appended to context; the registry handles aliases, telemetry, errors, and truncation.
-
-When you move to concrete tools, go in this order: `src/tool/read.rs` or `src/tool/ls.rs`, then `src/tool/edit.rs` and `src/tool/bash.rs`, then `src/tool/task.rs`, `src/tool/communicate.rs`, and `src/tool/mcp.rs`. Do not start with the swarm tool on day one. It pulls you into server coordination.
+JCode puts basic coding tools and harness tools in the same system. `read/write/edit/bash/grep/ls` are the hands; `memory/selfdev/swarm/side_panel/mcp` are environment capabilities. This unified registry is what lets the agent loop turn a model tool call into real behavior.
 
 ## Core Source Excerpts
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
 
-Start with the contract, not a concrete tool:
+The contract matters before any concrete tool:
 
 ```rust
 // src/tool/mod.rs, excerpt
@@ -133,7 +105,7 @@ Self::insert_tool(
 
 `subagent` needs the provider, `batch` needs the registry, and `conversation_search` needs compaction state. They cannot be globally cached like `read`. This is the boundary between base capabilities and session capabilities.
 
-Finally read the execution entrypoint:
+The execution entrypoint closes the loop:
 
 ```rust
 // src/tool/mod.rs, excerpt
