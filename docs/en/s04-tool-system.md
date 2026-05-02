@@ -76,7 +76,9 @@ session_search
 conversation_search
 ```
 
-These are not mandatory for a minimal agent, but they improve efficiency and observability.
+These are not mandatory for a minimal agent, but they reduce context-hunting and make the runtime easier to observe.
+
+Do not judge this section by tool count. More tools can pollute prompts, overflow context, or make the model choose the wrong action. JCode's real topic here is tool governance.
 
 ### Harness-Level Tools
 
@@ -121,6 +123,8 @@ pi: minimal effective coding harness
 JCode: long-running multi-session local agent runtime
 ```
 
+You should be able to name the cost: pi is small and easy to modify; JCode is larger and has to handle caching, truncation, dynamic registration, permissions, and UI state.
+
 ## Exercise: Design `repo_summary`
 
 Add a read-only `repo_summary` tool that returns:
@@ -141,3 +145,5 @@ Rules:
 - Run at least one manual validation.
 
 This exercise walks the real tool path and is more useful than a weather API tool.
+
+Do not start with TUI integration. First make the tool callable by the model; then decide whether it deserves a widget. Reversing that order makes the task harder than it needs to be.

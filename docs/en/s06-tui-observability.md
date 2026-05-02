@@ -8,6 +8,8 @@ Many agent projects only care whether the model can finish a task. In real use, 
 
 JCode invests heavily in TUI for this reason.
 
+A UI module belongs to the harness if it changes how the user judges agent state. Tool status, diffs, usage, and memory hits all affect that judgment.
+
 ## Read First
 
 ```text
@@ -66,6 +68,8 @@ The side panel can hold:
 
 This keeps the user from digging through the main chat stream.
 
+The point is not "one more panel." Chat is good for timeline. Side panels are good for stable current state.
+
 ## Why Info Widgets Matter
 
 Info widgets solve the problem of showing state without stealing the main response area. Examples:
@@ -98,3 +102,5 @@ Why does the user need this information?
 ```
 
 Start with `info_widget_git` or `info_widget_todos`, not the more complex swarm widget.
+
+After writing it, ask one question: if this widget were removed, what would the user stop knowing? If you cannot answer, you have not understood the widget yet.

@@ -31,6 +31,8 @@ src/auth/commands.rs
 src/auth/login_flows.rs
 ```
 
+Do not read every provider at once. Pick one you know, such as OpenAI or Claude, and trace three lines: trait, stream event, auth.
+
 ## What the Provider Layer Solves
 
 Providers differ in many ways:
@@ -66,6 +68,8 @@ ollama
 This is not a one-API-key CLI.
 
 OAuth, account switching, headless login, callback URLs, and pending login state are all practical product problems for coding agents.
+
+If your previous demos only read `OPENAI_API_KEY`, this section may feel verbose. JCode is a long-running local tool: users switch accounts, switch providers, log in over SSH, and resume pending login flows. Prompts do not solve those problems.
 
 ## Why Session Matters
 
@@ -121,3 +125,5 @@ Then answer:
 ```text
 Why does provider streaming need to be normalized into JCode StreamEvent?
 ```
+
+The answer must mention at least two provider differences. "For a unified interface" is not enough.

@@ -6,6 +6,8 @@ Read the most distinctive and easiest-to-get-lost parts of JCode.
 
 Do not start by changing code here. Read docs, draw diagrams, and confirm runtime boundaries first.
 
+These modules are easy to turn into a pile of nouns. Read each one with one question: which concrete weakness of a single-agent loop does it address?
+
 ## Memory
 
 Read:
@@ -41,6 +43,8 @@ turn N+1 uses the result
 
 This keeps the main agent responsive.
 
+The cost is a one-turn delay. That delay is intentional, not a missing synchronous retrieval step.
+
 ## Swarm
 
 Read:
@@ -66,6 +70,8 @@ JCode swarm is not a normal subagent. It is concerned with multi-agent runtime c
 
 This is where JCode differs strongly from pi. pi is restrained; JCode is more aggressive.
 
+Do not read swarm as "open several subagents." The hard parts are plan ownership, communication, file touches, state recovery, and integration boundaries.
+
 ## Ambient
 
 Read:
@@ -86,6 +92,8 @@ Ambient is a background agent. Instead of responding only to user prompts, it ca
 - decide when to wake next
 
 This is experimental, but important because it points toward long-running agent environment maintenance.
+
+When reading ambient, watch resource limits. A background agent without budget and priority rules becomes another source of interference.
 
 ## Self-Dev
 
@@ -126,3 +134,5 @@ Requirements:
 - Reference at least 3 source files.
 - Include one mermaid diagram.
 - Include one "do not do this" risk point.
+
+Do not write "this could support more capabilities in the future." Write a concrete risk, such as self-dev changing reload code and losing state for running sessions.

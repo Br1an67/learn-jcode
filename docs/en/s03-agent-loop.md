@@ -38,6 +38,8 @@ src/protocol.rs
 
 `src/agent/turn_loops.rs` is the main file.
 
+Do not try to memorize every branch in that file. Follow one normal path first: user input, provider stream, model tool call, tool execution, tool result, next turn.
+
 ## What One JCode Turn Does
 
 Inside `run_turn()`, roughly:
@@ -75,6 +77,8 @@ query result -> injected into turn N+1
 
 This keeps the main agent responsive.
 
+This is a tradeoff. Memory is not always maximally fresh in the same turn, but interaction latency stays stable.
+
 ## How Tool Result Returns to the Model
 
 Tools return `ToolOutput`. Then `tool_output_to_content_blocks()` turns it into provider-compatible content blocks.
@@ -104,3 +108,5 @@ How does the tool result enter the next messages?
 ```
 
 Write a note under 500 words.
+
+If the note only says "JCode supports tool calling," you have not traced the path yet. Include at least one function name and one data structure name.

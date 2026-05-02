@@ -19,6 +19,8 @@ docs/SERVER_ARCHITECTURE.md
 docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md
 ```
 
+Do not start by reading all of `src/server/`. Trace the startup path first. Otherwise client lifecycle, swarm, comms, debug sockets, and reload all arrive at once.
+
 ## Startup Path
 
 Simplified:
@@ -51,6 +53,8 @@ The JCode server handles:
 - `/reload` continuation
 
 Think of the client as display and keyboard. The server is where the agent runtime lives.
+
+Remember the cost: the server must handle disconnects, reconnects, idle timeout, reload, and state persistence. JCode does not add a server because it sounds nicer. It trades complexity for long-running session behavior.
 
 ## Fields Worth Reading in `ServerRuntime`
 

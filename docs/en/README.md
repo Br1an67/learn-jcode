@@ -2,6 +2,8 @@
 
 This directory contains the English lesson docs. The root README is only the entry point; read the course in this order.
 
+The writing follows [../writing-style.md](../writing-style.md): source walkthrough, not marketing copy. Each lesson should answer three questions: which files to read first, what design tradeoff to notice, and what exercise to do afterward.
+
 Course map:
 
 | Lesson | Topic | Goal |
@@ -14,4 +16,4 @@ Course map:
 | [s06](./s06-tui-observability.md) | TUI and observability | Understand why UI is part of the harness |
 | [s07](./s07-memory-swarm-selfdev.md) | Memory, swarm, ambient, self-dev | Read the most distinctive and difficult parts of JCode |
 
-Read one or two lessons per day. JCode is not a good one-day cram project.
+Read one or two lessons per day. JCode is not a good one-day cram project. If a module does not make sense yet, write down the question and move on; do not scan directories just to feel done.

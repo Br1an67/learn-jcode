@@ -4,7 +4,7 @@
 
 This is a JCode source-reading course for engineers. The tone is code walkthrough, not product brochure.
 
-The reader is assumed to know roughly what an agent loop is, but not yet how a product-grade coding-agent harness is built. You are not here to read that "JCode is powerful"; you are here to understand why it needs a server, tool registry, provider layer, sessions, TUI, memory, and swarm runtime.
+The reader is assumed to know roughly what an agent loop is, but not yet how a product-grade coding-agent harness is built. You are not here to read feature praise; you are here to understand why JCode needs a server, tool registry, provider layer, sessions, TUI, memory, and swarm runtime.
 
 Writing rules live in [docs/writing-style.md](./docs/writing-style.md). New lessons should follow that guide.
 
