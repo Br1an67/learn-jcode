@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: providers flatten different model platforms into one stream, while sessions make separate turns recoverable as one long record.**
+
 Understand how JCode connects different model platforms and long-running sessions.
 
 Many agent demos reduce the provider layer to one API call. In a real product, provider integration becomes a large piece of engineering.

@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: JCode is not most useful as a minimal loop; it is useful because a local long-running runtime shows the cost of state, recovery, and coordination.**
+
 Place the previous lessons back into the coding-agent runtime landscape: what JCode is good for learning, and where it differs from pi, OpenCode, and Claude Code public behavior.
 
 This lesson only discusses public behavior, public documentation, and open-source code. It does not discuss non-public or leaked Claude Code source.

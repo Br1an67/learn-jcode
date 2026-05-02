@@ -2,6 +2,8 @@
 
 ## 本课目标
 
+**本课一句话：JCode 用一轮延迟换主 turn 不等 memory，把长期记忆放到 sidecar 里慢慢召回。**
+
 读懂 JCode 为什么把 memory 做成 sidecar，而不是在每轮 `run_turn()` 里同步检索。
 
 Memory 很容易被误读成普通 RAG。JCode 这部分真正要看的不是“有没有 embedding”，而是它怎么在不拖慢主 agent 的前提下，把长期偏好、项目事实、旧会话线索带回当前上下文。

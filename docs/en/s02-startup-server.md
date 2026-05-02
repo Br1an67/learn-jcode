@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: `jcode` is not a throwaway CLI process; it connects you to a local server that keeps long-lived state.**
+
 Understand what happens after the `jcode` command starts.
 
 The startup path is the first key to the project. JCode does not create one isolated CLI process per run. It connects to or starts a local server.

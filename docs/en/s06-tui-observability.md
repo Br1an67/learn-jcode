@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: TUI is not skin; it decides whether the user can judge what the agent is doing and whether it is worth waiting.**
+
 Understand why UI is part of the harness.
 
 Many agent projects only care whether the model can finish a task. In real use, the user also needs to know what the agent is doing, what changed, where it is stuck, and how much context or money it is spending.

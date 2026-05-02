@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: ambient and self-dev both keep changing state when nobody is staring at the terminal, so they need budgets, gates, and recovery paths first.**
+
 Understand two later-stage JCode capabilities: the ambient background loop and self-dev.
 
 Neither module is just a prompt. Ambient is about scheduling, budgets, and cycle endings. Self-dev is about session boundaries, build/reload, and recovery.

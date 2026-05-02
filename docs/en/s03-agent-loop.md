@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: however large JCode gets, the main loop is still model asks for a tool, runtime executes it, result returns to context.**
+
 Trace one user input as it becomes:
 
 ```text

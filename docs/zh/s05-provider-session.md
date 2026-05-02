@@ -2,6 +2,8 @@
 
 ## 本课目标
 
+**本课一句话：provider 层把多家模型平台磨平成一种 stream，session 层把一次次 turn 固定成可恢复的长期记录。**
+
 理解 JCode 怎么把不同模型平台和长期会话接起来。
 
 很多 agent demo 把 provider 层写成一行 API 调用。但真正做产品时，provider 是一大块工程。

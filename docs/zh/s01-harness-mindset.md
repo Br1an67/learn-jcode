@@ -2,6 +2,8 @@
 
 ## 先说结论
 
+**本课一句话：模型负责做决定，JCode 负责把文件、终端、状态、权限和 UI 变成模型能行动的环境。**
+
 JCode 不是一个“Rust 写的聊天壳”。它是一个 coding-agent harness。
 
 这句话要先理解，不然后面读源码会很痛苦。因为你会看到大量看起来和 LLM 无关的代码：server、socket、TUI、OAuth、provider catalog、session journal、memory、MCP、swarm、reload。这些不是旁枝，它们就是 harness。

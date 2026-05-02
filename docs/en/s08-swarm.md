@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: swarm is not opening more subagents; it is the server remembering plans, members, communication, and recovery state for a group of agents.**
+
 Understand why JCode swarm is not just "open several subagents."
 
 The important part is server-level coordination: plans, communication, recovery, file touches, worker progress, and completion reports. If you read swarm as a normal subagent wrapper, you miss its runtime boundary.

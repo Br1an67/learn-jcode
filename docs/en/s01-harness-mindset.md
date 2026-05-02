@@ -2,6 +2,8 @@
 
 ## The Point
 
+**The One-Line Takeaway: the model decides; JCode turns files, terminal access, state, permissions, and UI into the world the model can act in.**
+
 JCode is not a "chat wrapper written in Rust." It is a coding-agent harness.
 
 This has to be clear before you read the source. Otherwise, a lot of the repository will look unrelated to LLMs: server, socket, TUI, OAuth, provider catalog, session journal, memory, MCP, swarm, reload. These are not side quests. They are the harness.

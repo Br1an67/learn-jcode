@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: JCode trades a one-turn delay for a main turn that does not wait on memory retrieval.**
+
 Understand why JCode runs memory as a sidecar instead of doing synchronous retrieval inside every `run_turn()`.
 
 Memory is easy to misread as normal RAG. The important part is not merely whether embeddings exist. The important part is how JCode brings long-term preferences, project facts, and previous-session clues back into context without slowing the main agent turn.

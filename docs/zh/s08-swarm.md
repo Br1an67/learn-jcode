@@ -2,6 +2,8 @@
 
 ## 本课目标
 
+**本课一句话：swarm 不是多开几个 subagent，而是 server 替一组 agent 记住计划、成员、通信和恢复状态。**
+
 读懂 JCode 的 swarm 为什么不是“多开几个 subagent”。
 
 Swarm 的重点是 server-level coordination：计划、通信、状态恢复、文件触达、worker 进度和完成报告。把它理解成普通 subagent，会错过它最重要的工程边界。

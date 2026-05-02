@@ -2,6 +2,8 @@
 
 ## 本课目标
 
+**本课一句话：ambient 和 self-dev 都是在无人盯着时继续改状态，所以它们必须先有预算、门禁和恢复路径。**
+
 读懂 JCode 两个更靠后的能力：ambient 后台循环，以及 self-dev 自我修改。
 
 这两个模块都不能只看 prompt。Ambient 的关键是调度、预算和结束机制；self-dev 的关键是 session 边界、build/reload 和恢复。

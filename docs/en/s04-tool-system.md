@@ -2,6 +2,8 @@
 
 ## Goal
 
+**The One-Line Takeaway: tool complexity is not the number of tools; it is keeping schema, execution, permission, truncation, and events behind one registry boundary.**
+
 Understand how JCode gives tools to the model.
 
 The tool system is the core of a coding-agent harness. Without tools, the model can only chat. With tools, it can read code, edit code, run tests, search history, and coordinate with other agents.

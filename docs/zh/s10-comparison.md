@@ -2,6 +2,8 @@
 
 ## 本课目标
 
+**本课一句话：JCode 的学习价值不在最小 loop，而在一个本地长期 runtime 如何为状态、恢复和协作付账。**
+
 把前面几课放回 coding-agent runtime 的坐标系里：JCode 适合学什么，和 pi、OpenCode、Claude Code 公开能力相比，边界在哪里。
 
 这课只讨论公开行为、公开文档和源码可见的开源项目。Claude Code 不讨论非公开或泄露源码。
