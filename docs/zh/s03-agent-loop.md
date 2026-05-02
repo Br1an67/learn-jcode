@@ -26,6 +26,21 @@ messages
 
 不要把 agent loop 想复杂。复杂的是 loop 旁边的缓存、压缩、stream、memory、UI event 和错误恢复。
 
+```mermaid
+flowchart TD
+  User["用户输入"] --> Prep["整理 messages / tools / split prompt"]
+  Prep --> Provider["provider.complete_split"]
+  Provider --> Stream["StreamEvent"]
+  Stream --> Text["TextDelta: assistant text"]
+  Stream --> ToolUse["ToolUseStart / InputDelta / End"]
+  ToolUse --> Registry["Registry::execute"]
+  Registry --> Blocks["tool_output_to_content_blocks"]
+  Blocks --> History["Role::User tool result"]
+  History --> Prep
+```
+
+这张图只画正常路径：模型流式输出，JCode 收集 tool call，执行工具，再把 tool result 写回下一轮 messages。compaction、memory、UI event 都是这条主线旁边的工程。
+
 ## 先读这些文件
 
 ```text

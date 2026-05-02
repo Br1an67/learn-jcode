@@ -6,6 +6,24 @@
 
 很多 agent demo 把 provider 层写成一行 API 调用。但真正做产品时，provider 是一大块工程。
 
+```mermaid
+sequenceDiagram
+  participant Agent as Agent loop
+  participant MP as MultiProvider
+  participant Sel as Provider selection
+  participant P as Concrete provider
+  participant Stream as StreamEvent
+
+  Agent->>MP: complete_split(messages, tools, static, dynamic)
+  MP->>Sel: choose active provider / model
+  MP->>P: provider-specific request
+  P-->>MP: provider-specific stream
+  MP-->>Stream: normalize events
+  Stream-->>Agent: TextDelta / ToolUse / Usage / Error
+```
+
+这张图说明 provider 层的职责：agent loop 不应该理解每个平台的私有 stream 格式，`MultiProvider` 和具体 provider 负责把它们统一成 `StreamEvent`。
+
 ## 先读这些文件
 
 ```text

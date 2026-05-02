@@ -6,6 +6,21 @@
 
 工具系统是 coding-agent harness 的核心。没有工具，模型只能聊天。有了工具，模型才能读代码、改代码、跑测试、查历史、和其他 agent 协作。
 
+```mermaid
+flowchart LR
+  ToolImpl["Tool impl"] --> Registry["Registry"]
+  Registry --> Definitions["definitions(): ToolDefinition[]"]
+  Definitions --> Provider["Provider request"]
+  Provider --> Model["Model sees tools"]
+  Model --> ToolCall["tool call"]
+  ToolCall --> Execute["Registry::execute"]
+  Execute --> ToolImpl
+  Execute --> Guard["context guard / telemetry"]
+  Guard --> Result["ToolOutput"]
+```
+
+这张图把工具系统的两条线放在一起：`definitions()` 是给模型看的 schema，`execute()` 是 runtime 真正执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
+
 ## 先读这些文件
 
 ```text

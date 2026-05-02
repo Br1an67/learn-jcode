@@ -10,6 +10,17 @@
 
 ## Memory
 
+```mermaid
+flowchart TD
+  TurnN["第 N 轮 messages"] --> TrySend["try_send Context"]
+  TrySend --> MemoryAgent["MemoryAgent sidecar"]
+  MemoryAgent --> Retrieve["relevance / retrieval / maintenance"]
+  Retrieve --> Pending["pending memory prompt"]
+  Pending --> TurnNext["第 N+1 轮注入"]
+```
+
+这张图是 memory 的关键：主 agent 只投递上下文，检索和维护在 sidecar 里跑，结果下一轮再进入主上下文。
+
 先读：
 
 ```text
@@ -109,6 +120,20 @@ JCode 的 memory 不是“用户手动保存一条笔记”。它更像自动召
 
 ## Swarm
 
+```mermaid
+flowchart TD
+  Coordinator["coordinator session"] --> Plan["server swarm plan"]
+  Plan --> Worker["worker session"]
+  Worker --> Heartbeat["heartbeat / checkpoint"]
+  Heartbeat --> Plan
+  Worker --> Report["completion report"]
+  Report --> Coordinator
+  Plan --> Channels["DM / broadcast / channels"]
+  Channels --> Worker
+```
+
+这张图说明 swarm 的状态中心在 server plan，不在某个 worker 的 messages 里。worker 通过 heartbeat、checkpoint、report 回到 coordinator 和 plan。
+
 先读：
 
 ```text
@@ -203,6 +228,19 @@ JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：
 
 ## Ambient
 
+```mermaid
+flowchart TD
+  Scheduler["scheduler"] --> Cycle["ambient cycle"]
+  Cycle --> Prompt["ambient system prompt"]
+  Prompt --> Agent["background agent"]
+  Agent --> EndTool["end_ambient_cycle"]
+  EndTool --> Result["cycle result"]
+  EndTool --> Next["next schedule"]
+  Next --> Scheduler
+```
+
+这张图说明 ambient 必须有结束和调度机制。后台 agent 不是无限跑，它通过 `end_ambient_cycle` 汇报结果并安排下一次唤醒。
+
 先读：
 
 ```text
@@ -286,6 +324,18 @@ Ambient 是后台 agent。它不是用户发一句做一句，而是在资源允
 读 ambient 时重点看资源限制。后台 agent 如果没有预算和优先级控制，会变成另一个干扰源。
 
 ## Self-Dev
+
+```mermaid
+flowchart LR
+  Normal["normal session"] --> Enter["selfdev enter"]
+  Enter --> Canary["self-dev / canary session"]
+  Canary --> Build["selfdev build / test"]
+  Build --> Reload["selfdev reload"]
+  Reload --> Server["shared server"]
+  Server --> Resume["resume sessions"]
+```
+
+这张图说明 self-dev 的边界：先切到 self-dev session，再 build/test，最后 reload shared server 并恢复会话。危险动作不应该从普通 session 直接执行。
 
 先读：
 

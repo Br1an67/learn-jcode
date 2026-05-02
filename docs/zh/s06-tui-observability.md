@@ -10,6 +10,21 @@ JCode 在 TUI 上投入很多，这不是装饰。
 
 判断一个 UI 模块是不是 harness 的一部分，看它是否影响用户判断 agent 状态。tool 状态、diff、usage、memory 命中都影响判断，所以它们不是皮肤。
 
+```mermaid
+flowchart LR
+  Server["server / runtime events"] --> Protocol["protocol events"]
+  Protocol --> AppState["TUI app state"]
+  AppState --> Widgets["InfoWidgetData"]
+  AppState --> Tools["ui_tools summaries"]
+  AppState --> Diff["ui_diff"]
+  Widgets --> Render["render_all"]
+  Tools --> Render
+  Diff --> Render
+  Render --> User["terminal view"]
+```
+
+这张图说明 TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能判断 agent 状态的界面。
+
 ## 先读这些文件
 
 ```text
