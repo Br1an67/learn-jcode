@@ -51,6 +51,96 @@ Read session last, because session depends on provider events and tool results. 
 
 Read `OAUTH.md` after the source. Use it to check the login flow you already saw in code. If you read the doc first, it feels like login documentation; after source, you can see how it touches provider selection, sessions, and headless environments.
 
+## Core Source Excerpts
+
+The narrow waist of provider integration is the `Provider` trait:
+
+```rust
+// src/provider/mod.rs, excerpt
+pub type EventStream =
+    Pin<Box<dyn Stream<Item = Result<StreamEvent>> + Send>>;
+
+pub trait Provider: Send + Sync {
+    async fn complete(
+        &self,
+        messages: &[Message],
+        tools: &[ToolDefinition],
+        system: &str,
+        resume_session_id: Option<&str>,
+    ) -> Result<EventStream>;
+
+    async fn complete_split(
+        &self,
+        messages: &[Message],
+        tools: &[ToolDefinition],
+        system_static: &str,
+        system_dynamic: &str,
+        resume_session_id: Option<&str>,
+    ) -> Result<EventStream> {
+        let dynamic_messages =
+            messages_with_dynamic_system_context(messages, system_dynamic);
+        self.complete(&dynamic_messages, tools, system_static, resume_session_id).await
+    }
+}
+```
+
+This shows the internal shape JCode wants from every provider: `Message`, `ToolDefinition`, system prompt in; `StreamEvent` out. OpenAI, Claude, and Gemini-specific formats should be absorbed behind this trait.
+
+The default `complete_split()` also matters. It moves dynamic system context into a later synthetic message instead of mixing it into the stable system prefix. That protects provider prompt-cache stability.
+
+Provider choice is centralized in `MultiProvider`, not scattered through the agent loop:
+
+```rust
+// src/provider/selection.rs, simplified
+enum ActiveProvider {
+    Claude,
+    OpenAi,
+    Gemini,
+    Copilot,
+    OpenRouter,
+    OpenAiCompatible,
+}
+
+impl MultiProvider {
+    fn auto_default_provider(availability: ProviderAvailability) -> ActiveProvider {
+        if availability.is_configured(ActiveProvider::Claude) {
+            ActiveProvider::Claude
+        } else if availability.is_configured(ActiveProvider::OpenAi) {
+            ActiveProvider::OpenAi
+        } else {
+            ActiveProvider::OpenAiCompatible
+        }
+    }
+}
+```
+
+This is simplified, but the design is clear: provider selection belongs to the provider layer. The agent loop should not know whether Claude or OpenAI is the current default.
+
+The session storage shape is also worth seeing directly:
+
+```rust
+// src/session/model.rs, field excerpt
+pub struct StoredMessage {
+    pub id: String,
+    pub role: Role,
+    pub content: Vec<ContentBlock>,
+    pub display_role: Option<StoredDisplayRole>,
+    pub timestamp: Option<DateTime<Utc>>,
+    pub tool_duration_ms: Option<u64>,
+    pub token_usage: Option<StoredTokenUsage>,
+}
+
+pub struct StoredCompactionState {
+    pub summary_text: String,
+    pub openai_encrypted_content: Option<String>,
+    pub covers_up_to_turn: usize,
+    pub original_turn_count: usize,
+    pub compacted_count: usize,
+}
+```
+
+This shows that a session is not a text transcript array. Messages carry structured `ContentBlock`s, display roles, timestamps, tool duration, and usage; compaction has its own summary and coverage state. Resume, replay, and import all depend on these details.
+
 ## What the Provider Layer Solves
 
 Providers differ in many ways:

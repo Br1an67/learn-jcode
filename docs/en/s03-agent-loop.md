@@ -54,6 +54,115 @@ Then jump to `src/agent/tools.rs` and read `tool_output_to_content_blocks()`. It
 
 Read `src/agent/messages.rs` and `src/message.rs` after this path. Inspect the shape of `Message`, `Role`, and `ContentBlock`, then come back to why `messages_for_provider()` normalizes history. Read `src/protocol.rs` last; it explains how these events become visible to the TUI or remote clients.
 
+## Core Source Excerpts
+
+The first part of `run_turn()` is request preparation, not a model call:
+
+```rust
+// src/agent/turn_loops.rs, simplified
+loop {
+    let repaired = self.repair_missing_tool_outputs();
+    let (messages, compaction_event) = self.messages_for_provider();
+    let tools = self.tool_definitions().await;
+
+    let memory_pending =
+        self.build_memory_prompt_nonblocking_shared(messages.clone(), None);
+
+    let split_prompt = self.build_system_prompt_split(None);
+
+    let mut stream = self.provider.complete_split(
+        &messages_with_memory,
+        &tools,
+        &split_prompt.static_part,
+        &split_prompt.dynamic_part,
+        self.provider_session_id.as_deref(),
+    ).await?;
+}
+```
+
+This shows that JCode does not simply send chat history to the model. It repairs history, may compact, builds tool definitions, takes the previous memory result, and uses split prompts before calling the provider.
+
+For stream events, first read only the four tool-call branches:
+
+```rust
+// src/agent/turn_loops.rs, simplified
+match event {
+    StreamEvent::TextDelta(text) => {
+        text_content.push_str(&text);
+    }
+    StreamEvent::ToolUseStart { id, name } => {
+        current_tool = Some(ToolCall { id, name, input: Value::Null, intent: None });
+        current_tool_input.clear();
+    }
+    StreamEvent::ToolInputDelta(delta) => {
+        current_tool_input.push_str(&delta);
+    }
+    StreamEvent::ToolUseEnd => {
+        let tool_input = serde_json::from_str(&current_tool_input)
+            .unwrap_or(Value::Null);
+        tool.input = tool_input;
+        tool_calls.push(tool);
+    }
+    _ => {}
+}
+```
+
+This is the relationship between provider streaming and tool calls. The model does not always emit one complete JSON object at once. JCode accumulates input deltas and parses the tool call at `ToolUseEnd`.
+
+Tool execution and result insertion come next:
+
+```rust
+// src/agent/turn_loops.rs, excerpt
+let result = self.registry.execute(&tc.name, tc.input.clone(), ctx).await;
+
+match result {
+    Ok(output) => {
+        let blocks = tool_output_to_content_blocks(tc.id, output);
+        self.add_message_with_duration(Role::User, blocks, Some(duration_ms));
+    }
+    Err(e) => {
+        self.add_message_with_duration(
+            Role::User,
+            vec![ContentBlock::ToolResult {
+                tool_use_id: tc.id,
+                content: format!("Error: {}", e),
+                is_error: Some(true),
+            }],
+            Some(duration_ms),
+        );
+    }
+}
+```
+
+This code reconnects the loop: the model emits a tool call, the registry executes it, and the tool result is written back as a `Role::User` message for the next provider call.
+
+Then inspect the conversion helper:
+
+```rust
+// src/agent/tools.rs, excerpt
+pub(super) fn tool_output_to_content_blocks(
+    tool_use_id: String,
+    output: ToolOutput,
+) -> Vec<ContentBlock> {
+    let mut blocks = vec![ContentBlock::ToolResult {
+        tool_use_id,
+        content: output.output,
+        is_error: None,
+    }];
+
+    for img in output.images {
+        blocks.push(ContentBlock::Image {
+            media_type: img.media_type,
+            data: img.data,
+        });
+    }
+
+    blocks
+}
+```
+
+This shows that tool results are not text-only. Tools can return images, and JCode turns all of it into provider-readable content blocks.
+
 ## What One JCode Turn Does
 
 Inside `run_turn()`, roughly:

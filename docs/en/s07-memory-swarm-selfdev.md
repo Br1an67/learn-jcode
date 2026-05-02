@@ -33,6 +33,58 @@ Then read `src/memory.rs`. Start with `MemoryManager::remember_project()`, `find
 
 Read `src/tool/memory.rs` and `src/tool/session_search.rs` last. The first is the model's explicit memory tool; the second searches across sessions. They are entrypoints. The main tradeoffs live in the background agent and manager.
 
+Start with this handle:
+
+```rust
+// src/memory_agent.rs, excerpt
+pub struct MemoryAgentHandle {
+    tx: mpsc::Sender<AgentMessage>,
+}
+
+impl MemoryAgentHandle {
+    pub fn update_context_sync_with_dir(
+        &self,
+        session_id: &str,
+        messages: Arc<[Message]>,
+        working_dir: Option<String>,
+    ) {
+        let msg = AgentMessage::Context {
+            session_id: session_id.to_string(),
+            messages,
+            working_dir,
+            timestamp: Instant::now(),
+        };
+        let _ = self.tx.try_send(msg);
+    }
+}
+```
+
+`try_send` is the key. Memory updates are pushed into a background channel and do not block the main agent turn. That is the code basis for "turn N triggers retrieval, turn N+1 uses the result."
+
+The background agent processes those messages later:
+
+```rust
+// src/memory_agent.rs, excerpt
+async fn run(mut self) {
+    while let Some(msg) = self.rx.recv().await {
+        match msg {
+            AgentMessage::Reset => self.reset(),
+            AgentMessage::Context { session_id, messages, working_dir, timestamp } => {
+                self.session_state(&session_id).turn_count += 1;
+
+                if let Err(e) =
+                    self.process_context(&session_id, messages, timestamp).await
+                {
+                    logging::error(&format!("Memory agent error: {}", e));
+                }
+            }
+        }
+    }
+}
+```
+
+This shows memory is a sidecar agent, not a synchronous function inside `run_turn()`. The main agent submits context; the background agent manages session state, turn count, and retrieval cadence.
+
 JCode memory is not "manually save a note." It is closer to automatic recall:
 
 ```text
@@ -78,6 +130,63 @@ Next read `src/tool/communicate.rs`. Do not treat it as a chat tool. It is the m
 
 Finally read `src/tool/task.rs::SubagentTool`. This is the single-subagent entrypoint and it is not the same thing as swarm. Comparing these two files clarifies the boundary: `subagent` is mostly one-off delegation; `swarm` is long-running coordination.
 
+For task dispatch, start with `run_swarm_task()`:
+
+```rust
+// src/server/swarm.rs, excerpt
+pub(super) async fn run_swarm_task(
+    agent: Arc<Mutex<Agent>>,
+    description: &str,
+    subagent_type: &str,
+    prompt: &str,
+) -> Result<String> {
+    let (provider, registry, session_id, working_dir, coordinator_model) = {
+        let agent = agent.lock().await;
+        (
+            agent.provider_fork(),
+            agent.registry(),
+            agent.session_id().to_string(),
+            agent.working_dir().map(PathBuf::from),
+            agent.provider_model(),
+        )
+    };
+
+    let mut session = Session::create(
+        Some(session_id),
+        Some(format!("{} (@{} swarm)", description, subagent_type)),
+    );
+    session.model = Some(coordinator_model);
+    session.save()?;
+
+    let mut allowed: HashSet<String> = registry.tool_names().await.into_iter().collect();
+    for blocked in ["subagent", "task", "todo", "todowrite", "todoread"] {
+        allowed.remove(blocked);
+    }
+
+    let mut worker = Agent::new_with_session(provider, registry, session, Some(allowed));
+    worker.run_once_capture(prompt).await
+}
+```
+
+This explains why swarm is not a normal function call. It forks the provider, reuses the registry, creates a worker session, and blocks some tools so the worker does not recursively spawn subagents or mutate todo state. Swarm is runtime coordination, not just several prompts in parallel.
+
+Progress also lives in server state:
+
+```rust
+// src/server/swarm.rs, excerpt
+let progress = plan.task_progress.entry(task_id.to_string()).or_default();
+progress.assigned_session_id = assigned_session_id.map(str::to_string);
+progress.last_heartbeat_unix_ms = Some(now_ms);
+progress.heartbeat_count = Some(progress.heartbeat_count.unwrap_or(0) + 1);
+
+if let Some(summary) = checkpoint_summary {
+    progress.last_checkpoint_unix_ms = Some(now_ms);
+    progress.checkpoint_summary = Some(truncate_detail(&summary, 120));
+}
+```
+
+This shows swarm tracks heartbeat, checkpoint, and assigned session. Without that state, multi-agent work becomes several black boxes running at once.
+
 JCode swarm is not a normal subagent. It is concerned with multi-agent runtime coordination:
 
 - how a coordinator assigns work
@@ -113,6 +222,56 @@ Next read `src/ambient/runner.rs` and `src/ambient_runner.rs`. Look for how one 
 Then read `src/ambient/scheduler.rs`. Inspect how schedule items are ordered and woken. The hard part of ambient is not just prompting; it is time, priority, and resources.
 
 Read `src/tool/ambient.rs` last. Start with `EndAmbientCycleTool`, `ScheduleAmbientTool`, `RequestPermissionTool`, and `ScheduleTool`. These tools show that an ambient agent cannot just act freely. It must end cycles, schedule future work, and request permission when needed.
+
+The module map lives in `src/ambient.rs`:
+
+```rust
+// src/ambient.rs, excerpt
+mod directives;
+mod manager;
+mod paths;
+mod persistence;
+mod prompt;
+pub mod runner;
+pub mod scheduler;
+
+pub use directives::{add_directive, has_pending_directives, take_pending_directives};
+pub use manager::AmbientManager;
+pub use persistence::{AmbientLock, ScheduledQueue};
+pub use prompt::{
+    ResourceBudget,
+    build_ambient_system_prompt,
+    gather_recent_sessions,
+    gather_memory_graph_health,
+};
+```
+
+This shows ambient is not a single tool file. It has directives, manager, persistence, prompt, runner, and scheduler. The real topic is the background loop and budgets.
+
+An ambient cycle must explicitly report how it ends:
+
+```rust
+// src/tool/ambient.rs, excerpt
+struct EndCycleInput {
+    summary: String,
+    memories_modified: u32,
+    compactions: u32,
+    proactive_work: Option<String>,
+    next_schedule: Option<NextScheduleInput>,
+}
+
+impl Tool for EndAmbientCycleTool {
+    fn name(&self) -> &str { "end_ambient_cycle" }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "required": ["summary", "memories_modified", "compactions"]
+        })
+    }
+}
+```
+
+This shows the ambient agent does not just run and vanish. It must report what happened, how many memories changed, whether compaction happened, and when to wake next.
 
 Ambient is a background agent. Instead of responding only to user prompts, it can do maintenance when resources allow:
 
@@ -151,6 +310,63 @@ Next read `src/tool/selfdev/launch.rs`. Inspect `enter_selfdev_session()` and `s
 Then read `src/tool/selfdev/build_queue.rs` and `src/tool/selfdev/reload.rs`. The first manages build requests, dedupe, locks, and background status. The second manages how a new binary takes over the old server. Do not edit here early. First draw the build -> publish -> reload -> resume path.
 
 Read `src/prompt/selfdev_mode.txt` and `src/prompt/selfdev_hint.txt` last. Use prompts to check the tool and CLI boundaries, not to reduce self-dev to "a different system prompt."
+
+Start with the self-dev tool action schema:
+
+```rust
+// src/tool/selfdev/mod.rs, excerpt
+impl Tool for SelfDevTool {
+    fn name(&self) -> &str {
+        "selfdev"
+    }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "properties": {
+                "action": {
+                    "enum": [
+                        "enter",
+                        "build",
+                        "test",
+                        "cancel-build",
+                        "reload",
+                        "status",
+                        "socket-info",
+                        "socket-help"
+                    ]
+                }
+            },
+            "required": ["action"]
+        })
+    }
+}
+```
+
+This shows self-dev is not only a hidden command. It is a model-callable tool exposing a controlled action set: enter self-dev, build, test, reload, and inspect status.
+
+Then read the risk boundary:
+
+```rust
+// src/tool/selfdev/mod.rs, excerpt
+match action.as_str() {
+    "enter" => self.do_enter(params.prompt, &ctx).await,
+    "build" => self.do_build(params.reason, params.target, params.notify, params.wake, &ctx).await,
+    "test" => self.do_test(params.command, params.reason, params.notify, params.wake, &ctx).await,
+    "reload" => {
+        if !SelfDevTool::session_is_selfdev(&ctx.session_id) {
+            Ok(ToolOutput::new(
+                "`selfdev reload` is only available inside a self-dev session. Use `selfdev enter` first.",
+            ))
+        } else {
+            self.do_reload(params.context, &ctx.session_id, ctx.execution_mode).await
+        }
+    }
+    "status" => self.do_status().await,
+    _ => Ok(ToolOutput::new(format!("Unknown action: {}", action))),
+}
+```
+
+This shows dangerous self-dev actions are not available in every session. `reload` must run inside a self-dev session. That is one of JCode's guardrails for letting the agent modify itself.
 
 Self-dev lets JCode modify itself.
 

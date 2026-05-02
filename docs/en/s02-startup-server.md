@@ -39,6 +39,96 @@ Finally read `src/server.rs::Server::run()` and `src/server/runtime.rs::ServerRu
 
 Read `docs/SERVER_ARCHITECTURE.md` and `docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md` after the source. Use them to check the diagram you drew from code. Reading docs first can leave you with nouns that you cannot place on functions.
 
+## Core Source Excerpts
+
+Compress the entrypoint into three code fragments. The reader can see how control moves from the binary into CLI startup without opening an IDE.
+
+```rust
+// src/main.rs, excerpt
+fn main() -> Result<()> {
+    configure_system_allocator();
+
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()?;
+
+    runtime.block_on(async { jcode::run().await })
+}
+```
+
+This proves `main()` does not run agent logic. It prepares the Rust process and tokio runtime, then hands off to `jcode::run()`.
+
+```rust
+// src/lib.rs, excerpt
+pub async fn run() -> Result<()> {
+    cli::startup::run().await
+}
+```
+
+This is even more direct: the crate root is a handoff. Real startup behavior lives in `src/cli/startup.rs`.
+
+```rust
+// src/cli/startup.rs, simplified
+pub async fn run() -> Result<()> {
+    startup_profile::init();
+    terminal::install_panic_hook();
+    logging::init();
+    storage::harden_user_config_permissions();
+    perf::init_background();
+    telemetry::record_install_if_first_run();
+
+    let args = parse_and_prepare_args()?;
+    spawn_background_update_check(&args);
+    dispatch::run_main(args).await?;
+    Ok(())
+}
+```
+
+This shows the boundary of `startup`: process setup and argument preparation. It does not create agents, execute tools, or render TUI. It hands `Args` to `dispatch`.
+
+The default startup branch is in `src/cli/dispatch.rs`:
+
+```rust
+// src/cli/dispatch.rs, excerpt
+if !server_running {
+    maybe_prompt_server_bootstrap_login(&args.provider).await?;
+    spawn_server(
+        &args.provider,
+        args.model.as_deref(),
+        args.provider_profile.as_deref(),
+    )
+    .await?;
+}
+
+tui_launch::run_tui_client(
+    args.resume,
+    startup_hints,
+    !server_running,
+    args.fresh_spawn,
+)
+.await?;
+```
+
+This code explains JCode's startup model: the default command does not create a local agent and start chatting. It first ensures a server exists, then starts a TUI client that connects to it.
+
+The server-side state is visible from the runtime struct:
+
+```rust
+// src/server/runtime.rs, field excerpt
+struct ServerRuntime {
+    sessions: Arc<RwLock<HashMap<String, Arc<Mutex<Agent>>>>>,
+    event_tx: broadcast::Sender<ServerEvent>,
+    provider: Arc<dyn Provider>,
+    client_connections: Arc<RwLock<HashMap<String, ClientConnectionInfo>>>,
+    swarm_state: SwarmState,
+    shared_context: Arc<RwLock<HashMap<String, HashMap<String, SharedContext>>>>,
+    mcp_pool: Arc<OnceCell<Arc<SharedMcpPool>>>,
+    shutdown_signals: Arc<RwLock<HashMap<String, InterruptSignal>>>,
+}
+```
+
+This is not a thin proxy. `sessions`, `provider`, `swarm_state`, and `mcp_pool` live in the server runtime, so long-running sessions, multiple clients, MCP, and swarm depend on the resident process.
+
 ## Startup Path
 
 Simplified:

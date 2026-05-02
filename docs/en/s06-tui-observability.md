@@ -53,6 +53,102 @@ Read side panel last. Start with `src/tool/side_panel.rs::SidePanelTool`, especi
 
 If you want the event path, go back to `src/protocol.rs` and `src/server/runtime.rs`. First know what the UI renders, then inspect how state moves from server/client into that rendering. Reading protocol first makes it hard to judge which events matter to the user.
 
+## Core Source Excerpts
+
+The info widget entrypoint is layout and unified rendering, not one specific widget:
+
+```rust
+// src/tui/info_widget.rs, excerpt
+pub fn calculate_placements(
+    messages_area: Rect,
+    margins: &Margins,
+    data: &InfoWidgetData,
+) -> Vec<WidgetPlacement> {
+    let placements = info_widget_layout::calculate_placements(
+        messages_area,
+        margins,
+        data,
+        state.enabled,
+        &state.placements,
+    );
+    state.placements = placements.clone();
+    placements
+}
+
+pub fn render_all(frame: &mut Frame, placements: &[WidgetPlacement], data: &InfoWidgetData) {
+    for placement in placements {
+        render_single_widget(frame, placement, data);
+    }
+}
+```
+
+This shows that widgets are not just painted on the right side. JCode computes placement from the message area, margins, and current data, then renders everything through one path. Observability first becomes a layout problem.
+
+Tool summaries have their own compression layer:
+
+```rust
+// src/tui/ui_tools.rs, simplified
+pub(crate) fn get_tool_summary(tool: &ToolCall) -> String {
+    get_tool_summary_with_budget(tool, 50, None)
+}
+
+fn get_tool_summary_with_budget(tool: &ToolCall, bash_max_chars: usize, max_width: Option<usize>)
+    -> String
+{
+    match canonical_tool_name(&tool.name) {
+        "bash" => format!("$ {}", truncate_command_display(cmd, cmd_budget)),
+        "read" => path_summary(tool),
+        "grep" => query_summary(tool),
+        _ => String::new(),
+    }
+}
+```
+
+This is simplified, but the responsibility is clear: when the model calls a tool, the user should not read raw JSON. The TUI compresses tool name and input into a scannable line.
+
+Diff rendering does not only wait for final tool output:
+
+```rust
+// src/tui/ui_diff.rs, excerpt
+pub(super) fn generate_diff_lines_from_tool_input(tool: &ToolCall)
+    -> Vec<ParsedDiffLine>
+{
+    match canonical_tool_name(&tool.name) {
+        "edit" => {
+            let old = tool.input.get("old_string").and_then(|v| v.as_str()).unwrap_or("");
+            let new = tool.input.get("new_string").and_then(|v| v.as_str()).unwrap_or("");
+            generate_diff_lines_from_strings(old, new)
+        }
+        "multiedit" => { /* generate diff lines for each edit */ }
+        _ => Vec::new(),
+    }
+}
+```
+
+JCode can infer diff lines from tool input before the final file output exists. The user can get early signal about what is being changed.
+
+The side panel is model-operable state, not just a UI component:
+
+```rust
+// src/tool/side_panel.rs, excerpt
+impl Tool for SidePanelTool {
+    fn name(&self) -> &str { "side_panel" }
+
+    fn parameters_schema(&self) -> Value {
+        json!({
+            "properties": {
+                "action": {
+                    "enum": ["status", "write", "append", "load", "focus", "delete"]
+                }
+            },
+            "required": ["action"]
+        })
+    }
+}
+```
+
+This shows that the side panel is registered as a tool. The model can write, append, load, focus, and delete pages, so it is harness state, not just a frontend surface.
+
 ## What the JCode TUI Shows
 
 JCode does not only print assistant text. It also handles:
