@@ -31,6 +31,7 @@ learn-jcode-5.5/
 ├── book.toml                 # mdBook 配置
 ├── README.md                 # 中文入口
 ├── README-en.md              # English entry
+├── mermaid.min.js            # mdBook 本地 Mermaid runtime
 ├── mermaid-init.js           # mdBook Mermaid 渲染
 ├── mini/                     # 缩小版机制标本，不是任务区
 │   ├── README.md

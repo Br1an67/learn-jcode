@@ -31,6 +31,7 @@ learn-jcode-5.5/
 ├── book.toml                 # mdBook configuration
 ├── README.md                 # Chinese entry
 ├── README-en.md              # English entry
+├── mermaid.min.js            # local Mermaid runtime for mdBook
 ├── mermaid-init.js           # mdBook Mermaid rendering
 ├── mini/                     # reduced mechanism specimens, not a task track
 │   ├── README.md

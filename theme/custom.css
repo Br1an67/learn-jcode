@@ -1,25 +1,142 @@
 :root {
-  --content-max-width: 980px;
+  --content-max-width: 1040px;
+  --jcode-serif: Charter, "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", Georgia, serif;
+  --jcode-sans: "Avenir Next", "Noto Sans SC", "Source Han Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --jcode-mono: "JetBrains Mono", "SF Mono", "Cascadia Code", "Fira Code", Menlo, Consolas, monospace;
+}
+
+html {
+  font-size: 17px;
+}
+
+body {
+  font-family: var(--jcode-serif);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .content main {
-  line-height: 1.7;
+  max-width: var(--content-max-width);
+  line-height: 1.78;
+  letter-spacing: 0.01em;
+}
+
+.content main > * {
+  max-width: 900px;
 }
 
 .content h1,
 .content h2,
+.content h3,
+.content h4 {
+  font-family: var(--jcode-sans);
+  letter-spacing: -0.025em;
+  line-height: 1.25;
+}
+
+.content h1 {
+  margin-top: 1.2rem;
+  margin-bottom: 1.6rem;
+  font-size: 2.35rem;
+}
+
+.content h2 {
+  margin-top: 2.7rem;
+  padding-top: 0.4rem;
+  font-size: 1.55rem;
+}
+
 .content h3 {
-  letter-spacing: -0.02em;
+  margin-top: 2rem;
+  font-size: 1.18rem;
+}
+
+.content p,
+.content li {
+  font-size: 1.02rem;
+}
+
+.content strong {
+  font-family: var(--jcode-sans);
+  font-weight: 700;
+}
+
+.content a {
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
 }
 
 .content table {
-  font-size: 0.92em;
+  display: table;
+  width: 100%;
+  max-width: 1000px;
+  font-family: var(--jcode-sans);
+  font-size: 0.91rem;
+  line-height: 1.55;
+}
+
+.content th {
+  font-weight: 700;
+}
+
+.content pre,
+.content code {
+  font-family: var(--jcode-mono);
 }
 
 .content pre {
-  border-radius: 10px;
+  max-width: 1000px;
+  border-radius: 14px;
+  line-height: 1.55;
+}
+
+.content :not(pre) > code {
+  border-radius: 5px;
+  padding: 0.08rem 0.28rem;
+  font-size: 0.91em;
 }
 
 .content blockquote {
+  max-width: 900px;
   border-left: 4px solid var(--quote-border);
+  border-radius: 0 10px 10px 0;
+  padding: 0.7rem 1rem;
+  font-style: normal;
+}
+
+.content .mermaid {
+  max-width: 1000px;
+  margin: 1.5rem 0;
+  padding: 1.2rem;
+  border-radius: 16px;
+  overflow-x: auto;
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.sidebar {
+  font-family: var(--jcode-sans);
+}
+
+.sidebar .chapter li {
+  line-height: 1.45;
+}
+
+.menu-title,
+.nav-chapters,
+.theme-popup {
+  font-family: var(--jcode-sans);
+}
+
+@media (max-width: 900px) {
+  html {
+    font-size: 16px;
+  }
+
+  .content main {
+    line-height: 1.7;
+  }
+
+  .content h1 {
+    font-size: 2rem;
+  }
 }

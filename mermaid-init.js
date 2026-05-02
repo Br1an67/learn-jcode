@@ -20,27 +20,41 @@
     return darkThemes.some(function (theme) { return classList.contains(theme); });
   }
 
-  function renderMermaid() {
+  async function renderMermaid() {
     convertMermaidBlocks();
     if (!document.querySelector('.mermaid') || !window.mermaid) {
       return;
     }
+
     window.mermaid.initialize({
-      startOnLoad: true,
-      theme: isDarkTheme() ? 'dark' : 'default'
+      startOnLoad: false,
+      securityLevel: 'strict',
+      theme: isDarkTheme() ? 'dark' : 'default',
+      flowchart: { useMaxWidth: true, htmlLabels: false },
+      sequence: { useMaxWidth: true }
     });
-  }
 
-  function loadMermaid() {
-    if (window.mermaid) {
-      renderMermaid();
-      return;
+    try {
+      await window.mermaid.run({ querySelector: '.mermaid' });
+    } catch (error) {
+      console.warn('Mermaid render failed:', error);
     }
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
-    script.onload = renderMermaid;
-    document.head.appendChild(script);
   }
 
-  window.addEventListener('load', loadMermaid);
+  function start() {
+    renderMermaid();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
+  }
+
+  for (const themeId of ['light', 'rust', 'coal', 'navy', 'ayu']) {
+    const el = document.getElementById(themeId);
+    if (el) {
+      el.addEventListener('click', function () { window.location.reload(); });
+    }
+  }
 })();

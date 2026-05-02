@@ -78,6 +78,11 @@ git-repository-url = "https://github.com/<owner>/<repo>"
 
 ## Mermaid
 
-Markdown 里的 Mermaid 代码块由 `mermaid-init.js` 渲染。它会在浏览器加载页面时从 jsDelivr 拉取 Mermaid，所以图表渲染需要浏览器能访问该 CDN。
+Markdown 里的 Mermaid 代码块由 `mermaid.min.js` 和 `mermaid-init.js` 渲染。`mermaid.min.js` 已放在仓库根目录，部署后从本站加载，不依赖浏览器访问 CDN。
 
-如果后面要做完全自包含站点，可以把 `mermaid.min.js` vendor 到仓库里，再加入 `book.toml` 的 `additional-js`。
+如果后续升级 Mermaid，替换根目录的 `mermaid.min.js`，再本地跑一次：
+
+```bash
+python3 scripts/prepare_mdbook_site.py
+mdbook build
+```
