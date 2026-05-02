@@ -34,7 +34,7 @@ The root README should stay short. Lessons should live in `docs/{zh,en}`.
 
 `learn-claude-code` has runnable miniature agents because it teaches harness mechanisms by implementing them from scratch.
 
-This project studies JCode itself. Adding a fake miniature agent would make the repository look similar but teach the wrong thing. Things readers need to know should be explained in the lessons, not moved into a separate hands-on section.
+This project studies JCode itself, so the main course stays source-first. If we add miniature code, it should be a small mechanism specimen that clarifies JCode concepts, not a detached exercise track.
 
 ### `skills/`
 
@@ -55,10 +55,10 @@ learn-jcode-5.5/
 ├── docs/
 │   ├── zh/
 │   │   ├── README.md
-│   │   └── s01...s07
+│   │   └── s01...s09
 │   ├── en/
 │   │   ├── README.md
-│   │   └── s01...s07
+│   │   └── s01...s09
 │   ├── analysis-notes.md
 │   ├── project-structure.md
 │   ├── sources.md

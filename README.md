@@ -36,7 +36,9 @@ learn-jcode-5.5/
 │   │   ├── s04-tool-system.md
 │   │   ├── s05-provider-session.md
 │   │   ├── s06-tui-observability.md
-│   │   └── s07-memory-swarm-selfdev.md
+│   │   ├── s07-memory.md
+│   │   ├── s08-swarm.md
+│   │   └── s09-ambient-selfdev.md
 │   ├── en/                   # English lesson docs
 │   │   ├── README.md
 │   │   ├── s01-harness-mindset.md
@@ -45,7 +47,9 @@ learn-jcode-5.5/
 │   │   ├── s04-tool-system.md
 │   │   ├── s05-provider-session.md
 │   │   ├── s06-tui-observability.md
-│   │   └── s07-memory-swarm-selfdev.md
+│   │   ├── s07-memory.md
+│   │   ├── s08-swarm.md
+│   │   └── s09-ambient-selfdev.md
 │   ├── analysis-notes.md     # 本教程写作和参考项目分析
 │   ├── project-structure.md  # 为什么这样组织项目
 │   ├── sources.md            # 本地参考仓库和 revision
@@ -67,7 +71,9 @@ learn-jcode-5.5/
 | s04 | [工具系统](./docs/zh/s04-tool-system.md) | [Tool System](./docs/en/s04-tool-system.md) |
 | s05 | [Provider、Auth、Session](./docs/zh/s05-provider-session.md) | [Provider, Auth, Session](./docs/en/s05-provider-session.md) |
 | s06 | [TUI 和可观察性](./docs/zh/s06-tui-observability.md) | [TUI and Observability](./docs/en/s06-tui-observability.md) |
-| s07 | [Memory、Swarm、Ambient、Self-Dev](./docs/zh/s07-memory-swarm-selfdev.md) | [Memory, Swarm, Ambient, Self-Dev](./docs/en/s07-memory-swarm-selfdev.md) |
+| s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
+| s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
+| s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
 
 ## 推荐学习节奏
 
@@ -80,7 +86,9 @@ learn-jcode-5.5/
 第 3 天：读 tool registry
 第 4 天：读 provider/auth/session
 第 5 天：读 TUI 和可观察性
-第 6 天：读 memory/swarm/ambient/self-dev
+第 6 天：读 memory
+第 7 天：读 swarm
+第 8 天：读 ambient/self-dev
 ```
 
 这个节奏不是硬性安排。重点是不要跳过前四课直接冲 swarm 和 self-dev。那样很容易只记住名词，看不懂运行时边界。

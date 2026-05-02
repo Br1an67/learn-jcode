@@ -14,6 +14,8 @@
 | [s04](./s04-tool-system.md) | 工具系统 | 看懂 JCode 怎样把工具交给模型 |
 | [s05](./s05-provider-session.md) | Provider、Auth、Session | 理解多模型平台和长期会话怎么接起来 |
 | [s06](./s06-tui-observability.md) | TUI 和可观察性 | 理解 UI 为什么是 harness 的一部分 |
-| [s07](./s07-memory-swarm-selfdev.md) | Memory、Swarm、Ambient、Self-Dev | 看 JCode 最有差异化也最难的部分 |
+| [s07](./s07-memory.md) | Memory | 理解非阻塞 memory sidecar |
+| [s08](./s08-swarm.md) | Swarm | 理解 server-level 多 agent 协作 runtime |
+| [s09](./s09-ambient-selfdev.md) | Ambient 和 Self-Dev | 理解后台循环和自我修改边界 |
 
 建议一天读一课或两课。JCode 不适合硬压成一天速成。遇到看不懂的模块，先写下问题，不要为了“读完”把目录硬扫过去。

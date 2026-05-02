@@ -36,7 +36,9 @@ learn-jcode-5.5/
 │   │   ├── s04-tool-system.md
 │   │   ├── s05-provider-session.md
 │   │   ├── s06-tui-observability.md
-│   │   └── s07-memory-swarm-selfdev.md
+│   │   ├── s07-memory.md
+│   │   ├── s08-swarm.md
+│   │   └── s09-ambient-selfdev.md
 │   ├── en/                   # English lesson docs
 │   │   ├── README.md
 │   │   ├── s01-harness-mindset.md
@@ -45,7 +47,9 @@ learn-jcode-5.5/
 │   │   ├── s04-tool-system.md
 │   │   ├── s05-provider-session.md
 │   │   ├── s06-tui-observability.md
-│   │   └── s07-memory-swarm-selfdev.md
+│   │   ├── s07-memory.md
+│   │   ├── s08-swarm.md
+│   │   └── s09-ambient-selfdev.md
 │   ├── analysis-notes.md     # Writing notes and reference-project analysis
 │   ├── project-structure.md  # Why the repository is organized this way
 │   ├── sources.md            # Local source repositories and revisions
@@ -67,7 +71,9 @@ Read in order, one or two lessons per day.
 | s04 | [工具系统](./docs/zh/s04-tool-system.md) | [Tool System](./docs/en/s04-tool-system.md) |
 | s05 | [Provider、Auth、Session](./docs/zh/s05-provider-session.md) | [Provider, Auth, Session](./docs/en/s05-provider-session.md) |
 | s06 | [TUI 和可观察性](./docs/zh/s06-tui-observability.md) | [TUI and Observability](./docs/en/s06-tui-observability.md) |
-| s07 | [Memory、Swarm、Ambient、Self-Dev](./docs/zh/s07-memory-swarm-selfdev.md) | [Memory, Swarm, Ambient, Self-Dev](./docs/en/s07-memory-swarm-selfdev.md) |
+| s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
+| s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
+| s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
 
 ## Suggested Pace
 
@@ -80,7 +86,9 @@ Day 2: read the agent loop
 Day 3: read the tool registry
 Day 4: read provider/auth/session
 Day 5: read TUI and observability
-Day 6: read memory/swarm/ambient/self-dev
+Day 6: read memory
+Day 7: read swarm
+Day 8: read ambient/self-dev
 ```
 
 This is not a strict schedule. The point is: do not skip the first four lessons and jump straight into swarm or self-dev. You will collect names without understanding runtime boundaries.
