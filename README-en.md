@@ -36,6 +36,7 @@ learn-jcode-5.5/
 ├── docs/
 │   ├── zh/                   # Chinese lesson docs
 │   │   ├── README.md
+│   │   ├── 00-map.md
 │   │   ├── s01-harness-mindset.md
 │   │   ├── s02-startup-server.md
 │   │   ├── s03-agent-loop.md
@@ -48,6 +49,7 @@ learn-jcode-5.5/
 │   │   └── s10-comparison.md
 │   ├── en/                   # English lesson docs
 │   │   ├── README.md
+│   │   ├── 00-map.md
 │   │   ├── s01-harness-mindset.md
 │   │   ├── s02-startup-server.md
 │   │   ├── s03-agent-loop.md
@@ -75,6 +77,7 @@ Read in order, one or two lessons per day.
 
 | Lesson | 中文 | English |
 | --- | --- | --- |
+| 00 | [全局地图](./docs/zh/00-map.md) | [Global Map](./docs/en/00-map.md) |
 | s01 | [Harness 心智](./docs/zh/s01-harness-mindset.md) | [Harness Mindset](./docs/en/s01-harness-mindset.md) |
 | s02 | [启动链路和常驻 Server](./docs/zh/s02-startup-server.md) | [Startup and Resident Server](./docs/en/s02-startup-server.md) |
 | s03 | [Agent Loop](./docs/zh/s03-agent-loop.md) | [Agent Loop](./docs/en/s03-agent-loop.md) |

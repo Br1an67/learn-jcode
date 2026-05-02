@@ -2,12 +2,13 @@
 
 This directory contains the English lesson docs. The root README is only the entry point; read the course in this order.
 
-The writing follows [../writing-style.md](../writing-style.md): source walkthrough, not marketing copy. Each lesson should answer three questions: which files to read first, what design tradeoff to notice, and what conclusion to keep.
+The writing follows [../writing-style.md](../writing-style.md): source walkthrough, not marketing copy. Each lesson should answer three questions: what the core flow is, where the code boundary sits, and what conclusion to keep.
 
 Course map:
 
 | Lesson | Topic | Goal |
 | --- | --- | --- |
+| [00](./00-map.md) | Global map | See the overall shape of the JCode runtime |
 | [s01](./s01-harness-mindset.md) | Harness mindset | Understand the boundary between model and harness |
 | [s02](./s02-startup-server.md) | Startup and resident server | Trace what happens after the `jcode` command starts |
 | [s03](./s03-agent-loop.md) | Agent loop | Follow model output, tool calls, and tool results |
@@ -17,6 +18,6 @@ Course map:
 | [s07](./s07-memory.md) | Memory | Understand non-blocking memory sidecar design |
 | [s08](./s08-swarm.md) | Swarm | Understand server-level multi-agent coordination |
 | [s09](./s09-ambient-selfdev.md) | Ambient and self-dev | Understand background cycles and self-modification boundaries |
-| [s10](./s10-comparison.md) | Comparison | Align JCode, learn-claude-code, Learn-OpenClaw, pi, and OpenCode |
+| [s10](./s10-comparison.md) | Boundaries | Compare JCode tradeoffs with several coding-agent runtimes |
 
 Read one or two lessons per day. JCode is not a good one-day cram project. If a module does not make sense yet, write down the question and move on; do not scan directories just to feel done.
