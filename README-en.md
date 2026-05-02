@@ -61,6 +61,7 @@ learn-jcode-5.5/
 │   │   ├── s09-ambient-selfdev.md
 │   │   └── s10-comparison.md
 │   ├── analysis-notes.md     # Writing notes and reference-project analysis
+│   ├── glossary.md           # Term glossary
 │   ├── project-structure.md  # Why the repository is organized this way
 │   ├── sources.md            # Local source repositories and revisions
 │   └── writing-style.md      # Writing tone and banned expressions
@@ -78,6 +79,7 @@ Read in order, one or two lessons per day.
 | Lesson | 中文 | English |
 | --- | --- | --- |
 | 00 | [全局地图](./docs/zh/00-map.md) | [Global Map](./docs/en/00-map.md) |
+| glossary | [术语表](./docs/zh/glossary.md) | [Glossary](./docs/en/glossary.md) |
 | s01 | [Harness 心智](./docs/zh/s01-harness-mindset.md) | [Harness Mindset](./docs/en/s01-harness-mindset.md) |
 | s02 | [启动链路和常驻 Server](./docs/zh/s02-startup-server.md) | [Startup and Resident Server](./docs/en/s02-startup-server.md) |
 | s03 | [Agent Loop](./docs/zh/s03-agent-loop.md) | [Agent Loop](./docs/en/s03-agent-loop.md) |

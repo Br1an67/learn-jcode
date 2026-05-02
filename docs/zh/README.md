@@ -9,6 +9,7 @@
 | 课次 | 主题 | 目标 |
 | --- | --- | --- |
 | [00](./00-map.md) | 全局地图 | 先看 JCode runtime 的整体形状 |
+| [glossary](./glossary.md) | 术语表 | 固定反复出现的 runtime 术语 |
 | [s01](./s01-harness-mindset.md) | Harness 心智 | 先把模型和 harness 的边界讲清楚 |
 | [s02](./s02-startup-server.md) | 启动链路和常驻 server | 读懂 `jcode` 命令启动后发生什么 |
 | [s03](./s03-agent-loop.md) | Agent Loop | 追踪一次模型输出、工具调用、工具结果 |

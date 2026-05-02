@@ -9,6 +9,7 @@ Course map:
 | Lesson | Topic | Goal |
 | --- | --- | --- |
 | [00](./00-map.md) | Global map | See the overall shape of the JCode runtime |
+| [glossary](./glossary.md) | Glossary | Fix recurring runtime terms |
 | [s01](./s01-harness-mindset.md) | Harness mindset | Understand the boundary between model and harness |
 | [s02](./s02-startup-server.md) | Startup and resident server | Trace what happens after the `jcode` command starts |
 | [s03](./s03-agent-loop.md) | Agent loop | Follow model output, tool calls, and tool results |

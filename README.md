@@ -61,6 +61,7 @@ learn-jcode-5.5/
 │   │   ├── s09-ambient-selfdev.md
 │   │   └── s10-comparison.md
 │   ├── analysis-notes.md     # 本教程写作和参考项目分析
+│   ├── glossary.md           # 术语表
 │   ├── project-structure.md  # 为什么这样组织项目
 │   ├── sources.md            # 本地参考仓库和 revision
 │   └── writing-style.md      # 写作口径和禁用表达
@@ -78,6 +79,7 @@ learn-jcode-5.5/
 | 课次 | 中文 | English |
 | --- | --- | --- |
 | 00 | [全局地图](./docs/zh/00-map.md) | [Global Map](./docs/en/00-map.md) |
+| glossary | [术语表](./docs/zh/glossary.md) | [Glossary](./docs/en/glossary.md) |
 | s01 | [Harness 心智](./docs/zh/s01-harness-mindset.md) | [Harness Mindset](./docs/en/s01-harness-mindset.md) |
 | s02 | [启动链路和常驻 Server](./docs/zh/s02-startup-server.md) | [Startup and Resident Server](./docs/en/s02-startup-server.md) |
 | s03 | [Agent Loop](./docs/zh/s03-agent-loop.md) | [Agent Loop](./docs/en/s03-agent-loop.md) |
