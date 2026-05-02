@@ -35,6 +35,24 @@ src/tui/ui_diff.rs
 src/tui/stream_buffer.rs
 ```
 
+## 这组文件怎么读
+
+先打开 `src/tui/info_widget.rs`，不要直接读 render 细节。先看 `WidgetKind`、`InfoWidgetData`、`calculate_placements()`、`render_all()`。这几处告诉你 JCode 怎么决定哪些状态值得显示、放在哪边、什么时候合并成 overview。
+
+然后选一个小 widget 追完整链路。建议先读 `src/tui/info_widget_git.rs` 的 `render_git_widget()` 和 `render_git_compact()`。Git 信息很适合入门，因为它没有复杂异步协议。读的时候只问：`InfoWidgetData.git` 里有什么，compact 和 expanded 两种视图各删掉了什么信息。
+
+第二个 widget 读 `src/tui/info_widget_todos.rs`。看 `render_todos_widget()`、`render_todos_expanded()`、`render_todos_compact()`。这里能看到一个状态模块怎么在窄空间里取舍：不是所有 todo 都能完整显示，UI 必须决定摘要、截断和展开页。
+
+第三个再读 `src/tui/info_widget_memory_render.rs`。先看 `render_memory_widget()`，再看 `memory_status_badge()`、`render_memory_pipeline_lines()`。这部分和 `s07` 的 memory 对上：TUI 展示的不是“有 memory 功能”，而是 memory 当前在检索、提取、维护还是空闲。
+
+工具展示放在后面读。打开 `src/tui/ui_tools.rs`，先看 `resolve_display_tool_name()`、`canonical_tool_name()`、`get_tool_summary()`，再看 `summarize_apply_patch_input()` 和 `summarize_unified_patch_input()`。这条线解释 JCode 为什么能把一堆工具调用压成用户能扫一眼的摘要。
+
+Diff 再单独看 `src/tui/ui_diff.rs`。先读 `diff_change_counts_for_tool()`，再读 `generate_diff_lines_from_tool_input()` 和 `collect_diff_lines()`。你会看到 UI 不是等工具输出完整 diff 才显示，它会尝试从 tool input 里提前计算增删行。
+
+Side panel 最后读。先看 `src/tool/side_panel.rs` 的 `SidePanelTool`，尤其是 action enum：`status/write/append/load/focus/delete`。再跳到 `src/side_panel.rs` 看 `write_markdown_page()`、`append_markdown_page()`、`focus_page()`、`snapshot_for_session()`。这条线说明 side panel 是模型可操作的持久页面，不只是 TUI 临时区域。
+
+如果你想接到事件流，再回 `src/protocol.rs` 和 `src/server/runtime.rs`。先知道 UI 渲染什么，再看这些状态怎么从 server/client 传过来。反过来读协议，会很难判断哪些事件对用户判断 agent 状态有用。
+
 ## JCode TUI 展示什么
 
 JCode 的 TUI 不只是打印 assistant text。它还处理：

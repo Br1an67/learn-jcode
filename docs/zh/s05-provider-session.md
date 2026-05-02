@@ -33,6 +33,24 @@ src/auth/login_flows.rs
 
 不要一口气读完所有 provider。先选一个你熟悉的，比如 OpenAI 或 Claude，把 trait、stream event、auth 这三条线追通。
 
+## 这组文件怎么读
+
+先打开 `src/provider/mod.rs`，读 `Provider` trait 和 `EventStream`。第一遍只看 `complete()`、`complete_split()`、`name()`、`model()`。`complete_split()` 的默认实现会把 dynamic system context 插到靠后的 synthetic message 里；Anthropic 这类 provider 可以覆盖它，用自己的 cache-control 方式处理 static/dynamic prompt。
+
+接着在同一个文件里找 `MultiProvider`。先看它为什么实现 `Provider`，再看 `complete_with_failover()`。JCode 不是在 agent loop 里到处判断 Claude/OpenAI/Gemini，而是让 `MultiProvider` 决定当前请求发给谁、失败后怎么切。
+
+第三步读 `src/provider/dispatch.rs`。先看 `CompletionMode`，再看 `complete_on_provider()` 和 `complete_split_on_provider()`。这两个函数是 provider 分发的窄腰：上面是 JCode 的统一接口，下面才是具体平台。
+
+第四步读 `src/provider/selection.rs`。看 `ActiveProvider`、`ProviderAvailability`、`auto_default_provider()`、`parse_provider_hint()`。这一步回答“默认用谁”和“用户写的 provider hint 怎么解析”。不要把 provider 选择当配置小功能，它会影响启动、模型切换、session resume。
+
+然后只选一个具体 provider 深读。比如读 `src/provider/openai.rs` 时，只追请求体怎么把 `Message`、`ToolDefinition`、system prompt 转成 OpenAI 格式，stream 又怎么转回 JCode 的 `StreamEvent`。读 `src/provider/claude.rs` 也按同样问题看。不要同时对比四个 provider，第一遍会被字段差异淹没。
+
+Auth 放在 provider 后面读。先看 `src/auth/commands.rs`，它处理系统命令探测、路径候选、WSL 这些本地环境问题；再看 `src/auth/login_flows.rs`，它处理外部登录命令和 terminal handoff。最后补 `src/cli/login/` 下的登录流程。这样读，你会知道 JCode 的 auth 不是“保存一个 API key”，而是在处理真实终端环境。
+
+Session 最后读，因为它依赖前面的 provider 和 tool result。先看 `src/session/model.rs` 里的 `StoredMessage`、`StoredReplayEvent`、`StoredCompactionState`，再看 `src/session/journal.rs` 的 journal entry 和 persist state。接着看 `src/session/render.rs` 怎么把存储结构变回可展示内容。这样读 import/replay 时，才知道它在对齐哪些结构。
+
+`OAUTH.md` 放在源码之后读。先在代码里看到登录和 provider 选择的分工，再用文档补 OAuth 流程。文档先读会觉得只是登录说明，源码读过后才能看出它为什么影响 provider、session 和 headless 环境。
+
 ## Provider 层解决什么问题
 
 不同 provider 的差异很多：

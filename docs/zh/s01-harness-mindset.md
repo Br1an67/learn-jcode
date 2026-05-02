@@ -104,3 +104,13 @@ OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。Ope
 - `src/memory*` 不是普通 RAG demo，是长期使用后的召回系统。
 
 也要记住代价：常驻 server 能复用状态，但带来 reload、socket、生命周期管理这些复杂度。JCode 的每个大设计都类似，收益和代价一起出现。
+
+## 这份教程怎么读
+
+后面的章节不会只给文件清单。每一课都按一条源码路径走：先打开哪个文件，只看哪个函数或结构体，读到什么判断，再跳到下一个文件。
+
+第一遍读源码时不要贪多。比如启动链路只追 `main()`、`jcode::run()`、`cli::startup::run()`、`dispatch::run_main()`、`spawn_server()`、`Server::run()`。先把控制权怎么移动看清楚，再回头补 server 里的 swarm、ambient、debug socket。
+
+读 agent loop 也是一样。先把 `run_turn()` 的正常路径跑通：准备 messages 和 tools，调用 provider stream，收集 tool call，执行工具，把 tool result 写回下一轮。等这条线清楚了，再看 compaction、memory、native tool、soft interrupt。
+
+这份教程不另开题目区。需要你知道的判断会直接放在课里，因为源码导读的价值不在“做题”，而在你读到某个函数时知道它为什么在这里。

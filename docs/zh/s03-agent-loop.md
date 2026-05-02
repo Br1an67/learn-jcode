@@ -42,6 +42,20 @@ src/protocol.rs
 
 读这个文件时不要试图一次性记住所有分支。先只追一条正常路径：用户输入、provider stream、模型发 tool call、工具执行、tool result 回到下一轮。
 
+## `turn_loops.rs` 怎么读
+
+先打开 `src/agent/turn_loops.rs`，只看 `impl Agent` 里的 `run_turn()`。这个函数很长，第一遍不要从头到尾精读。把它切成三段看。
+
+第一段是 provider 调用前的准备。读 `repair_missing_tool_outputs()`、`messages_for_provider()`、`tool_definitions().await`、`build_memory_prompt_nonblocking_shared()`、`build_system_prompt_split()`。这几行告诉你 JCode 发请求前要同时处理消息修复、compaction、工具定义、memory pending result 和 split prompt。
+
+第二段是 provider stream。找到 `provider.complete_split(...)`，再往下看 `while let Some(event) = stream.next().await`。这里不要先看所有 event，先只看四个：`TextDelta`、`ToolUseStart`、`ToolInputDelta`、`ToolUseEnd`。它们对应模型一边输出文本，一边拼出一个 JSON tool input。
+
+第三段是工具执行。搜索 `registry.execute`，你会看到两处：一处处理 `StreamEvent::NativeToolCall`，另一处处理普通 `tool_calls`。先读普通路径：构造 `ToolContext`，发布 `ToolStatus::Running`，执行 `self.registry.execute(&tc.name, tc.input.clone(), ctx).await`，再用 `tool_output_to_content_blocks()` 把结果变成下一轮 `Role::User` message。
+
+然后跳到 `src/agent/tools.rs` 看 `tool_output_to_content_blocks()`。这个函数小，但位置很关键：它把 Rust 工具输出翻译成 provider 能继续消费的 `ContentBlock::ToolResult`。读完它，再回到 `run_turn()` 末尾看 `self.session.save()`，你就能连上“工具结果进入会话历史”这一步。
+
+`src/agent/messages.rs` 和 `src/message.rs` 放在这条线后面读。先看 `Message`、`Role`、`ContentBlock` 的形状，再回头理解 `messages_for_provider()` 为什么要整理历史。`src/protocol.rs` 最后读，它解释这些事件怎样给 TUI 或远程 client 看。
+
 ## JCode 一轮 turn 做什么
 
 在 `run_turn()` 里，大致会发生：

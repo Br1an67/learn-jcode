@@ -24,6 +24,24 @@ src/tool/side_panel.rs
 
 重点先看 `src/tool/mod.rs`。
 
+## 这组文件怎么读
+
+先打开 `src/tool/mod.rs`，从 `Tool` trait 开始读。不要先看 `read` 或 `bash` 的实现。`Tool` trait 定了工具在 JCode 里的合同：工具名、描述、JSON schema、执行函数。模型看到的是 definition，runtime 调的是 `execute()`，这两个动作都从这里开始。
+
+接着读 `Tool::to_definition()`。它把 trait 方法转成 `ToolDefinition`。这一步连接了工具系统和 provider 层：没有 definition，模型不知道工具存在；没有 execute，工具只是 prompt 里的说明。
+
+然后读 `Registry` 结构体。先看字段：`tools`、`skills`、`compaction`。这说明 registry 不是简单 map。它还要知道 skill registry，并且给 `conversation_search` 这类工具保存 compaction 相关状态。
+
+下一步读 `Registry::base_tools()`。这里能看到哪些工具是无状态、可复用、通过 `OnceLock` 缓存的。重点不是背工具名，而是看 JCode 把 `read/write/edit/bash/grep/ls` 这类基础工具，和 `memory/goal/schedule/selfdev/swarm` 这类 harness 工具放进同一个 registry。
+
+再看 `Registry::new(provider)`。它先拿 base tools，再插入 `subagent`、`batch`、`conversation_search` 这些 session-specific tools。原因很直接：这些工具需要当前 provider、registry 或 compaction manager，不能像 `read` 一样全局复用。
+
+然后读 `Registry::definitions()`。注意它会过滤 allowed tools，并按 name 排序。排序不是洁癖，它减少 prompt cache 抖动。这个点和 `s03` 的 split prompt 是一条线：harness 要控制每次请求的稳定性。
+
+最后读 `Registry::execute()`。先看 `resolve_tool_name()`，它把 `shell_exec`、`file_read`、`task` 这些 alias 转成 JCode 内部名字；再看执行后调用 `guard_context_overflow()`。这说明工具输出不是直接塞回上下文，registry 会管别名、telemetry、错误和截断。
+
+读具体工具时按难度走：先看 `src/tool/read.rs` 或 `src/tool/ls.rs`，再看 `src/tool/edit.rs`、`src/tool/bash.rs`，最后看 `src/tool/task.rs`、`src/tool/communicate.rs`、`src/tool/mcp.rs`。不要第一天读 `swarm` 工具，它会把你拉到 server coordination。
+
 ## Tool trait
 
 JCode 的工具统一实现 `Tool` trait：
