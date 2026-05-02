@@ -38,7 +38,8 @@ learn-jcode-5.5/
 │   │   ├── s06-tui-observability.md
 │   │   ├── s07-memory.md
 │   │   ├── s08-swarm.md
-│   │   └── s09-ambient-selfdev.md
+│   │   ├── s09-ambient-selfdev.md
+│   │   └── s10-comparison.md
 │   ├── en/                   # English lesson docs
 │   │   ├── README.md
 │   │   ├── s01-harness-mindset.md
@@ -49,7 +50,8 @@ learn-jcode-5.5/
 │   │   ├── s06-tui-observability.md
 │   │   ├── s07-memory.md
 │   │   ├── s08-swarm.md
-│   │   └── s09-ambient-selfdev.md
+│   │   ├── s09-ambient-selfdev.md
+│   │   └── s10-comparison.md
 │   ├── analysis-notes.md     # 本教程写作和参考项目分析
 │   ├── project-structure.md  # 为什么这样组织项目
 │   ├── sources.md            # 本地参考仓库和 revision
@@ -74,6 +76,7 @@ learn-jcode-5.5/
 | s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
+| s10 | [对比课](./docs/zh/s10-comparison.md) | [Comparison](./docs/en/s10-comparison.md) |
 
 ## 推荐学习节奏
 
@@ -89,6 +92,7 @@ learn-jcode-5.5/
 第 6 天：读 memory
 第 7 天：读 swarm
 第 8 天：读 ambient/self-dev
+第 9 天：读对比课，确认 JCode 和几个参考项目的边界
 ```
 
 这个节奏不是硬性安排。重点是不要跳过前四课直接冲 swarm 和 self-dev。那样很容易只记住名词，看不懂运行时边界。

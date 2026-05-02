@@ -17,5 +17,6 @@ Course map:
 | [s07](./s07-memory.md) | Memory | Understand non-blocking memory sidecar design |
 | [s08](./s08-swarm.md) | Swarm | Understand server-level multi-agent coordination |
 | [s09](./s09-ambient-selfdev.md) | Ambient and self-dev | Understand background cycles and self-modification boundaries |
+| [s10](./s10-comparison.md) | Comparison | Align JCode, learn-claude-code, Learn-OpenClaw, pi, and OpenCode |
 
 Read one or two lessons per day. JCode is not a good one-day cram project. If a module does not make sense yet, write down the question and move on; do not scan directories just to feel done.

@@ -38,7 +38,8 @@ learn-jcode-5.5/
 │   │   ├── s06-tui-observability.md
 │   │   ├── s07-memory.md
 │   │   ├── s08-swarm.md
-│   │   └── s09-ambient-selfdev.md
+│   │   ├── s09-ambient-selfdev.md
+│   │   └── s10-comparison.md
 │   ├── en/                   # English lesson docs
 │   │   ├── README.md
 │   │   ├── s01-harness-mindset.md
@@ -49,7 +50,8 @@ learn-jcode-5.5/
 │   │   ├── s06-tui-observability.md
 │   │   ├── s07-memory.md
 │   │   ├── s08-swarm.md
-│   │   └── s09-ambient-selfdev.md
+│   │   ├── s09-ambient-selfdev.md
+│   │   └── s10-comparison.md
 │   ├── analysis-notes.md     # Writing notes and reference-project analysis
 │   ├── project-structure.md  # Why the repository is organized this way
 │   ├── sources.md            # Local source repositories and revisions
@@ -74,6 +76,7 @@ Read in order, one or two lessons per day.
 | s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
+| s10 | [对比课](./docs/zh/s10-comparison.md) | [Comparison](./docs/en/s10-comparison.md) |
 
 ## Suggested Pace
 
@@ -89,6 +92,7 @@ Day 5: read TUI and observability
 Day 6: read memory
 Day 7: read swarm
 Day 8: read ambient/self-dev
+Day 9: read the comparison lesson and check the boundaries between JCode and the reference projects
 ```
 
 This is not a strict schedule. The point is: do not skip the first four lessons and jump straight into swarm or self-dev. You will collect names without understanding runtime boundaries.

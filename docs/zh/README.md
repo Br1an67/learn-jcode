@@ -17,5 +17,6 @@
 | [s07](./s07-memory.md) | Memory | 理解非阻塞 memory sidecar |
 | [s08](./s08-swarm.md) | Swarm | 理解 server-level 多 agent 协作 runtime |
 | [s09](./s09-ambient-selfdev.md) | Ambient 和 Self-Dev | 理解后台循环和自我修改边界 |
+| [s10](./s10-comparison.md) | 对比课 | 对齐 JCode、learn-claude-code、Learn-OpenClaw、pi、OpenCode |
 
 建议一天读一课或两课。JCode 不适合硬压成一天速成。遇到看不懂的模块，先写下问题，不要为了“读完”把目录硬扫过去。
