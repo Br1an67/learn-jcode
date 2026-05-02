@@ -25,8 +25,13 @@ If agents are completely new to you, read a minimal agent-loop demo first, then 
 
 ```text
 learn-jcode-5.5/
+├── .github/
+│   └── workflows/
+│       └── deploy-pages.yml  # GitHub Pages deployment
+├── book.toml                 # mdBook configuration
 ├── README.md                 # Chinese entry
 ├── README-en.md              # English entry
+├── mermaid-init.js           # mdBook Mermaid rendering
 ├── mini/                     # reduced mechanism specimens, not a task track
 │   ├── README.md
 │   ├── 01_server_client.py
@@ -38,7 +43,10 @@ learn-jcode-5.5/
 │   ├── 07_ambient_scheduler.py
 │   └── 08_selfdev_reload_gate.py
 ├── scripts/
-│   └── check_bilingual_structure.py # bilingual structure drift check
+│   ├── check_bilingual_structure.py # bilingual structure drift check
+│   └── prepare_mdbook_site.py       # generate temporary mdBook source
+├── theme/
+│   └── custom.css             # lightweight mdBook styling
 ├── docs/
 │   ├── zh/                   # Chinese lesson docs
 │   │   ├── README.md
@@ -67,6 +75,7 @@ learn-jcode-5.5/
 │   │   ├── s09-ambient-selfdev.md
 │   │   └── s10-comparison.md
 │   ├── analysis-notes.md     # JCode content analysis and tradeoff notes
+│   ├── deploy-pages.md       # GitHub Pages deployment notes
 │   ├── glossary.md           # Term glossary
 │   ├── project-structure.md  # Why the repository is organized this way
 │   ├── sources.md            # Source repositories and revisions
@@ -108,6 +117,15 @@ python3 scripts/check_bilingual_structure.py
 ```
 
 This script only catches structure drift; it does not judge translation quality. It checks file sets, heading levels, code fence languages, Mermaid counts, table rows, and `mini/` specimen references.
+
+This project can also be published to GitHub Pages with mdBook:
+
+```bash
+python3 scripts/prepare_mdbook_site.py
+mdbook build
+```
+
+Deployment details are in [docs/deploy-pages.md](./docs/deploy-pages.md).
 
 ## Suggested Pace
 

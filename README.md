@@ -25,8 +25,13 @@
 
 ```text
 learn-jcode-5.5/
+├── .github/
+│   └── workflows/
+│       └── deploy-pages.yml  # GitHub Pages 部署
+├── book.toml                 # mdBook 配置
 ├── README.md                 # 中文入口
 ├── README-en.md              # English entry
+├── mermaid-init.js           # mdBook Mermaid 渲染
 ├── mini/                     # 缩小版机制标本，不是任务区
 │   ├── README.md
 │   ├── 01_server_client.py
@@ -38,7 +43,10 @@ learn-jcode-5.5/
 │   ├── 07_ambient_scheduler.py
 │   └── 08_selfdev_reload_gate.py
 ├── scripts/
-│   └── check_bilingual_structure.py # 中英文结构漂移检查
+│   ├── check_bilingual_structure.py # 中英文结构漂移检查
+│   └── prepare_mdbook_site.py       # 生成临时 mdBook source
+├── theme/
+│   └── custom.css             # mdBook 轻量样式
 ├── docs/
 │   ├── zh/                   # 中文分课文档
 │   │   ├── README.md
@@ -67,6 +75,7 @@ learn-jcode-5.5/
 │   │   ├── s09-ambient-selfdev.md
 │   │   └── s10-comparison.md
 │   ├── analysis-notes.md     # JCode 内容分析和取舍记录
+│   ├── deploy-pages.md       # GitHub Pages 部署说明
 │   ├── glossary.md           # 术语表
 │   ├── project-structure.md  # 为什么这样组织项目
 │   ├── sources.md            # 源码仓库和 revision
@@ -108,6 +117,15 @@ python3 scripts/check_bilingual_structure.py
 ```
 
 这个脚本只防结构漂移，不替你判断翻译质量。它会检查中英文文件集合、标题层级、代码块语言、Mermaid 数量、表格行数和 `mini/` 标本引用是否一致。
+
+本项目也可以用 mdBook 发布到 GitHub Pages：
+
+```bash
+python3 scripts/prepare_mdbook_site.py
+mdbook build
+```
+
+部署细节见 [docs/deploy-pages.md](./docs/deploy-pages.md)。
 
 ## 推荐学习节奏
 

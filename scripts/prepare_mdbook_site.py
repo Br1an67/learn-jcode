@@ -79,6 +79,7 @@ def write_summary() -> None:
             "# 维护资料 / Maintenance",
             "",
             "- [源码 revision / Source Revisions](./docs/sources.md)",
+            "- [部署 GitHub Pages / Deploy To GitHub Pages](./docs/deploy-pages.md)",
             "- [写作口径 / Writing Style](./docs/writing-style.md)",
             "- [项目结构 / Project Structure](./docs/project-structure.md)",
         ]
