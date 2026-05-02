@@ -2,5 +2,7 @@
 node_modules/
 dist/
 build/
+book/
+.mdbook-src/
 *.log
 __pycache__/

@@ -1,0 +1,25 @@
+[book]
+title = "Learn JCode 5.5"
+authors = ["learn-jcode contributors"]
+language = "zh"
+multilingual = true
+src = ".mdbook-src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/1jehuang/jcode"
+additional-css = ["theme/custom.css"]
+additional-js = ["mermaid-init.js"]
+
+[output.html.search]
+enable = true
+limit-results = 30
+use-hierarchical-strategy = true
+
+[output.html.fold]
+enable = true
+level = 1
