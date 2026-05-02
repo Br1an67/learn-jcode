@@ -37,6 +37,8 @@ learn-jcode-5.5/
 │   ├── 06_swarm_channel.py
 │   ├── 07_ambient_scheduler.py
 │   └── 08_selfdev_reload_gate.py
+├── scripts/
+│   └── check_bilingual_structure.py # 中英文结构漂移检查
 ├── docs/
 │   ├── zh/                   # 中文分课文档
 │   │   ├── README.md
@@ -96,6 +98,16 @@ learn-jcode-5.5/
 | s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
 如果某课的源码太大，可以先看 [mini/](./mini/README.md) 里的对应标本，再回到课程正文。
+
+## 维护检查
+
+改中文和英文课程时，先跑一次结构检查：
+
+```bash
+python3 scripts/check_bilingual_structure.py
+```
+
+这个脚本只防结构漂移，不替你判断翻译质量。它会检查中英文文件集合、标题层级、代码块语言、Mermaid 数量、表格行数和 `mini/` 标本引用是否一致。
 
 ## 推荐学习节奏
 

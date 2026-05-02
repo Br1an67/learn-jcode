@@ -37,6 +37,8 @@ learn-jcode-5.5/
 │   ├── 06_swarm_channel.py
 │   ├── 07_ambient_scheduler.py
 │   └── 08_selfdev_reload_gate.py
+├── scripts/
+│   └── check_bilingual_structure.py # bilingual structure drift check
 ├── docs/
 │   ├── zh/                   # Chinese lesson docs
 │   │   ├── README.md
@@ -96,6 +98,16 @@ Read in order, one or two lessons per day.
 | s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
 If a lesson's source path feels too large, read the corresponding specimen in [mini/](./mini/README.md), then return to the lesson.
+
+## Maintenance Check
+
+When editing Chinese and English lessons, run the structure check first:
+
+```bash
+python3 scripts/check_bilingual_structure.py
+```
+
+This script only catches structure drift; it does not judge translation quality. It checks file sets, heading levels, code fence languages, Mermaid counts, table rows, and `mini/` specimen references.
 
 ## Suggested Pace
 
