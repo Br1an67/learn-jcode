@@ -6,6 +6,26 @@
 
 JCode 的启动链路是理解整个项目的第一把钥匙。它不是每次运行都创建一个孤立 CLI 进程，而是会连接或启动一个本地 server。
 
+## 启动链路图
+
+把本课内容先压成一张图：
+
+```mermaid
+flowchart LR
+  CLI[jcode command] --> Startup[cli startup]
+  Startup -->|no server| Spawn[spawn daemon server]
+  Startup -->|server exists| Connect[connect socket]
+  Spawn --> Server[JCode server]
+  Connect --> Client[TUI client]
+  Client <--> Server
+  Server --> Sessions[session map]
+  Server --> Provider[provider]
+  Server --> Swarm[swarm state]
+  Server --> MCP[MCP pool]
+```
+
+JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。
+
 ## 先读这些文件
 
 ```text
@@ -193,23 +213,3 @@ soft_interrupt_queues
 - 为什么 JCode 可以支持多个 client。
 - `/reload` 为什么需要 server 参与。
 - 为什么 session、provider、MCP pool、swarm state 要放在 server，而不是 TUI client。
-
-## 启动链路图
-
-把本课内容压成一张图就是：
-
-```mermaid
-flowchart LR
-  CLI[jcode command] --> Startup[cli startup]
-  Startup -->|no server| Spawn[spawn daemon server]
-  Startup -->|server exists| Connect[connect socket]
-  Spawn --> Server[JCode server]
-  Connect --> Client[TUI client]
-  Client <--> Server
-  Server --> Sessions[session map]
-  Server --> Provider[provider]
-  Server --> Swarm[swarm state]
-  Server --> MCP[MCP pool]
-```
-
-JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。

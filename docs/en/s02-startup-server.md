@@ -6,6 +6,26 @@ Understand what happens after the `jcode` command starts.
 
 The startup path is the first key to the project. JCode does not create one isolated CLI process per run. It connects to or starts a local server.
 
+## Startup Diagram
+
+Compress the lesson into this diagram first:
+
+```mermaid
+flowchart LR
+  CLI[jcode command] --> Startup[cli startup]
+  Startup -->|no server| Spawn[spawn daemon server]
+  Startup -->|server exists| Connect[connect socket]
+  Spawn --> Server[JCode server]
+  Connect --> Client[TUI client]
+  Client <--> Server
+  Server --> Sessions[session map]
+  Server --> Provider[provider]
+  Server --> Swarm[swarm state]
+  Server --> MCP[MCP pool]
+```
+
+JCode does not keep all state inside the TUI client because clients can disconnect, restart, and reconnect. Sessions, providers, MCP pools, and swarm state live in the server so long-running work and multiple clients can survive. The cost is that the server must handle lifecycle, sockets, reload, and state recovery.
+
 ## Read First
 
 ```text
@@ -193,23 +213,3 @@ These fields show that the server is not just a message proxy. It is the center 
 - Why JCode can support multiple clients.
 - Why `/reload` needs server participation.
 - Why sessions, providers, MCP pools, and swarm state live in the server instead of the TUI client.
-
-## Startup Diagram
-
-The lesson compresses into this diagram:
-
-```mermaid
-flowchart LR
-  CLI[jcode command] --> Startup[cli startup]
-  Startup -->|no server| Spawn[spawn daemon server]
-  Startup -->|server exists| Connect[connect socket]
-  Spawn --> Server[JCode server]
-  Connect --> Client[TUI client]
-  Client <--> Server
-  Server --> Sessions[session map]
-  Server --> Provider[provider]
-  Server --> Swarm[swarm state]
-  Server --> MCP[MCP pool]
-```
-
-JCode does not keep all state inside the TUI client because clients can disconnect, restart, and reconnect. Sessions, providers, MCP pools, and swarm state live in the server so long-running work and multiple clients can survive. The cost is that the server must handle lifecycle, sockets, reload, and state recovery.
