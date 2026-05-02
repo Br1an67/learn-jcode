@@ -44,6 +44,17 @@ Comparison framing:
 
 ## Tutorial Shape
 
+### Revision after user feedback
+
+The first README draft was too close to an architecture guide and too synthetic in tone. The revised tutorial should be a hybrid:
+
+- Use the `learn-claude-code` stance: start from harness engineering, trust the model, teach the runtime around the model.
+- Keep the `Learn-OpenClaw` practicality: concrete learning path, source files to read, project tasks, and interview/project framing.
+- Do not force a one-day promise. Use a multi-day path for actual learning.
+- Avoid generic "AI documentation" tone. Write more like an engineer's course note: direct, opinionated, grounded in source files, and occasionally blunt.
+- Preserve JCode-specific comparisons with pi, OpenCode, and Claude Code, but keep them tied to design decisions rather than marketing claims.
+- Keep bilingual README files complete enough to stand alone.
+
 The repository should stay small and readable:
 
 - `README.md`: Chinese main tutorial.
