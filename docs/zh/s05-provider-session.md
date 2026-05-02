@@ -253,6 +253,8 @@ provider stream 这条线也可以看 [mini/03_provider_stream.py](../../mini/03
 
 真实 provider 要额外处理 auth、model id、request body、tool schema、usage、error 和 retry。标本只留下 stream 归一化后的形状，避免读者把 provider 误读成普通 HTTP wrapper。
 
+session 这条线可以看 [mini/05_session_journal.py](../../mini/05_session_journal.py)。它把 session 拆成 append-only journal、render view 和 replay messages 三个动作。真实 JCode 多了 compaction、usage、import、active process 和 memory profile，但底层判断一致：session 不是一段聊天文本，而是可恢复的结构化运行记录。
+
 ## 读完你应该能解释什么
 
 - `Provider` trait 为什么把输出统一成 `StreamEvent`。

@@ -32,7 +32,11 @@ learn-jcode-5.5/
 │   ├── 01_server_client.py
 │   ├── 02_tool_registry.py
 │   ├── 03_provider_stream.py
-│   └── 04_memory_sidecar.py
+│   ├── 04_memory_sidecar.py
+│   ├── 05_session_journal.py
+│   ├── 06_swarm_channel.py
+│   ├── 07_ambient_scheduler.py
+│   └── 08_selfdev_reload_gate.py
 ├── docs/
 │   ├── zh/                   # Chinese lesson docs
 │   │   ├── README.md
@@ -70,7 +74,7 @@ learn-jcode-5.5/
 
 This course is not building a toy agent from scratch; it is reading JCode itself. Things readers need to know are written directly into the lessons, not moved into a separate hands-on area.
 
-`mini/` contains four reduced specimens for server/client, tool registry, provider stream, and memory sidecar. They are not another task track; they reduce the cognitive load before reading JCode source.
+`mini/` contains eight reduced specimens for server/client, tool registry, provider stream, memory sidecar, session journal, swarm channel, ambient scheduler, and self-dev reload gate. They are not another task track; they reduce the cognitive load before reading JCode source.
 
 ## Lessons
 

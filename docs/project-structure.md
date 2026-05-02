@@ -31,6 +31,10 @@ learn-jcode-5.5/
 │   ├── 02_tool_registry.py
 │   ├── 03_provider_stream.py
 │   ├── 04_memory_sidecar.py
+│   ├── 05_session_journal.py
+│   ├── 06_swarm_channel.py
+│   ├── 07_ambient_scheduler.py
+│   ├── 08_selfdev_reload_gate.py
 │   └── mini_compat.py
 ├── docs/
 │   ├── zh/
@@ -59,6 +63,10 @@ mini/01_server_client.py
 mini/02_tool_registry.py
 mini/03_provider_stream.py
 mini/04_memory_sidecar.py
+mini/05_session_journal.py
+mini/06_swarm_channel.py
+mini/07_ambient_scheduler.py
+mini/08_selfdev_reload_gate.py
 ```
 
 Each file maps to a lesson and removes real provider calls, sockets, and file writes. The point is to preserve the shape of the mechanism without asking the reader to understand the full runtime first.

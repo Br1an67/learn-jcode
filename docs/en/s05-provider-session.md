@@ -253,6 +253,8 @@ The provider-stream path also maps to [mini/03_provider_stream.py](../../mini/03
 
 Real providers also handle auth, model IDs, request bodies, tool schemas, usage, errors, and retry. The specimen keeps only the normalized stream shape so provider code does not get misread as a thin HTTP wrapper.
 
+The session path maps to [mini/05_session_journal.py](../../mini/05_session_journal.py). It reduces a session to append-only journal events, a rendered view, and replay messages. Real JCode adds compaction, usage, import, active processes, and memory profiles, but the judgment is the same: a session is recoverable structured runtime state, not a chat transcript.
+
 ## What You Should Be Able To Explain
 
 - Why the `Provider` trait normalizes output into `StreamEvent`.

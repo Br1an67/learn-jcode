@@ -32,7 +32,11 @@ learn-jcode-5.5/
 │   ├── 01_server_client.py
 │   ├── 02_tool_registry.py
 │   ├── 03_provider_stream.py
-│   └── 04_memory_sidecar.py
+│   ├── 04_memory_sidecar.py
+│   ├── 05_session_journal.py
+│   ├── 06_swarm_channel.py
+│   ├── 07_ambient_scheduler.py
+│   └── 08_selfdev_reload_gate.py
 ├── docs/
 │   ├── zh/                   # 中文分课文档
 │   │   ├── README.md
@@ -70,7 +74,7 @@ learn-jcode-5.5/
 
 这个教程不是从零写一个 toy agent，而是读 JCode 本身。需要读者知道的内容直接写进课程，不单独开动手区。
 
-`mini/` 里是 4 个缩小版机制标本，对应 server/client、tool registry、provider stream、memory sidecar。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
+`mini/` 里是 8 个缩小版机制标本，对应 server/client、tool registry、provider stream、memory sidecar、session journal、swarm channel、ambient scheduler、self-dev reload gate。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
 
 ## 课程
 
