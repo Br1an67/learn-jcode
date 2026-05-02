@@ -126,12 +126,12 @@ learn-jcode-5.5/
 
 ## 源码来源
 
-本教程基于这些仓库的源码阅读：
+本教程基于这些仓库的源码阅读。主要分析对象是 JCode `e353796c62f8eab5b9a9b3722c06a3b262e24a25`。
 
 - [JCode](https://github.com/1jehuang/jcode)
 - [pi-mono](https://github.com/badlogic/pi-mono)
 - [OpenCode](https://github.com/anomalyco/opencode)
 
-具体 revision 见 [docs/sources.md](./docs/sources.md)。
+完整 revision 见 [docs/sources.md](./docs/sources.md)。
 
 关于 Claude Code：本教程只在边界课里参考公开行为，不使用、不传播、不复述任何非公开或泄露源码。

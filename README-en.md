@@ -126,12 +126,12 @@ For a real project, pick one small modification:
 
 ## Source Repositories
 
-This tutorial is based on source reading of:
+This tutorial is based on source reading of these repositories. The main JCode revision analyzed here is `e353796c62f8eab5b9a9b3722c06a3b262e24a25`.
 
 - [JCode](https://github.com/1jehuang/jcode)
 - [pi-mono](https://github.com/badlogic/pi-mono)
 - [OpenCode](https://github.com/anomalyco/opencode)
 
-Exact revisions are listed in [docs/sources.md](./docs/sources.md).
+Full revisions are listed in [docs/sources.md](./docs/sources.md).
 
 For Claude Code, this tutorial only references public behavior in the boundaries lesson. It does not use, distribute, or summarize non-public or leaked source code.
