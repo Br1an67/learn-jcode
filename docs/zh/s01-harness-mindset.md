@@ -69,7 +69,7 @@ LLM + tools + loop
 
 `Learn-OpenClaw` 更适合快速建立 agent 概念。它把 Node、Workflow、Agent、Tool、MCP、Skill 讲得很直接。
 
-这份 JCode 教程不复刻那个“一天速成”的节奏，而是保留它的实用性：每一课告诉你读哪些文件、看什么问题、做什么练习。
+这份 JCode 教程不复刻那个“一天速成”的节奏，而是保留它的实用性：每一课告诉你读哪些文件、看什么问题、最后应该带走什么结论。
 
 ### learn-claude-code
 
@@ -87,18 +87,20 @@ JCode 的价值是大。它告诉你当这个 agent 要支持多 provider、多 
 
 OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。OpenCode 更像开放平台，JCode 更像本地高性能 runtime。
 
-## 本课练习
+## 这课应该带走的结论
 
-写一段 200-300 字的说明，回答：
+读 JCode 时先用这句话校准视角：
 
 ```text
-为什么说 JCode 是 harness，而不是 agent 本身？
+模型是 agent。JCode 是让模型能在代码库里行动的 harness。
 ```
 
-要求：
+这句话不是口号。它会影响你怎么看源码：
 
-- 必须提到模型和 harness 的边界。
-- 必须提到至少 4 个 JCode harness 组件。
-- 不要写成项目宣传稿，写成你自己的理解。
+- `src/tool/` 不是“插件集合”，是模型的手。
+- `src/server/` 不是“额外服务”，是长期会话和多 client 的 runtime。
+- `src/provider/` 不是“一层 API wrapper”，是不同模型平台的适配层。
+- `src/tui/` 不是皮肤，是用户判断 agent 状态的驾驶舱。
+- `src/memory*` 不是普通 RAG demo，是长期使用后的召回系统。
 
-一个合格答案应该能解释代价。比如：常驻 server 能复用状态，但也带来 reload、socket、生命周期管理这些复杂度。
+也要记住代价：常驻 server 能复用状态，但带来 reload、socket、生命周期管理这些复杂度。JCode 的每个大设计都类似，收益和代价一起出现。

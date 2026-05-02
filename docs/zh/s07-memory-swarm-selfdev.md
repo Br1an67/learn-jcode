@@ -118,21 +118,15 @@ Self-dev 是让 JCode 改自己。
 - 必须跑 `cargo check`。
 - 不要一上来改 provider、server reload、compaction、swarm。
 
-## 本课练习
+## 这课应该带走的判断
 
-选一个方向写一页设计笔记：
+这几个模块分别补单 agent loop 的短板：
 
 ```text
-Memory 如何避免阻塞主 agent？
-Swarm 为什么不能只靠 subagent summary？
-Ambient 为什么需要资源限制？
-Self-dev 最危险的模块是什么？
+Memory: 单次上下文记不住长期偏好和项目事实，所以需要非阻塞召回。
+Swarm: 单个 agent 做大任务会慢、会污染上下文，所以需要 server-level coordination。
+Ambient: 用户不可能每次都显式要求维护 memory 和近期工作，所以需要后台循环。
+Self-dev: JCode 自己就是可改造对象，但必须用分支、commit、cargo check 控制风险。
 ```
 
-要求：
-
-- 必须引用至少 3 个源码文件。
-- 必须画一张 mermaid 图。
-- 必须写出一个“不要做什么”的风险点。
-
-不要写“未来可以扩展更多能力”这种空话。写一个具体风险，比如 self-dev 改 reload 路径导致正在运行的 session 丢状态。
+风险也要一起记住：memory 有一轮延迟；swarm 会引入计划和通信复杂度；ambient 没有资源限制会变成干扰源；self-dev 改 reload 或 server state 可能让正在运行的 session 丢状态。

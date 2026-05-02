@@ -89,9 +89,9 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 
 两者都说明一件事：coding agent 的 UI 不是 shell stdout 就够了。
 
-## 练习
+## 一个 widget 应该怎么看
 
-选一个 info widget，写出它的数据链路：
+读 `info_widget_git` 或 `info_widget_todos` 时，按这条数据链路看：
 
 ```text
 数据从哪里来？
@@ -101,6 +101,4 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 用户为什么需要这个信息？
 ```
 
-推荐从 `info_widget_git` 或 `info_widget_todos` 开始，别从最复杂的 swarm widget 开始。
-
-写完后检查一句话：这个 widget 如果删掉，用户会少知道什么？答不上来，就说明你还没理解它的用途。
+不要从最复杂的 swarm widget 开始。先看 git 或 todo，因为数据来源清楚。判断一个 widget 是否必要，就问一句：删掉它，用户会少知道什么？答不上来，这个 widget 的用途还没读懂。

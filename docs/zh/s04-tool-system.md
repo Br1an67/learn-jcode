@@ -125,9 +125,9 @@ JCode: 长期多会话本地 agent runtime
 
 读到这里要能说出代价：pi 小，所以容易改；JCode 大，所以必须处理缓存、截断、动态注册、权限和 UI 状态。
 
-## 练习：设计 repo_summary 工具
+## 一个小改造应该长什么样
 
-新增一个只读工具 `repo_summary`，输出：
+如果要给 JCode 加一个入门级工具，`repo_summary` 是合适例子。它是只读工具，输出：
 
 ```text
 branch:
@@ -136,14 +136,12 @@ top-level dirs:
 tracked file count:
 ```
 
-要求：
+这个例子说明工具设计的边界：
 
 - 不写文件。
 - 不访问网络。
 - 输出简短。
 - 注册到 tool registry。
-- 至少做一次手动验证。
+- 先能被模型调用，再考虑要不要接入 TUI。
 
-这个练习能走通完整工具路径，比写一个天气 API 工具更接近 coding harness。
-
-做这个练习时先不要接入 TUI。先让工具能被模型调用，再考虑要不要显示成 widget。顺序反了会把问题搞复杂。
+它比天气 API 工具更适合 JCode 教程，因为它走的是 coding harness 的真实路径：schema、registry、execute、tool result、上下文截断。顺序反了，比如先做 widget，会把一个工具入门任务变成 UI 任务。

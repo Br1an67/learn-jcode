@@ -111,19 +111,23 @@ JCode README 提到可以从 Codex、Claude Code、OpenCode、pi 恢复会话。
 
 所以 import/session/render 是很值得读的部分。
 
-## 练习
+## 这里要记住的两个判断
 
-回答：
-
-```text
-如果要把 OpenCode 的一个 session 导入 JCode，
-你认为最难对齐的三个字段是什么？
-```
-
-再回答：
+第一，session import 难点不是“把文本搬过去”。OpenCode、Codex、Claude Code、pi 的会话结构不同，JCode 至少要对齐这些东西：
 
 ```text
-为什么 provider stream 需要统一成 JCode 内部的 StreamEvent？
+message role
+tool call id
+tool result
+attachments / images
+provider metadata
+thinking / reasoning
 ```
 
-答案里必须提到至少两个 provider 差异。只写“为了统一接口”不够。
+第二，provider stream 必须统一成 JCode 内部的 `StreamEvent`。否则 agent loop、TUI、tool executor 都要知道每个 provider 的私有格式。
+
+```text
+Claude/OpenAI/Gemini/Copilot 的 stream 事件不同。
+JCode 不能让 turn loop 到处写 provider-specific 分支。
+统一成 StreamEvent 后，后面的 agent loop 才能稳定处理 text、thinking、tool input、tool result。
+```

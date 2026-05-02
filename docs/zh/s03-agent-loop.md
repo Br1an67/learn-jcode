@@ -97,9 +97,9 @@ StreamEvent::ToolUseStart
   -> 下一轮 provider call
 ```
 
-## 练习
+## 一条工具调用路径
 
-选一个简单工具，比如 `ls` 或 `read`，追踪完整路径：
+读 `ls` 或 `read` 时，把路径按下面这条线看：
 
 ```text
 模型如何看到这个工具定义？
@@ -109,6 +109,17 @@ JCode 如何解析 tool input？
 工具结果如何进入下一轮 messages？
 ```
 
-写成一段笔记，不要超过 500 字。
+对应到源码，大致是：
 
-如果笔记里只写“JCode 支持工具调用”，说明你还没追到关键路径。至少要写出一个函数名和一个数据结构名。
+```text
+Registry::definitions()
+  -> provider complete_split()
+  -> StreamEvent::ToolUseStart / ToolInputDelta / ToolUseEnd
+  -> Registry::execute()
+  -> Tool::execute()
+  -> ToolOutput
+  -> tool_output_to_content_blocks()
+  -> next provider messages
+```
+
+只记“JCode 支持工具调用”没有意义。你要记住函数和数据结构怎么接起来。

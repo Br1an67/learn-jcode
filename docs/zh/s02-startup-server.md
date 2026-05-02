@@ -86,9 +86,9 @@ soft_interrupt_queues
 - `/reload` 为什么需要 server 参与？
 - swarm state 为什么放在 server，而不是某个 agent 自己的 messages 里？
 
-## 练习
+## 启动链路图
 
-画一张启动链路图：
+把本课内容压成一张图就是：
 
 ```mermaid
 flowchart LR
@@ -104,4 +104,4 @@ flowchart LR
   Server --> MCP[MCP pool]
 ```
 
-然后用自己的话解释：为什么 JCode 不直接把所有状态放在 TUI client 里。
+JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。
