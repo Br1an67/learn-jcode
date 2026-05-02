@@ -138,6 +138,24 @@ pub(super) async fn subscribe_session_to_channel(
 
 These excerpts close the communication boundary: the model calls a tool, the tool sends a server request, and the server maintains channel/session indexes. Coordination state is not improvised inside prompt text.
 
+## State Flow
+
+```mermaid
+sequenceDiagram
+  participant Coord as coordinator
+  participant Tool as swarm tool
+  participant Server as server swarm state
+  participant Worker as worker session
+
+  Coord->>Tool: propose_plan / assign_task / spawn
+  Tool->>Server: Comm* request
+  Server->>Worker: task / channel / DM
+  Worker->>Server: heartbeat / checkpoint / report
+  Server-->>Coord: plan status / completion report
+```
+
+This line shows the core of swarm: cooperation facts live in the server. Who owns a task, who is still alive, who is in which channel, and who reported completion are runtime state, not guesses from chat history.
+
 ## What JCode Swarm Cares About
 
 JCode swarm is concerned with multi-agent runtime coordination:

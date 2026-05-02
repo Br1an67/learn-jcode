@@ -159,6 +159,33 @@ JCode 的 memory 不是“用户手动保存一条笔记”。它更像自动召
 
 这样不会让主 agent 每轮都等 memory。
 
+## 状态流
+
+```mermaid
+sequenceDiagram
+  participant Turn as 主 agent turn
+  participant Handle as MemoryAgentHandle
+  participant Sidecar as MemoryAgent
+  participant Store as MemoryManager
+  participant Next as 下一轮 turn
+
+  Turn->>Handle: update_context_sync_with_dir(messages)
+  Handle-->>Sidecar: try_send(Context)
+  Sidecar->>Sidecar: format_context_for_relevance
+  Sidecar->>Store: embedding / retrieval / cascade
+  Store-->>Sidecar: relevant memories
+  Sidecar->>Sidecar: format_relevant_prompt
+  Sidecar-->>Next: pending memory prompt
+```
+
+这条状态流解释了为什么 memory 不是普通 RAG：主 turn 只投递上下文，sidecar 才做检索和 prompt 组装。当前轮不会等它，下一轮才使用 pending prompt。
+
+## 机制标本
+
+memory sidecar 可以对照 [mini/04_memory_sidecar.py](../../mini/04_memory_sidecar.py)。它只保留有界队列、非阻塞提交、后台 worker、下一轮取 pending prompt 这四个动作。
+
+真实 JCode 多了 embedding、graph、cascade retrieval、prompt budget 和 display prompt，但非阻塞边界和这个标本一致。
+
 ## 这课应该带走的判断
 
 Memory 补的是单次上下文的短板：模型当前上下文装不下长期偏好、项目事实和旧会话经验，所以 JCode 用 sidecar 做非阻塞召回。

@@ -240,6 +240,12 @@ Registry::definitions()
 
 Remembering "JCode supports tool calling" is too vague. The point is how functions and data structures connect.
 
+## Mechanism Specimen
+
+For the provider-stream part of the agent loop, compare [mini/03_provider_stream.py](../../mini/03_provider_stream.py). It keeps only text delta, tool use start, tool input delta, and tool use end.
+
+The specimen isolates the part where the model streams JSON tool input over time. Real JCode handles more events, errors, usage, native tool calls, and session persistence, but the core is still: assemble stream fragments into an executable tool call, then feed the tool result into the next messages.
+
 ## What You Should Be Able To Explain
 
 - Why `run_turn()` prepares messages, tools, memory, and split prompts before calling the provider.

@@ -181,6 +181,12 @@ soft_interrupt_queues
 
 这些字段说明 JCode 的 server 不只是“转发消息”。它是会话、协作、工具、UI 事件的中心。
 
+## 机制标本
+
+如果常驻 server/client 的边界还不清楚，可以看 [mini/01_server_client.py](../../mini/01_server_client.py)。它只保留一个点：server 拥有 session，client 可以断开再连回来。
+
+这个标本不复刻 socket、TUI 或 provider，只用几十行代码说明为什么 session 不应该绑死在 client 进程上。看完再回到本课，`ServerRuntime` 里那些字段会更容易放回位置。
+
 ## 读完你应该能解释什么
 
 - 第一次运行 `jcode` 和第二次运行有什么区别。

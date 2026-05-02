@@ -251,6 +251,41 @@ pub(super) async fn do_reload(
 
 这段代码说明 self-dev reload 不是“重启一下”。它要先记录要激活的版本、保存恢复上下文，再让 server 进入 reload handoff。否则 agent 改自己时很容易丢掉当前任务。
 
+## 状态流
+
+Ambient 的状态流：
+
+```mermaid
+sequenceDiagram
+  participant Queue as ScheduledQueue
+  participant Runner as ambient runner
+  participant Agent as ambient agent
+  participant Tool as end_ambient_cycle
+
+  Queue-->>Runner: pop_ready()
+  Runner->>Agent: start ambient cycle
+  Agent->>Tool: summary / budget / next_schedule
+  Tool->>Queue: schedule next item
+```
+
+Self-dev 的状态流：
+
+```mermaid
+sequenceDiagram
+  participant Session as self-dev session
+  participant Build as build/test
+  participant Manifest as canary manifest
+  participant Server as shared server
+
+  Session->>Build: request build/test
+  Build-->>Session: usable binary
+  Session->>Manifest: pending activation
+  Session->>Server: reload signal
+  Server-->>Session: reload handoff / recovery
+```
+
+这两条线都在讲同一件事：后台能力必须能恢复。ambient 用 queue 恢复下一次唤醒，self-dev 用 manifest 和 reload context 恢复正在做的修改。
+
 Self-dev 是让 JCode 改自己。
 
 建议非常保守：

@@ -228,6 +228,12 @@ JCode: long-running multi-session local agent runtime
 
 You should be able to name the cost: pi is small and easy to modify; JCode is larger and has to handle caching, truncation, dynamic registration, permissions, and UI state.
 
+## Mechanism Specimen
+
+For the tool registry, compare [mini/02_tool_registry.py](../../mini/02_tool_registry.py). It keeps one registry that produces model-visible definitions and runtime execution.
+
+The specimen fixes two boundaries: the model sees name, description, and schema; runtime calls the handler. JCode's `Registry` is more complex, but most of that complexity is added around allowed tools, aliases, telemetry, context guards, and session-specific tools.
+
 ## What a Small Modification Looks Like
 
 If you add a beginner-friendly JCode tool, `repo_summary` is a good example. It is read-only and returns:

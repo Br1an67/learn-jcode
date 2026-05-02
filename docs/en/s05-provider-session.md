@@ -245,6 +245,12 @@ JCode cannot let turn loop code know every private provider format.
 After normalization into StreamEvent, the rest of the agent loop can handle text, thinking, tool input, and tool result consistently.
 ```
 
+## Mechanism Specimen
+
+The provider-stream path also maps to [mini/03_provider_stream.py](../../mini/03_provider_stream.py). In `s03`, it explains the agent loop. In this lesson, it explains the provider's job: normalize provider-specific streams into events JCode can process.
+
+Real providers also handle auth, model IDs, request bodies, tool schemas, usage, errors, and retry. The specimen keeps only the normalized stream shape so provider code does not get misread as a thin HTTP wrapper.
+
 ## What You Should Be Able To Explain
 
 - Why the `Provider` trait normalizes output into `StreamEvent`.

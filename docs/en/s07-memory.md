@@ -159,6 +159,33 @@ turn N+1 uses the result
 
 This keeps the main agent responsive.
 
+## State Flow
+
+```mermaid
+sequenceDiagram
+  participant Turn as main agent turn
+  participant Handle as MemoryAgentHandle
+  participant Sidecar as MemoryAgent
+  participant Store as MemoryManager
+  participant Next as next turn
+
+  Turn->>Handle: update_context_sync_with_dir(messages)
+  Handle-->>Sidecar: try_send(Context)
+  Sidecar->>Sidecar: format_context_for_relevance
+  Sidecar->>Store: embedding / retrieval / cascade
+  Store-->>Sidecar: relevant memories
+  Sidecar->>Sidecar: format_relevant_prompt
+  Sidecar-->>Next: pending memory prompt
+```
+
+This state flow explains why memory is not ordinary RAG. The main turn only submits context; the sidecar does retrieval and prompt assembly. The current turn does not wait, and the next turn consumes the pending prompt.
+
+## Mechanism Specimen
+
+Memory sidecar maps to [mini/04_memory_sidecar.py](../../mini/04_memory_sidecar.py). It keeps four actions: bounded queue, non-blocking submit, background worker, and next-turn pending prompt.
+
+Real JCode adds embeddings, graph, cascade retrieval, prompt budget, and display prompt. The non-blocking boundary is the same as the specimen.
+
 ## Judgment To Keep
 
 Memory covers a weakness of single-turn context: it cannot remember long-term preferences, project facts, and previous-session experience. JCode uses non-blocking sidecar recall to bring that material back.

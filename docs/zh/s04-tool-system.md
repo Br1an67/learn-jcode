@@ -228,6 +228,12 @@ JCode: 长期多会话本地 agent runtime
 
 读到这里要能说出代价：pi 小，所以容易改；JCode 大，所以必须处理缓存、截断、动态注册、权限和 UI 状态。
 
+## 机制标本
+
+工具 registry 可以对照 [mini/02_tool_registry.py](../../mini/02_tool_registry.py)。它只保留一个工具注册表，同时产出 model-visible definition 和 runtime execution。
+
+这个标本能帮助你固定两层边界：模型看见的是 name、description、schema；runtime 调用的是 handler。JCode 的 `Registry` 更复杂，但复杂度主要加在 allowed tools、alias、telemetry、context guard 和 session-specific tools 上。
+
 ## 一个小改造应该长什么样
 
 如果要给 JCode 加一个入门级工具，`repo_summary` 是合适例子。它是只读工具，输出：

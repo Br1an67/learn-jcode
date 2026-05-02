@@ -245,6 +245,12 @@ JCode 不能让 turn loop 到处写 provider-specific 分支。
 统一成 StreamEvent 后，后面的 agent loop 才能稳定处理 text、thinking、tool input、tool result。
 ```
 
+## 机制标本
+
+provider stream 这条线也可以看 [mini/03_provider_stream.py](../../mini/03_provider_stream.py)。在 `s03` 里它解释 agent loop，在本课里它解释 provider 的职责：把平台私有 stream 归一成 JCode 能处理的事件。
+
+真实 provider 要额外处理 auth、model id、request body、tool schema、usage、error 和 retry。标本只留下 stream 归一化后的形状，避免读者把 provider 误读成普通 HTTP wrapper。
+
 ## 读完你应该能解释什么
 
 - `Provider` trait 为什么把输出统一成 `StreamEvent`。

@@ -242,6 +242,12 @@ Registry::definitions()
 
 只记“JCode 支持工具调用”没有意义。你要记住函数和数据结构怎么接起来。
 
+## 机制标本
+
+Agent loop 的 provider stream 部分可以对照 [mini/03_provider_stream.py](../../mini/03_provider_stream.py)。它只保留 text delta、tool use start、tool input delta、tool use end 这条线。
+
+这个标本的价值是把“模型流式拼 JSON tool input”单独拎出来。真实 JCode 要处理更多事件、错误、usage、native tool call 和 session 保存，但核心仍然是把 stream 组装成可执行工具调用，再把 tool result 放回下一轮 messages。
+
 ## 读完你应该能解释什么
 
 - `run_turn()` 为什么先整理 messages、tools、memory 和 split prompt。

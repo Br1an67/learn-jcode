@@ -138,6 +138,24 @@ pub(super) async fn subscribe_session_to_channel(
 
 这两段补上了 swarm 的通信边界：模型调用 tool，tool 发 server request，server 维护 channel/session 索引。协作状态不放在 prompt 里临时约定。
 
+## 状态流
+
+```mermaid
+sequenceDiagram
+  participant Coord as coordinator
+  participant Tool as swarm tool
+  participant Server as server swarm state
+  participant Worker as worker session
+
+  Coord->>Tool: propose_plan / assign_task / spawn
+  Tool->>Server: Comm* request
+  Server->>Worker: task / channel / DM
+  Worker->>Server: heartbeat / checkpoint / report
+  Server-->>Coord: plan status / completion report
+```
+
+这条线说明 swarm 的核心不是“多开模型”，而是把协作事实放进 server：谁被分配了任务、谁还活着、谁在哪个 channel、谁交了 report。没有这些状态，coordinator 只能靠聊天记录猜。
+
 ## JCode 的 Swarm 关心什么
 
 JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：

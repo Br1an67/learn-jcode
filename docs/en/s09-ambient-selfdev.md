@@ -249,6 +249,41 @@ pub(super) async fn do_reload(
 
 This shows self-dev reload is not just "restart." It records the version to activate, saves continuation context, and asks the server to enter reload handoff. Without that, an agent modifying itself would easily lose the current task.
 
+## State Flow
+
+Ambient state flow:
+
+```mermaid
+sequenceDiagram
+  participant Queue as ScheduledQueue
+  participant Runner as ambient runner
+  participant Agent as ambient agent
+  participant Tool as end_ambient_cycle
+
+  Queue-->>Runner: pop_ready()
+  Runner->>Agent: start ambient cycle
+  Agent->>Tool: summary / budget / next_schedule
+  Tool->>Queue: schedule next item
+```
+
+Self-dev state flow:
+
+```mermaid
+sequenceDiagram
+  participant Session as self-dev session
+  participant Build as build/test
+  participant Manifest as canary manifest
+  participant Server as shared server
+
+  Session->>Build: request build/test
+  Build-->>Session: usable binary
+  Session->>Manifest: pending activation
+  Session->>Server: reload signal
+  Server-->>Session: reload handoff / recovery
+```
+
+Both lines point to the same rule: background capabilities must be recoverable. Ambient uses a queue to recover the next wake-up. Self-dev uses manifest and reload context to recover the active modification.
+
 Self-dev lets JCode modify itself.
 
 Be conservative:
