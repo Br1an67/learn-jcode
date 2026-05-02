@@ -26,15 +26,52 @@ flowchart TD
 
 Swarm 的主线不是“启动多个模型”，而是 server 拥有一个协作计划。coordinator 更新 plan，worker 通过 heartbeat、checkpoint 和 report 回写进度，channel 负责 DM/broadcast 的去向，最后完成报告回到 coordinator。
 
-下面的代码节选会抓两处关键边界：`run_swarm_task()` 说明 worker session 怎样被创建、继承 provider/registry，并限制递归工具；task progress 更新说明 heartbeat、checkpoint、assigned session 为什么要进入 server state。
+代码要抓四个边界：server 拥有什么状态，worker session 怎样被创建，通信索引放在哪里，文件触达怎么被其他 worker 看见。
 
 `communicate` tool 是模型操作 swarm runtime 的入口，`SubagentTool` 是一次性委派入口。把这两者分开，才能看懂 JCode 的设计：subagent 是“派一个人做一件事”，swarm 是“维护一套长期协作现场”。
 
 ## 核心代码节选
 
-下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
 
-swarm 的任务派发可以先看 `run_swarm_task()`：
+先看 server 拿着哪些 swarm 状态：
+
+```rust
+// src/server/state.rs，节选
+pub struct SwarmState {
+    pub members: Arc<RwLock<HashMap<String, SwarmMember>>>,
+    pub swarms_by_id: Arc<RwLock<HashMap<String, HashSet<String>>>>,
+    pub plans: Arc<RwLock<HashMap<String, VersionedPlan>>>,
+    pub coordinators: Arc<RwLock<HashMap<String, String>>>,
+}
+```
+
+这段结构体已经说明 swarm 不是 chat history 技巧。成员、swarm 分组、plan、coordinator 都是 server state。coordinator 换了、worker 重连了、plan 变了，不能只靠某一轮 messages 猜。
+
+client 接上 server 时会被登记成 swarm member：
+
+```rust
+// src/server/client_session.rs，节选
+members.insert(
+    client_session_id.to_string(),
+    SwarmMember {
+        session_id: client_session_id.to_string(),
+        event_tx: client_event_tx.clone(),
+        event_txs: HashMap::from([(client_connection_id.to_string(), client_event_tx)]),
+        working_dir: working_dir.clone(),
+        swarm_id: derived_swarm_id.clone(),
+        swarm_enabled,
+        status: "ready".to_string(),
+        role: "agent".to_string(),
+        is_headless: false,
+        // 其他字段省略
+    },
+);
+```
+
+这段代码把成员身份和 client 连接分开了：一个 session 可以有连接、断连、重连，swarm member 仍然是 server 里的运行时对象。
+
+任务派发再看 `run_swarm_task()`：
 
 ```rust
 // src/server/swarm.rs，节选
@@ -140,6 +177,40 @@ pub(super) async fn subscribe_session_to_channel(
 
 这两段补上了 swarm 的通信边界：模型调用 tool，tool 发 server request，server 维护 channel/session 索引。协作状态不放在 prompt 里临时约定。
 
+文件触达也会进入 swarm 视角。`read`、`write`、`edit` 这些普通工具会发布 `FileTouch` 事件：
+
+```rust
+// src/tool/write.rs，节选
+Bus::global().publish(BusEvent::FileTouch(FileTouch {
+    session_id: ctx.session_id.clone(),
+    path: path.to_path_buf(),
+    op: FileOp::Write,
+    summary: Some(format!("overwrote file ({} lines)", line_count)),
+    detail,
+}));
+```
+
+server 侧只关心 peer 的修改，不把自己和只读访问混在一起：
+
+```rust
+// src/server/state.rs，节选
+pub(super) fn latest_peer_touches(
+    accesses: &[FileAccess],
+    current_session_id: &str,
+    swarm_session_ids: &HashSet<String>,
+) -> Vec<FileAccess> {
+    for access in accesses.iter().filter(|access| {
+        access.session_id != current_session_id
+            && swarm_session_ids.contains(&access.session_id)
+            && access.op.is_modification()
+    }) {
+        // 保留每个 peer 最近一次修改
+    }
+}
+```
+
+这就是为什么 swarm 不是纯聊天协议。多个 worker 同时动文件时，JCode 需要知道“谁碰了哪个文件”，否则最后集成阶段只能靠人肉 diff。
+
 ## 状态流
 
 ```mermaid
@@ -157,6 +228,12 @@ sequenceDiagram
 ```
 
 这条线说明 swarm 的核心不是“多开模型”，而是把协作事实放进 server：谁被分配了任务、谁还活着、谁在哪个 channel、谁交了 report。没有这些状态，coordinator 只能靠聊天记录猜。
+
+## 机制标本
+
+swarm 的 server-owned state 可以对照 [mini/06_swarm_channel.py](../../mini/06_swarm_channel.py)。它只保留 members、channels、task_progress、inbox 四个结构。
+
+真实 JCode 多了 session 连接、headless worker、plan version、file touch、completion report、worktree 和 reload 恢复。标本的作用是先固定边界：channel 和 task progress 属于 server，不属于某个 worker 的 prompt。
 
 ## JCode 的 Swarm 关心什么
 

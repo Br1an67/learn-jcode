@@ -6,7 +6,7 @@
 
 Understand why JCode swarm is not just "open several subagents."
 
-The important part is server-level coordination: plans, communication, recovery, file touches, worker progress, and completion reports. If you read swarm as a normal subagent wrapper, you miss its runtime boundary.
+The boundary is server-level coordination: plans, communication, recovery, file touches, worker progress, and completion reports. If you read swarm as a normal subagent wrapper, you miss its runtime boundary.
 
 ```mermaid
 flowchart TD
@@ -26,7 +26,7 @@ This diagram shows that swarm state is centered on the server plan, not inside o
 
 Swarm is not "start several models." The server owns a coordination plan. The coordinator updates the plan, workers write heartbeat, checkpoint, and reports back into progress, channels route DM/broadcast messages, and completion reports return to the coordinator.
 
-The source excerpts below focus on two boundaries. `run_swarm_task()` shows how a worker session is created, inherits provider/registry state, and has recursive tools blocked. Task progress updates show why heartbeat, checkpoint, and assigned session belong in server state.
+The code has four boundaries to watch: what state the server owns, how worker sessions are created, where communication indexes live, and how file touches become visible to peer workers.
 
 The `communicate` tool is the model-facing entrypoint into swarm runtime. `SubagentTool` is one-off delegation. Keeping them separate is the design point: subagent means "send one worker to do one thing"; swarm means "maintain a long-running coordination scene."
 
@@ -34,7 +34,44 @@ The `communicate` tool is the model-facing entrypoint into swarm runtime. `Subag
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
 
-For task dispatch, start with `run_swarm_task()`:
+First look at the swarm state owned by the server:
+
+```rust
+// src/server/state.rs, excerpt
+pub struct SwarmState {
+    pub members: Arc<RwLock<HashMap<String, SwarmMember>>>,
+    pub swarms_by_id: Arc<RwLock<HashMap<String, HashSet<String>>>>,
+    pub plans: Arc<RwLock<HashMap<String, VersionedPlan>>>,
+    pub coordinators: Arc<RwLock<HashMap<String, String>>>,
+}
+```
+
+This struct already shows that swarm is not a chat-history trick. Members, swarm groups, plans, and coordinators are server state. If the coordinator changes, a worker reconnects, or a plan updates, JCode cannot infer that reliably from one message list.
+
+When a client subscribes, the server registers it as a swarm member:
+
+```rust
+// src/server/client_session.rs, excerpt
+members.insert(
+    client_session_id.to_string(),
+    SwarmMember {
+        session_id: client_session_id.to_string(),
+        event_tx: client_event_tx.clone(),
+        event_txs: HashMap::from([(client_connection_id.to_string(), client_event_tx)]),
+        working_dir: working_dir.clone(),
+        swarm_id: derived_swarm_id.clone(),
+        swarm_enabled,
+        status: "ready".to_string(),
+        role: "agent".to_string(),
+        is_headless: false,
+        // other fields omitted
+    },
+);
+```
+
+This separates member identity from client connection. A session can connect, disconnect, and reconnect; the swarm member remains a server-side runtime object.
+
+Task dispatch comes next in `run_swarm_task()`:
 
 ```rust
 // src/server/swarm.rs, excerpt
@@ -140,6 +177,40 @@ pub(super) async fn subscribe_session_to_channel(
 
 These excerpts close the communication boundary: the model calls a tool, the tool sends a server request, and the server maintains channel/session indexes. Coordination state is not improvised inside prompt text.
 
+File touches also enter the swarm view. Normal tools such as `read`, `write`, and `edit` publish `FileTouch` events:
+
+```rust
+// src/tool/write.rs, excerpt
+Bus::global().publish(BusEvent::FileTouch(FileTouch {
+    session_id: ctx.session_id.clone(),
+    path: path.to_path_buf(),
+    op: FileOp::Write,
+    summary: Some(format!("overwrote file ({} lines)", line_count)),
+    detail,
+}));
+```
+
+The server looks for peer modifications, not the current session or read-only access:
+
+```rust
+// src/server/state.rs, excerpt
+pub(super) fn latest_peer_touches(
+    accesses: &[FileAccess],
+    current_session_id: &str,
+    swarm_session_ids: &HashSet<String>,
+) -> Vec<FileAccess> {
+    for access in accesses.iter().filter(|access| {
+        access.session_id != current_session_id
+            && swarm_session_ids.contains(&access.session_id)
+            && access.op.is_modification()
+    }) {
+        // keep the most recent modification per peer
+    }
+}
+```
+
+That is why swarm is not only a chat protocol. When several workers touch files at once, JCode needs to know who touched which file; otherwise the final integration step becomes manual diff archaeology.
+
 ## State Flow
 
 ```mermaid
@@ -157,6 +228,12 @@ sequenceDiagram
 ```
 
 This line shows the core of swarm: cooperation facts live in the server. Who owns a task, who is still alive, who is in which channel, and who reported completion are runtime state, not guesses from chat history.
+
+## Mechanism Specimen
+
+Server-owned swarm state maps to [mini/06_swarm_channel.py](../../mini/06_swarm_channel.py). It keeps only four structures: members, channels, task_progress, and inbox.
+
+Real JCode adds session connections, headless workers, plan versions, file touches, completion reports, worktrees, and reload recovery. The specimen fixes the boundary first: channel membership and task progress belong to the server, not to one worker's prompt.
 
 ## What JCode Swarm Cares About
 

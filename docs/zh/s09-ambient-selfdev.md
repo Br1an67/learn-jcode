@@ -27,13 +27,13 @@ Ambient 的主线是后台循环必须有边界。它需要启动条件、资源
 
 模块关系可以这样理解：`directives` 提供待处理指令，`manager` 管运行状态，`runner` 启动一轮 ambient cycle，`scheduler` 决定下次什么时候醒，`persistence` 保存队列和锁，`tool/ambient` 让后台 agent 显式结束 cycle、安排下次运行或请求权限。
 
-下面的代码节选会直接展示两件事：ambient 不是一个单独工具文件，而是一组后台运行模块；ambient cycle 结束必须通过 `end_ambient_cycle` 上报摘要、资源消耗和下一次调度。
+代码看三件事：ambient 不是一个单独工具文件；ready item 由持久化队列拿出来；后台 agent 必须通过 `end_ambient_cycle` 交代本轮结果。
 
 ### Ambient 核心代码节选
 
 ambient 的模块地图在 `src/ambient.rs` 里：
 
-下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
 
 ```rust
 // src/ambient.rs，节选
@@ -117,6 +117,84 @@ impl ScheduledQueue {
 
 这段代码把 ambient 的调度讲实了：到期 item 才会被取出，优先级高的先跑，同优先级按时间排序。后台 agent 不是无限循环，而是被队列和调度约束。
 
+runner 把队列、锁、agent cycle 接起来：
+
+```rust
+// src/ambient/runner.rs，节选
+pub async fn run_loop(self, provider: Arc<dyn Provider>) {
+    let mut scheduler = AdaptiveScheduler::new(scheduler_config);
+
+    loop {
+        let (should_run, ready_direct_items) =
+            match AmbientManager::new() {
+                Ok(mut mgr) => {
+                    let ready_direct_items = mgr.take_ready_direct_items();
+                    let should_run =
+                        ambient_allowed && (mgr.should_run() || ambient::has_pending_directives());
+                    (should_run, ready_direct_items)
+                }
+                Err(_) => (false, Vec::new()),
+            };
+
+        self.deliver_ready_direct_items(&provider, ready_direct_items).await;
+
+        if !should_run {
+            self.inner.wake_notify.notified().await;
+            continue;
+        }
+
+        let Some(lock) = AmbientLock::try_acquire()? else {
+            continue;
+        };
+        let _result = self.run_cycle(&provider).await;
+        drop(lock);
+    }
+}
+```
+
+这段代码的重点不是循环本身，而是两个边界：direct item 可以投递到具体 session，ambient item 才进入后台 agent；`AmbientLock` 防止多个 ambient runner 同时抢同一批后台维护任务。
+
+真正跑一轮时，JCode 只给 ambient session 注册 ambient 专用工具：
+
+```rust
+// src/ambient/runner.rs，节选
+let cycle_provider = provider.fork();
+let registry = tool::Registry::new(cycle_provider.clone()).await;
+registry.register_ambient_tools().await;
+
+let mut agent = Agent::new(cycle_provider.clone(), registry);
+agent.set_system_prompt(&system_prompt);
+
+ambient_tools::take_cycle_result();
+let run_result = agent.run_once_capture(&initial_message).await;
+
+if let Some(result) = ambient_tools::take_cycle_result() {
+    return Ok(AmbientCycleResult { ..result });
+}
+```
+
+这段代码把权限边界说清楚了：ambient agent 不是拿普通 session 的完整工具箱乱跑。它有自己的 prompt、自己的 session、自己的工具集合，结果必须被 runner 收走。
+
+如果 agent 没调用 `end_ambient_cycle`，runner 不直接相信它已经完成：
+
+```rust
+// src/ambient/runner.rs，节选
+let continuation = "You stopped unexpectedly without calling end_ambient_cycle. \
+    If you are done with your work, call end_ambient_cycle with a summary...";
+
+let _ = agent.run_once_capture(continuation).await;
+
+if ambient_tools::take_cycle_result().is_none() {
+    return Ok(AmbientCycleResult {
+        summary: "Cycle ended without calling end_ambient_cycle".to_string(),
+        status: CycleStatus::Incomplete,
+        // 其他字段省略
+    });
+}
+```
+
+这不是“提示词再提醒一次”这么简单。它是在给后台循环兜底：没有结束工具调用，就不能把这轮当成完整维护任务。
+
 Ambient 是后台 agent。它不是用户发一句做一句，而是在资源允许时做维护：
 
 - 整理 memory。
@@ -125,9 +203,15 @@ Ambient 是后台 agent。它不是用户发一句做一句，而是在资源允
 - 做低风险主动任务。
 - 自己决定下次什么时候醒来。
 
-这个方向还很实验，但值得读，因为它指向长期 agent 环境维护。
+这个方向还很实验，学习价值在于它把长期 agent 的环境维护问题摆到了源码里。
 
 读 ambient 时重点看资源限制。后台 agent 如果没有预算和优先级控制，会变成另一个干扰源。
+
+### Ambient 机制标本
+
+ambient 调度可以对照 [mini/07_ambient_scheduler.py](../../mini/07_ambient_scheduler.py)。它保留 queue、pop_ready、run cycle、end cycle、reschedule 这条线。
+
+真实 JCode 多了 active session pause、permission request、visible mode、notification、transcript、direct session delivery。标本只回答一个问题：为什么 ambient 不是 while true 后台线程。
 
 ## Self-Dev
 
@@ -151,9 +235,42 @@ Prompt 不是 self-dev 的核心。它只是把规则告诉模型；真正的边
 
 ### Self-Dev 核心代码节选
 
-Self-dev 工具的 action schema 先看这一段：
+进入 self-dev 不是给当前 session 加一句 prompt。JCode 会创建一个 canary session，并把一部分父 session 上下文带过去：
 
-下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
+```rust
+// src/tool/selfdev/launch.rs，节选
+pub fn enter_selfdev_session(
+    parent_session_id: Option<&str>,
+    working_dir: Option<&Path>,
+) -> Result<SelfDevLaunchResult> {
+    let repo_dir = SelfDevTool::resolve_repo_dir(working_dir)
+        .ok_or_else(|| anyhow::anyhow!("Could not find jcode repo"))?;
+
+    let mut session = if let Some(parent_session_id) = parent_session_id {
+        let parent = session::Session::load(parent_session_id)?;
+        let mut child = session::Session::create(
+            Some(parent_session_id.to_string()),
+            Some("Self-development session".to_string()),
+        );
+        child.replace_messages(parent.messages.clone());
+        child.compaction = parent.compaction.clone();
+        child.provider_key = parent.provider_key.clone();
+        child
+    } else {
+        session::Session::create(None, Some("Self-development session".to_string()))
+    };
+
+    session.set_canary("self-dev");
+    session.working_dir = Some(repo_dir.display().to_string());
+    session.save()?;
+}
+```
+
+这段代码证明 self-dev 的边界在 session，而不是 prompt。canary session 继承必要上下文，但它有自己的 session id、working dir 和 self-dev 标记。
+
+Self-dev 工具的 action schema 再看这一段：
 
 ```rust
 // src/tool/selfdev/mod.rs，节选
@@ -253,6 +370,44 @@ pub(super) async fn do_reload(
 
 这段代码说明 self-dev reload 不是“重启一下”。它要先记录要激活的版本、保存恢复上下文，再让 server 进入 reload handoff。否则 agent 改自己时很容易丢掉当前任务。
 
+server 侧还有 reload recovery 记录。reload 期间被打断的 session 不是靠用户手动想起来：
+
+```rust
+// src/server/reload_recovery.rs，节选
+pub(super) struct ReloadRecoveryRecord {
+    pub reload_id: String,
+    pub session_id: String,
+    pub role: ReloadRecoveryRole,
+    pub status: ReloadRecoveryStatus,
+    pub directive: ReloadRecoveryDirective,
+    pub reason: String,
+    pub created_at: String,
+    pub delivered_at: Option<String>,
+}
+
+pub(super) fn persist_intent(
+    reload_id: &str,
+    session_id: &str,
+    role: ReloadRecoveryRole,
+    directive: ReloadRecoveryDirective,
+    reason: impl Into<String>,
+) -> Result<()> {
+    let record = ReloadRecoveryRecord {
+        reload_id: reload_id.to_string(),
+        session_id: session_id.to_string(),
+        role,
+        status: ReloadRecoveryStatus::Pending,
+        directive,
+        reason: reason.into(),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        delivered_at: None,
+    };
+    storage::write_json(&path_for_session(session_id)?, &record)?;
+}
+```
+
+这段代码补上 self-dev 最容易漏掉的部分：reload 不是一个 session 的事。shared server 里可能还有普通 session、headless worker、swarm member。恢复指令必须持久化，否则 reload 成功也可能把现场弄丢。
+
 ## 状态流
 
 Ambient 的状态流：
@@ -287,6 +442,12 @@ sequenceDiagram
 ```
 
 这两条线都在讲同一件事：后台能力必须能恢复。ambient 用 queue 恢复下一次唤醒，self-dev 用 manifest 和 reload context 恢复正在做的修改。
+
+## Self-Dev 机制标本
+
+self-dev reload gate 可以对照 [mini/08_selfdev_reload_gate.py](../../mini/08_selfdev_reload_gate.py)。
+
+这个标本只保留状态边界：必须进入 canary session，build 之后才能 reload，并且 reload 前要留下 pending activation 和 recovery context。
 
 Self-dev 是让 JCode 改自己。
 

@@ -27,7 +27,7 @@ The ambient line is that background loops need boundaries. Ambient needs startup
 
 The module relationship is straightforward: `directives` supplies pending work, `manager` owns runtime state, `runner` starts one ambient cycle, `scheduler` decides the next wake-up, `persistence` stores queues and locks, and `tool/ambient` lets the background agent end a cycle, schedule future work, or request permission.
 
-The source excerpts below show two things directly: ambient is not a single tool file, and an ambient cycle must report summary, resource usage, and next schedule through `end_ambient_cycle`.
+The code has three things to show: ambient is not a single tool file; ready items come from a persistent queue; the background agent must report the cycle result through `end_ambient_cycle`.
 
 ### Ambient Core Source Excerpts
 
@@ -117,6 +117,84 @@ impl ScheduledQueue {
 
 This makes ambient scheduling concrete: only due items are popped, higher priority runs first, and equal priority falls back to scheduled time. The background agent is constrained by queue and scheduler, not an infinite loop.
 
+The runner connects queue, lock, and agent cycle:
+
+```rust
+// src/ambient/runner.rs, excerpt
+pub async fn run_loop(self, provider: Arc<dyn Provider>) {
+    let mut scheduler = AdaptiveScheduler::new(scheduler_config);
+
+    loop {
+        let (should_run, ready_direct_items) =
+            match AmbientManager::new() {
+                Ok(mut mgr) => {
+                    let ready_direct_items = mgr.take_ready_direct_items();
+                    let should_run =
+                        ambient_allowed && (mgr.should_run() || ambient::has_pending_directives());
+                    (should_run, ready_direct_items)
+                }
+                Err(_) => (false, Vec::new()),
+            };
+
+        self.deliver_ready_direct_items(&provider, ready_direct_items).await;
+
+        if !should_run {
+            self.inner.wake_notify.notified().await;
+            continue;
+        }
+
+        let Some(lock) = AmbientLock::try_acquire()? else {
+            continue;
+        };
+        let _result = self.run_cycle(&provider).await;
+        drop(lock);
+    }
+}
+```
+
+The loop itself is not the point. The boundaries are: direct items can be delivered to specific sessions, ambient items enter the background agent, and `AmbientLock` prevents several runners from grabbing the same maintenance work.
+
+When JCode runs a headless ambient cycle, it registers only ambient-specific tools:
+
+```rust
+// src/ambient/runner.rs, excerpt
+let cycle_provider = provider.fork();
+let registry = tool::Registry::new(cycle_provider.clone()).await;
+registry.register_ambient_tools().await;
+
+let mut agent = Agent::new(cycle_provider.clone(), registry);
+agent.set_system_prompt(&system_prompt);
+
+ambient_tools::take_cycle_result();
+let run_result = agent.run_once_capture(&initial_message).await;
+
+if let Some(result) = ambient_tools::take_cycle_result() {
+    return Ok(AmbientCycleResult { ..result });
+}
+```
+
+This is the tool boundary. The ambient agent is not running with a normal session's full toolbox. It has its own prompt, session, tools, and result handoff.
+
+If the agent does not call `end_ambient_cycle`, the runner does not trust that the cycle completed:
+
+```rust
+// src/ambient/runner.rs, excerpt
+let continuation = "You stopped unexpectedly without calling end_ambient_cycle. \
+    If you are done with your work, call end_ambient_cycle with a summary...";
+
+let _ = agent.run_once_capture(continuation).await;
+
+if ambient_tools::take_cycle_result().is_none() {
+    return Ok(AmbientCycleResult {
+        summary: "Cycle ended without calling end_ambient_cycle".to_string(),
+        status: CycleStatus::Incomplete,
+        // other fields omitted
+    });
+}
+```
+
+This is not just prompt nudging. It is a fallback for a background loop: without the ending tool call, JCode cannot record the cycle as complete maintenance work.
+
 Ambient is a background agent. Instead of responding only to user prompts, it can do maintenance when resources allow:
 
 - clean up memory
@@ -128,6 +206,12 @@ Ambient is a background agent. Instead of responding only to user prompts, it ca
 This is experimental, but important because it points toward long-running agent environment maintenance.
 
 When reading ambient, watch resource limits. A background agent without budget and priority rules becomes another source of interference.
+
+### Ambient Mechanism Specimen
+
+Ambient scheduling maps to [mini/07_ambient_scheduler.py](../../mini/07_ambient_scheduler.py). It keeps the queue, pop_ready, run cycle, end cycle, and reschedule path.
+
+Real JCode adds active-session pause, permission requests, visible mode, notifications, transcripts, and direct session delivery. The specimen answers one question first: why ambient is not a `while true` background thread.
 
 ## Self-Dev
 
@@ -152,6 +236,39 @@ Prompts are not the core of self-dev. They tell the model the rules; the real bo
 ### Self-Dev Core Source Excerpts
 
 The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
+Entering self-dev is not adding one prompt to the current session. JCode creates a canary session and carries over selected parent-session context:
+
+```rust
+// src/tool/selfdev/launch.rs, excerpt
+pub fn enter_selfdev_session(
+    parent_session_id: Option<&str>,
+    working_dir: Option<&Path>,
+) -> Result<SelfDevLaunchResult> {
+    let repo_dir = SelfDevTool::resolve_repo_dir(working_dir)
+        .ok_or_else(|| anyhow::anyhow!("Could not find jcode repo"))?;
+
+    let mut session = if let Some(parent_session_id) = parent_session_id {
+        let parent = session::Session::load(parent_session_id)?;
+        let mut child = session::Session::create(
+            Some(parent_session_id.to_string()),
+            Some("Self-development session".to_string()),
+        );
+        child.replace_messages(parent.messages.clone());
+        child.compaction = parent.compaction.clone();
+        child.provider_key = parent.provider_key.clone();
+        child
+    } else {
+        session::Session::create(None, Some("Self-development session".to_string()))
+    };
+
+    session.set_canary("self-dev");
+    session.working_dir = Some(repo_dir.display().to_string());
+    session.save()?;
+}
+```
+
+This puts the boundary in session state, not prompt text. The canary session inherits useful context, but it has its own session id, working directory, and self-dev marker.
 
 ```rust
 // src/tool/selfdev/mod.rs, excerpt
@@ -251,6 +368,44 @@ pub(super) async fn do_reload(
 
 This shows self-dev reload is not just "restart." It records the version to activate, saves continuation context, and asks the server to enter reload handoff. Without that, an agent modifying itself would easily lose the current task.
 
+The server also has reload recovery records. Sessions interrupted during reload are not expected to remember themselves:
+
+```rust
+// src/server/reload_recovery.rs, excerpt
+pub(super) struct ReloadRecoveryRecord {
+    pub reload_id: String,
+    pub session_id: String,
+    pub role: ReloadRecoveryRole,
+    pub status: ReloadRecoveryStatus,
+    pub directive: ReloadRecoveryDirective,
+    pub reason: String,
+    pub created_at: String,
+    pub delivered_at: Option<String>,
+}
+
+pub(super) fn persist_intent(
+    reload_id: &str,
+    session_id: &str,
+    role: ReloadRecoveryRole,
+    directive: ReloadRecoveryDirective,
+    reason: impl Into<String>,
+) -> Result<()> {
+    let record = ReloadRecoveryRecord {
+        reload_id: reload_id.to_string(),
+        session_id: session_id.to_string(),
+        role,
+        status: ReloadRecoveryStatus::Pending,
+        directive,
+        reason: reason.into(),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        delivered_at: None,
+    };
+    storage::write_json(&path_for_session(session_id)?, &record)?;
+}
+```
+
+This part is easy to miss: reload is not one session's problem. The shared server may have normal sessions, headless workers, and swarm members. Recovery directives must be durable, or a successful reload can still lose the working scene.
+
 ## State Flow
 
 Ambient state flow:
@@ -285,6 +440,12 @@ sequenceDiagram
 ```
 
 Both lines point to the same rule: background capabilities must be recoverable. Ambient uses a queue to recover the next wake-up. Self-dev uses manifest and reload context to recover the active modification.
+
+## Self-Dev Mechanism Specimen
+
+Self-dev reload gates map to [mini/08_selfdev_reload_gate.py](../../mini/08_selfdev_reload_gate.py).
+
+The specimen keeps only the state boundary: enter a canary session, build before reload, and leave pending activation plus recovery context before restart.
 
 Self-dev lets JCode modify itself.
 
