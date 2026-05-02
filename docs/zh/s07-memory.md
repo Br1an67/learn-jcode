@@ -42,6 +42,8 @@ src/tool/session_search.rs
 
 ## 核心代码节选
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 核心代码先看这个 handle：
 
 ```rust
@@ -119,3 +121,10 @@ JCode 的 memory 不是“用户手动保存一条笔记”。它更像自动召
 Memory 补的是单次上下文的短板：模型当前上下文装不下长期偏好、项目事实和旧会话经验，所以 JCode 用 sidecar 做非阻塞召回。
 
 代价也要记住：memory 有一轮延迟。这个延迟是有意设计，不是漏做同步检索。
+
+## 读完你应该能解释什么
+
+- `MemoryAgentHandle::update_context_sync_with_dir()` 为什么用 `try_send`。
+- Memory sidecar 和 `run_turn()` 的边界在哪里。
+- `memory_prompt.rs` 为什么同时关心 relevance context 和 extraction context。
+- 为什么一轮延迟是交互延迟和召回完整性之间的取舍。

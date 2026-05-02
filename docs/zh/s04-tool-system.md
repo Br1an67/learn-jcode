@@ -59,6 +59,8 @@ src/tool/side_panel.rs
 
 ## 核心代码节选
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 工具系统先看合同，不看具体工具：
 
 ```rust
@@ -274,3 +276,10 @@ tracked file count:
 - 先能被模型调用，再考虑要不要接入 TUI。
 
 它比天气 API 工具更适合 JCode 教程，因为它走的是 coding harness 的真实路径：schema、registry、execute、tool result、上下文截断。顺序反了，比如先做 widget，会把一个工具入门任务变成 UI 任务。
+
+## 读完你应该能解释什么
+
+- `Tool` trait 里哪些方法给模型看，哪些方法给 runtime 调。
+- 为什么 `base_tools()` 可以缓存，而 `subagent` 这类工具需要 session-specific 注册。
+- 为什么 `definitions()` 要按名字排序。
+- 为什么 tool output 不能直接塞回上下文，必须经过 context guard。

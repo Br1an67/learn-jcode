@@ -42,6 +42,8 @@ Read `src/tool/memory.rs` and `src/tool/session_search.rs` last. The first is th
 
 ## Core Source Excerpts
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 Start with this handle:
 
 ```rust
@@ -119,3 +121,10 @@ This keeps the main agent responsive.
 Memory covers a weakness of single-turn context: it cannot remember long-term preferences, project facts, and previous-session experience. JCode uses non-blocking sidecar recall to bring that material back.
 
 Keep the cost with the benefit: memory has one-turn delay. That delay is intentional, not a missing synchronous retrieval step.
+
+## What You Should Be Able To Explain
+
+- Why `MemoryAgentHandle::update_context_sync_with_dir()` uses `try_send`.
+- Where the boundary sits between the memory sidecar and `run_turn()`.
+- Why `memory_prompt.rs` cares about both relevance context and extraction context.
+- Why one-turn delay is a tradeoff between interaction latency and recall completeness.

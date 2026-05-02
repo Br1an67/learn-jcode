@@ -43,6 +43,8 @@ Read `src/tool/ambient.rs` last. Start with `EndAmbientCycleTool`, `ScheduleAmbi
 
 The module map lives in `src/ambient.rs`:
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 ```rust
 // src/ambient.rs, excerpt
 mod directives;
@@ -143,6 +145,8 @@ Read `src/prompt/selfdev_mode.txt` and `src/prompt/selfdev_hint.txt` last. Use p
 
 Start with the self-dev tool action schema:
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 ```rust
 // src/tool/selfdev/mod.rs, excerpt
 impl Tool for SelfDevTool {
@@ -216,3 +220,10 @@ Ambient covers the fact that users will not explicitly ask for every bit of envi
 Self-dev covers the need to modify JCode itself quickly. The boundaries are branch, commit, build/test, self-dev session, and reload recovery.
 
 Keep the risks with the benefits: ambient without resource limits becomes interference; self-dev changing reload or server state can lose running-session state.
+
+## What You Should Be Able To Explain
+
+- Why ambient needs a scheduler, budget, and `end_ambient_cycle`.
+- Why an ambient agent cannot run forever in the background.
+- Why self-dev must first enter a self-dev session.
+- Why `selfdev reload` needs a session gate and recovery logic.

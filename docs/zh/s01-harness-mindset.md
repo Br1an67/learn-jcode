@@ -25,6 +25,25 @@ Harness = Tools
         + Memory
 ```
 
+```mermaid
+flowchart LR
+  User["用户目标"] --> Model["模型 / agent"]
+  Model --> Decision["下一步决策"]
+  Decision --> Harness["JCode harness"]
+  Harness --> Tools["tools"]
+  Harness --> Context["context"]
+  Harness --> Runtime["server / session"]
+  Harness --> UI["TUI / observability"]
+  Harness --> Storage["storage / memory"]
+  Tools --> World["代码库 / shell / provider"]
+  Runtime --> World
+  Storage --> Context
+  World --> Context
+  Context --> Model
+```
+
+这张图说明本教程的基本立场：模型负责决策，JCode 负责提供行动环境、上下文、状态和可观察性。
+
 对 coding agent 来说：
 
 - Tools 是手：读文件、写文件、改文件、跑命令。
@@ -104,6 +123,13 @@ OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。Ope
 - `src/memory*` 不是普通 RAG demo，是长期使用后的召回系统。
 
 也要记住代价：常驻 server 能复用状态，但带来 reload、socket、生命周期管理这些复杂度。JCode 的每个大设计都类似，收益和代价一起出现。
+
+## 读完你应该能解释什么
+
+- 为什么本教程说“模型是 agent，JCode 是 harness”。
+- 为什么 server、TUI、session、memory 不是旁枝功能。
+- 为什么 JCode 不适合当第一个最小 agent loop 项目。
+- 为什么本教程主参考 `learn-claude-code` 的 harness 视角，而不是照搬 `Learn-OpenClaw` 的一天上手节奏。
 
 ## 这份教程怎么读
 

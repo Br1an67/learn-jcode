@@ -25,6 +25,25 @@ Harness = Tools
         + Memory
 ```
 
+```mermaid
+flowchart LR
+  User["user goal"] --> Model["model / agent"]
+  Model --> Decision["next decision"]
+  Decision --> Harness["JCode harness"]
+  Harness --> Tools["tools"]
+  Harness --> Context["context"]
+  Harness --> Runtime["server / session"]
+  Harness --> UI["TUI / observability"]
+  Harness --> Storage["storage / memory"]
+  Tools --> World["codebase / shell / provider"]
+  Runtime --> World
+  Storage --> Context
+  World --> Context
+  Context --> Model
+```
+
+This diagram shows the course stance: the model decides; JCode provides the action environment, context, state, and observability.
+
 For a coding agent:
 
 - Tools are the hands: read files, write files, edit files, run commands.
@@ -104,6 +123,13 @@ That sentence changes how you read the source:
 - `src/memory*` is not a normal RAG demo. It is recall built from long-term use.
 
 A good reading also tracks cost. A resident server reuses state, but it also brings reload, socket, and lifecycle management. Most major JCode designs have this shape: benefit and cost together.
+
+## What You Should Be Able To Explain
+
+- Why this course says "the model is the agent; JCode is the harness."
+- Why server, TUI, session, and memory are not side features.
+- Why JCode is not the best first project for learning a minimal agent loop.
+- Why this course primarily follows `learn-claude-code`'s harness stance instead of copying `Learn-OpenClaw`'s one-day pacing.
 
 ## How to Read This Course
 

@@ -59,6 +59,8 @@ When you move to concrete tools, go in this order: `src/tool/read.rs` or `src/to
 
 ## Core Source Excerpts
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 Start with the contract, not a concrete tool:
 
 ```rust
@@ -274,3 +276,10 @@ This example shows the boundaries of tool design:
 - Make it callable by the model before touching TUI.
 
 It fits this tutorial better than a weather API tool because it walks the real coding-harness path: schema, registry, execute, tool result, context truncation. Starting with a widget turns a tool task into a UI task too early.
+
+## What You Should Be Able To Explain
+
+- Which `Tool` trait methods are for the model and which are for runtime execution.
+- Why `base_tools()` can be cached while tools such as `subagent` need session-specific registration.
+- Why `definitions()` sorts tool definitions by name.
+- Why tool output must pass through a context guard before returning to the model.

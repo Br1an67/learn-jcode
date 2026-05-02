@@ -43,6 +43,8 @@ src/tool/ambient.rs
 
 ambient 的模块地图在 `src/ambient.rs` 里：
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 ```rust
 // src/ambient.rs，节选
 mod directives;
@@ -143,6 +145,8 @@ docs/UNIFIED_SELFDEV_SERVER_PLAN.md
 
 Self-dev 工具的 action schema 先看这一段：
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 ```rust
 // src/tool/selfdev/mod.rs，节选
 impl Tool for SelfDevTool {
@@ -216,3 +220,10 @@ Ambient 补的是用户不会每次显式要求维护环境的短板。它把近
 Self-dev 补的是 JCode 自己也需要被快速改造的需求。边界是分支、commit、build/test、self-dev session 和 reload 恢复。
 
 风险也要一起记住：ambient 没有资源限制会变成干扰源；self-dev 改 reload 或 server state 可能让正在运行的 session 丢状态。
+
+## 读完你应该能解释什么
+
+- ambient 为什么需要 scheduler、budget 和 `end_ambient_cycle`。
+- ambient agent 为什么不能无限后台运行。
+- self-dev 为什么要先切到 self-dev session。
+- `selfdev reload` 为什么需要 session gate 和恢复逻辑。

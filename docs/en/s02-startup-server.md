@@ -41,6 +41,8 @@ Read `docs/SERVER_ARCHITECTURE.md` and `docs/MULTI_SESSION_CLIENT_ARCHITECTURE.m
 
 ## Core Source Excerpts
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 Compress the entrypoint into three code fragments. The reader can see how control moves from the binary into CLI startup without opening an IDE.
 
 ```rust
@@ -184,15 +186,13 @@ soft_interrupt_queues
 
 These fields show that the server is not just a message proxy. It is the center of sessions, coordination, tools, and UI events.
 
-## Questions You Should Answer
+## What You Should Be Able To Explain
 
-After this lesson:
-
-- What is different between the first and second `jcode` run?
+- What is different between the first and second `jcode` run.
 - Does the server die immediately when a client exits?
-- Why can JCode support multiple clients?
-- Why does `/reload` need server participation?
-- Why does swarm state live in the server instead of one agent's messages?
+- Why JCode can support multiple clients.
+- Why `/reload` needs server participation.
+- Why sessions, providers, MCP pools, and swarm state live in the server instead of the TUI client.
 
 ## Startup Diagram
 

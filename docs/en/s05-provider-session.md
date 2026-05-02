@@ -71,6 +71,8 @@ Read `OAUTH.md` after the source. Use it to check the login flow you already saw
 
 ## Core Source Excerpts
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 The narrow waist of provider integration is the `Provider` trait:
 
 ```rust
@@ -257,3 +259,10 @@ Claude/OpenAI/Gemini/Copilot stream events differ.
 JCode cannot let turn loop code know every private provider format.
 After normalization into StreamEvent, the rest of the agent loop can handle text, thinking, tool input, and tool result consistently.
 ```
+
+## What You Should Be Able To Explain
+
+- Why the `Provider` trait normalizes output into `StreamEvent`.
+- Why `complete_split()` separates static and dynamic system prompts.
+- Why `MultiProvider` should own provider selection and failover.
+- Why a session is structured state with content blocks, usage, and compaction, not a plain transcript.

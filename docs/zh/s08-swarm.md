@@ -43,6 +43,8 @@ src/tool/task.rs
 
 ## 核心代码节选
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 swarm 的任务派发可以先看 `run_swarm_task()`：
 
 ```rust
@@ -121,3 +123,10 @@ JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：
 Swarm 补的是单 agent 做大任务的短板：一个 agent 会慢，会污染上下文，也难以并行推进相互独立的部分。
 
 代价也要记住：swarm 会引入计划、通信、文件触达、进度恢复和最终集成的复杂度。没有这些状态管理，多 agent 只是在同时制造更多不确定性。
+
+## 读完你应该能解释什么
+
+- `run_swarm_task()` 为什么要新建 worker session。
+- 为什么 worker 要禁掉一部分递归和 todo 相关工具。
+- heartbeat、checkpoint、assigned session 解决什么问题。
+- `subagent` 和 `swarm` 的边界在哪里。

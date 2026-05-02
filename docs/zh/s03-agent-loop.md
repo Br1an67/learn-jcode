@@ -73,6 +73,8 @@ src/protocol.rs
 
 ## 核心代码节选
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 `run_turn()` 的第一段不是模型调用，而是整理请求材料：
 
 ```rust
@@ -261,3 +263,10 @@ Registry::definitions()
 ```
 
 只记“JCode 支持工具调用”没有意义。你要记住函数和数据结构怎么接起来。
+
+## 读完你应该能解释什么
+
+- `run_turn()` 为什么先整理 messages、tools、memory 和 split prompt。
+- `ToolUseStart`、`ToolInputDelta`、`ToolUseEnd` 怎么拼成一个 `ToolCall`。
+- `Registry::execute()` 的结果为什么要转成 `ContentBlock::ToolResult`。
+- memory 为什么用上一轮 pending result，而不是每轮同步检索。

@@ -41,6 +41,8 @@ docs/MULTI_SESSION_CLIENT_ARCHITECTURE.md
 
 ## 核心代码节选
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 先把入口压成三段代码。读者不需要打开 IDE，也能看到控制权怎么从 binary 交到 CLI。
 
 ```rust
@@ -184,15 +186,13 @@ soft_interrupt_queues
 
 这些字段说明 JCode 的 server 不只是“转发消息”。它是会话、协作、工具、UI 事件的中心。
 
-## 你应该能回答的问题
+## 读完你应该能解释什么
 
-读完本课后，回答这些问题：
-
-- 第一次运行 `jcode` 和第二次运行有什么区别？
+- 第一次运行 `jcode` 和第二次运行有什么区别。
 - client 退出以后 server 会不会马上死？
-- 为什么 JCode 可以多 client？
-- `/reload` 为什么需要 server 参与？
-- swarm state 为什么放在 server，而不是某个 agent 自己的 messages 里？
+- 为什么 JCode 可以支持多个 client。
+- `/reload` 为什么需要 server 参与。
+- 为什么 session、provider、MCP pool、swarm state 要放在 server，而不是 TUI client。
 
 ## 启动链路图
 

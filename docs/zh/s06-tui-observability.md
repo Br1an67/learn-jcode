@@ -70,6 +70,8 @@ Side panel 最后读。先看 `src/tool/side_panel.rs` 的 `SidePanelTool`，尤
 
 ## 核心代码节选
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 Info widget 的入口不是某个具体 widget，而是布局和统一渲染：
 
 ```rust
@@ -231,3 +233,10 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 ```
 
 不要从最复杂的 swarm widget 开始。先看 git 或 todo，因为数据来源清楚。判断一个 widget 是否必要，就问一句：删掉它，用户会少知道什么？答不上来，这个 widget 的用途还没读懂。
+
+## 读完你应该能解释什么
+
+- 为什么 TUI 是 harness 的一部分，而不是皮肤。
+- `InfoWidgetData` 和 `calculate_placements()` 解决什么问题。
+- tool summary 为什么不能直接展示原始 JSON。
+- side panel 为什么是模型可操作的状态，而不是临时展示区域。

@@ -70,6 +70,8 @@ If you want the event path, go back to `src/protocol.rs` and `src/server/runtime
 
 ## Core Source Excerpts
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 The info widget entrypoint is layout and unified rendering, not one specific widget:
 
 ```rust
@@ -231,3 +233,10 @@ Why does the user need this information?
 ```
 
 Do not start with the more complex swarm widget. Git and todo widgets have clearer data sources. To judge whether a widget matters, ask: if this were removed, what would the user stop knowing? If you cannot answer, you have not understood the widget.
+
+## What You Should Be Able To Explain
+
+- Why TUI is part of the harness rather than a skin.
+- What problem `InfoWidgetData` and `calculate_placements()` solve.
+- Why tool summaries should not show raw JSON.
+- Why the side panel is model-operable state rather than temporary display space.

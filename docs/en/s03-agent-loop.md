@@ -71,6 +71,8 @@ Read `src/agent/messages.rs` and `src/message.rs` after this path. Inspect the s
 
 ## Core Source Excerpts
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 The first part of `run_turn()` is request preparation, not a model call:
 
 ```rust
@@ -259,3 +261,10 @@ Registry::definitions()
 ```
 
 Remembering "JCode supports tool calling" is too vague. The point is how functions and data structures connect.
+
+## What You Should Be Able To Explain
+
+- Why `run_turn()` prepares messages, tools, memory, and split prompts before calling the provider.
+- How `ToolUseStart`, `ToolInputDelta`, and `ToolUseEnd` become one `ToolCall`.
+- Why `Registry::execute()` output must become `ContentBlock::ToolResult`.
+- Why memory uses a pending result from the previous turn instead of synchronous retrieval every turn.

@@ -71,6 +71,8 @@ Session 最后读，因为它依赖前面的 provider 和 tool result。先看 `
 
 ## 核心代码节选
 
+下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
+
 Provider 层的窄腰是 `Provider` trait：
 
 ```rust
@@ -257,3 +259,10 @@ Claude/OpenAI/Gemini/Copilot 的 stream 事件不同。
 JCode 不能让 turn loop 到处写 provider-specific 分支。
 统一成 StreamEvent 后，后面的 agent loop 才能稳定处理 text、thinking、tool input、tool result。
 ```
+
+## 读完你应该能解释什么
+
+- `Provider` trait 为什么把输出统一成 `StreamEvent`。
+- `complete_split()` 为什么要区分 static 和 dynamic system prompt。
+- `MultiProvider` 为什么应该收口 provider 选择和 failover。
+- session 为什么不是聊天文本，而是包含 content blocks、usage、compaction 等结构化状态。

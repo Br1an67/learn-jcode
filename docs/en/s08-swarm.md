@@ -43,6 +43,8 @@ Finally read `src/tool/task.rs::SubagentTool`. This is the single-subagent entry
 
 ## Core Source Excerpts
 
+The excerpts below come from the current local JCode revision. Some are simplified for explanation. Use them for concepts; use the source tree for exact edits.
+
 For task dispatch, start with `run_swarm_task()`:
 
 ```rust
@@ -121,3 +123,10 @@ Do not read swarm as "open several subagents." The hard parts are plan ownership
 Swarm covers a weakness of one agent doing a large task: it is slow, it pollutes context, and it is bad at independent parallel work.
 
 Keep the cost with the benefit: swarm adds planning, communication, file-touch tracking, progress recovery, and final integration complexity. Without that state management, multi-agent work only creates more uncertainty.
+
+## What You Should Be Able To Explain
+
+- Why `run_swarm_task()` creates a worker session.
+- Why workers block some recursive and todo-related tools.
+- What heartbeat, checkpoint, and assigned session state solve.
+- Where the boundary sits between `subagent` and `swarm`.
