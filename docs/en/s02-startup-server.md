@@ -86,9 +86,9 @@ After this lesson:
 - Why does `/reload` need server participation?
 - Why does swarm state live in the server instead of one agent's messages?
 
-## Exercise
+## Startup Diagram
 
-Draw the startup path:
+The lesson compresses into this diagram:
 
 ```mermaid
 flowchart LR
@@ -104,4 +104,4 @@ flowchart LR
   Server --> MCP[MCP pool]
 ```
 
-Then explain why JCode does not keep all state inside the TUI client.
+JCode does not keep all state inside the TUI client because clients can disconnect, restart, and reconnect. Sessions, providers, MCP pools, and swarm state live in the server so long-running work and multiple clients can survive. The cost is that the server must handle lifecycle, sockets, reload, and state recovery.

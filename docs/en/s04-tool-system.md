@@ -125,9 +125,9 @@ JCode: long-running multi-session local agent runtime
 
 You should be able to name the cost: pi is small and easy to modify; JCode is larger and has to handle caching, truncation, dynamic registration, permissions, and UI state.
 
-## Exercise: Design `repo_summary`
+## What a Small Modification Looks Like
 
-Add a read-only `repo_summary` tool that returns:
+If you add a beginner-friendly JCode tool, `repo_summary` is a good example. It is read-only and returns:
 
 ```text
 branch:
@@ -136,14 +136,12 @@ top-level dirs:
 tracked file count:
 ```
 
-Rules:
+This example shows the boundaries of tool design:
 
 - Do not write files.
 - Do not access the network.
 - Keep output short.
 - Register it in the tool registry.
-- Run at least one manual validation.
+- Make it callable by the model before touching TUI.
 
-This exercise walks the real tool path and is more useful than a weather API tool.
-
-Do not start with TUI integration. First make the tool callable by the model; then decide whether it deserves a widget. Reversing that order makes the task harder than it needs to be.
+It fits this tutorial better than a weather API tool because it walks the real coding-harness path: schema, registry, execute, tool result, context truncation. Starting with a widget turns a tool task into a UI task too early.

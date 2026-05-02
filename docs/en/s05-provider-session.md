@@ -111,19 +111,23 @@ Different harnesses have different session shapes:
 
 That is why import/session/render is worth reading.
 
-## Exercise
+## Two Judgments to Keep
 
-Answer:
-
-```text
-If an OpenCode session must be imported into JCode,
-what are the three hardest fields to align?
-```
-
-Then answer:
+First, session import is not "move the text over." OpenCode, Codex, Claude Code, and pi can represent sessions differently. JCode needs to align at least:
 
 ```text
-Why does provider streaming need to be normalized into JCode StreamEvent?
+message role
+tool call id
+tool result
+attachments / images
+provider metadata
+thinking / reasoning
 ```
 
-The answer must mention at least two provider differences. "For a unified interface" is not enough.
+Second, provider streams must be normalized into JCode's internal `StreamEvent`. Otherwise the agent loop, TUI, and tool executor would all need provider-specific branches.
+
+```text
+Claude/OpenAI/Gemini/Copilot stream events differ.
+JCode cannot let turn loop code know every private provider format.
+After normalization into StreamEvent, the rest of the agent loop can handle text, thinking, tool input, and tool result consistently.
+```

@@ -2,7 +2,7 @@
 
 This directory contains the English lesson docs. The root README is only the entry point; read the course in this order.
 
-The writing follows [../writing-style.md](../writing-style.md): source walkthrough, not marketing copy. Each lesson should answer three questions: which files to read first, what design tradeoff to notice, and what exercise to do afterward.
+The writing follows [../writing-style.md](../writing-style.md): source walkthrough, not marketing copy. Each lesson should answer three questions: which files to read first, what design tradeoff to notice, and what conclusion to keep.
 
 Course map:
 

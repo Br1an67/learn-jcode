@@ -87,18 +87,20 @@ JCode is valuable because it is large. It shows what happens when the harness ne
 
 OpenCode and JCode are both open-source coding agents with client/server thinking. OpenCode feels more like an open platform. JCode feels more like a high-performance local runtime.
 
-## Exercise
+## What to Keep From This Lesson
 
-Write 200-300 words answering:
+Use this sentence to calibrate the rest of the course:
 
 ```text
-Why is JCode a harness, not the agent itself?
+The model is the agent. JCode is the harness that lets the model act inside a codebase.
 ```
 
-Requirements:
+That sentence changes how you read the source:
 
-- Mention the boundary between model and harness.
-- Mention at least 4 JCode harness components.
-- Do not write marketing copy. Write your own understanding.
+- `src/tool/` is not a plugin pile. It is the model's hands.
+- `src/server/` is not an extra service. It is the runtime for long-running sessions and multiple clients.
+- `src/provider/` is not a thin API wrapper. It adapts different model platforms.
+- `src/tui/` is not a skin. It is the cockpit where the user judges agent state.
+- `src/memory*` is not a normal RAG demo. It is recall built from long-term use.
 
-A good answer should include cost. Example: a resident server reuses state, but it also brings reload, socket, and lifecycle management.
+A good reading also tracks cost. A resident server reuses state, but it also brings reload, socket, and lifecycle management. Most major JCode designs have this shape: benefit and cost together.

@@ -95,9 +95,9 @@ StreamEvent::ToolUseStart
   -> next provider call
 ```
 
-## Exercise
+## One Tool Call Path
 
-Pick a simple tool, such as `ls` or `read`, and trace:
+When reading `ls` or `read`, follow this path:
 
 ```text
 How does the model see this tool definition?
@@ -107,6 +107,17 @@ Where does the tool execute?
 How does the tool result enter the next messages?
 ```
 
-Write a note under 500 words.
+Mapped to source, it is roughly:
 
-If the note only says "JCode supports tool calling," you have not traced the path yet. Include at least one function name and one data structure name.
+```text
+Registry::definitions()
+  -> provider complete_split()
+  -> StreamEvent::ToolUseStart / ToolInputDelta / ToolUseEnd
+  -> Registry::execute()
+  -> Tool::execute()
+  -> ToolOutput
+  -> tool_output_to_content_blocks()
+  -> next provider messages
+```
+
+Remembering "JCode supports tool calling" is too vague. The point is how functions and data structures connect.

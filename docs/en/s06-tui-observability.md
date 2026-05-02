@@ -89,9 +89,9 @@ OpenCode also cares about UI, but its direction is different. OpenCode also targ
 
 Both projects show the same lesson: stdout is not enough for a serious coding agent.
 
-## Exercise
+## How to Read a Widget
 
-Pick one info widget and write its data path:
+When reading `info_widget_git` or `info_widget_todos`, follow this data path:
 
 ```text
 Where does the data come from?
@@ -101,6 +101,4 @@ Where is it rendered?
 Why does the user need this information?
 ```
 
-Start with `info_widget_git` or `info_widget_todos`, not the more complex swarm widget.
-
-After writing it, ask one question: if this widget were removed, what would the user stop knowing? If you cannot answer, you have not understood the widget yet.
+Do not start with the more complex swarm widget. Git and todo widgets have clearer data sources. To judge whether a widget matters, ask: if this were removed, what would the user stop knowing? If you cannot answer, you have not understood the widget.

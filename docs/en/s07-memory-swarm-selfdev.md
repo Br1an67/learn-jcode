@@ -118,21 +118,15 @@ Be conservative:
 - Run `cargo check`.
 - Do not start with provider, server reload, compaction, or swarm.
 
-## Exercise
+## Judgments to Keep
 
-Pick one topic and write a one-page design note:
+These modules cover weaknesses of a single-agent loop:
 
 ```text
-How does memory avoid blocking the main agent?
-Why can't swarm be replaced by subagent summaries?
-Why does ambient need resource limits?
-Which self-dev module is the riskiest to touch?
+Memory: one context cannot remember long-term preferences and project facts, so JCode uses non-blocking recall.
+Swarm: one agent is slow on large tasks and pollutes context, so JCode adds server-level coordination.
+Ambient: users will not explicitly ask for every memory cleanup or recent-work check, so JCode has a background cycle.
+Self-dev: JCode itself can be modified, but branch, commit, and cargo check are the guardrails.
 ```
 
-Requirements:
-
-- Reference at least 3 source files.
-- Include one mermaid diagram.
-- Include one "do not do this" risk point.
-
-Do not write "this could support more capabilities in the future." Write a concrete risk, such as self-dev changing reload code and losing state for running sessions.
+Keep the risks with the benefits: memory has one-turn delay; swarm adds planning and communication complexity; ambient without resource limits becomes interference; self-dev changing reload or server state can lose running-session state.
