@@ -1,16 +1,16 @@
 # Sources
 
-This tutorial is based on local reading of JCode and a small amount of boundary checking against open-source coding-agent runtimes.
+This tutorial is based on source reading of JCode and a small amount of boundary checking against open-source coding-agent runtimes.
 
-| Project | Local path | Purpose |
+| Project | Repository | Purpose |
 | --- | --- | --- |
-| JCode | `/Users/shizi/Documents/workspace/jcode` | Main subject |
-| pi-mono | `/Users/shizi/Documents/workspace/pi-mono` | Minimal coding harness boundary |
-| OpenCode | `/Users/shizi/Documents/workspace/opencode` | Open-source multi-client runtime boundary |
+| JCode | `https://github.com/1jehuang/jcode` | Main subject |
+| pi-mono | `https://github.com/badlogic/pi-mono` | Minimal coding harness boundary |
+| OpenCode | `https://github.com/anomalyco/opencode` | Open-source multi-client runtime boundary |
 
 Claude Code is only referenced through public behavior where the boundary lesson needs a closed-product comparison point. This guide does not use, redistribute, or summarize proprietary or leaked source code.
 
-## Local revisions
+## Revisions Used
 
 | Project | Revision |
 | --- | --- |

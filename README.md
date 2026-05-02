@@ -67,7 +67,7 @@ learn-jcode-5.5/
 │   ├── analysis-notes.md     # JCode 内容分析和取舍记录
 │   ├── glossary.md           # 术语表
 │   ├── project-structure.md  # 为什么这样组织项目
-│   ├── sources.md            # 本地参考仓库和 revision
+│   ├── sources.md            # 源码仓库和 revision
 │   └── writing-style.md      # 写作口径和禁用表达
 └── .gitignore
 ```
@@ -124,13 +124,13 @@ learn-jcode-5.5/
 - 写一份 JCode / OpenCode / pi 的源码级边界说明。
 - 给 memory/session search 写一个实际用例。
 
-## 本地源码来源
+## 源码来源
 
-本教程基于这些本地仓库阅读：
+本教程基于这些仓库的源码阅读：
 
-- JCode: `/Users/shizi/Documents/workspace/jcode`
-- pi-mono: `/Users/shizi/Documents/workspace/pi-mono`
-- OpenCode: `/Users/shizi/Documents/workspace/opencode`
+- JCode: `https://github.com/1jehuang/jcode`
+- pi-mono: `https://github.com/badlogic/pi-mono`
+- OpenCode: `https://github.com/anomalyco/opencode`
 
 具体 revision 见 [docs/sources.md](./docs/sources.md)。
 

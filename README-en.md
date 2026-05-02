@@ -67,7 +67,7 @@ learn-jcode-5.5/
 │   ├── analysis-notes.md     # JCode content analysis and tradeoff notes
 │   ├── glossary.md           # Term glossary
 │   ├── project-structure.md  # Why the repository is organized this way
-│   ├── sources.md            # Local source repositories and revisions
+│   ├── sources.md            # Source repositories and revisions
 │   └── writing-style.md      # Writing tone and banned expressions
 └── .gitignore
 ```
@@ -124,13 +124,13 @@ For a real project, pick one small modification:
 - Write a source-level boundary note for JCode / OpenCode / pi.
 - Document a real memory/session-search use case.
 
-## Local Source Repositories
+## Source Repositories
 
-This tutorial is based on local reading of:
+This tutorial is based on source reading of:
 
-- JCode: `/Users/shizi/Documents/workspace/jcode`
-- pi-mono: `/Users/shizi/Documents/workspace/pi-mono`
-- OpenCode: `/Users/shizi/Documents/workspace/opencode`
+- JCode: `https://github.com/1jehuang/jcode`
+- pi-mono: `https://github.com/badlogic/pi-mono`
+- OpenCode: `https://github.com/anomalyco/opencode`
 
 Exact revisions are listed in [docs/sources.md](./docs/sources.md).
 

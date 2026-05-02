@@ -164,11 +164,12 @@ JCode 支持 memory、session search、embedding、graph retrieval 等能力。
 
 ## 4. 参考资料与术语
 
-### 本地参考
+### 内容参考范围
 
-- JCode: `/Users/shizi/Documents/workspace/jcode`
-- pi-mono: `/Users/shizi/Documents/workspace/pi-mono`
-- OpenCode: `/Users/shizi/Documents/workspace/opencode`
+- JCode 源码是主体。
+- pi-mono 只用于校准最小 coding harness 的边界。
+- OpenCode 只用于校准开源多端 coding-agent runtime 的边界。
+- Claude Code 只讨论公开行为，不讨论非公开源码。
 
 ### 术语写法
 
