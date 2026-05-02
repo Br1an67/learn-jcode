@@ -49,6 +49,25 @@ def copy_tree(src: Path, dst: Path) -> None:
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
 
 
+def strip_section(text: str, start_heading: str, next_heading: str) -> str:
+    start = text.find(start_heading)
+    if start == -1:
+        return text
+    end = text.find(next_heading, start + len(start_heading))
+    if end == -1:
+        return text[:start].rstrip() + "\n"
+    return text[:start].rstrip() + "\n\n" + text[end:].lstrip()
+
+
+def copy_reader_home(src: Path, dst: Path) -> None:
+    text = src.read_text(encoding="utf-8")
+    text = strip_section(text, "## 项目结构", "## 课程")
+    text = strip_section(text, "## Project Structure", "## Lessons")
+    text = strip_section(text, "## 维护检查", "## 推荐学习节奏")
+    text = strip_section(text, "## Maintenance Check", "## Suggested Pace")
+    dst.write_text(text, encoding="utf-8")
+
+
 def write_summary() -> None:
     lines = [
         "# Summary",
@@ -71,18 +90,6 @@ def write_summary() -> None:
         ]
     )
     lines.extend(f"- [{title}](./docs/en/{filename})" for filename, title in EN_LESSONS)
-    lines.extend(
-        [
-            "",
-            "---",
-            "",
-            "# 维护资料 / Maintenance",
-            "",
-            "- [源码 revision / Source Revisions](./docs/sources.md)",
-            "- [写作口径 / Writing Style](./docs/writing-style.md)",
-            "- [项目结构 / Project Structure](./docs/project-structure.md)",
-        ]
-    )
     (OUT / "SUMMARY.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -92,7 +99,7 @@ def main() -> int:
     OUT.mkdir()
 
     for filename in ["README.md", "README-en.md"]:
-        shutil.copy2(ROOT / filename, OUT / filename)
+        copy_reader_home(ROOT / filename, OUT / filename)
     copy_tree(ROOT / "docs", OUT / "docs")
     copy_tree(ROOT / "mini", OUT / "mini")
     write_summary()
