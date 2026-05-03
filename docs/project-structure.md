@@ -34,8 +34,7 @@ learn-jcode/
 │   ├── 05_session_journal.py
 │   ├── 06_swarm_channel.py
 │   ├── 07_ambient_scheduler.py
-│   ├── 08_selfdev_reload_gate.py
-│   └── mini_compat.py
+│   └── 08_selfdev_reload_gate.py
 ├── docs/
 │   ├── zh/
 │   │   ├── README.md

@@ -9,9 +9,26 @@ the result as the next user-side message.
 
 from dataclasses import dataclass
 import json
-from typing import Iterator, Any
+from typing import Callable, Iterator, Any
 
-from mini_compat import Registry, Tool
+
+@dataclass(frozen=True)
+class Tool:
+    name: str
+    description: str
+    schema: dict[str, Any]
+    handler: Callable[[dict[str, Any]], str]
+
+
+class Registry:
+    def __init__(self) -> None:
+        self.tools: dict[str, Tool] = {}
+
+    def register(self, tool: Tool) -> None:
+        self.tools[tool.name] = tool
+
+    def execute(self, name: str, payload: dict[str, Any]) -> str:
+        return self.tools[name].handler(payload)
 
 
 @dataclass(frozen=True)
