@@ -1,8 +1,8 @@
 # s03 - Agent Loop
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：JCode 外围再复杂，主回路还是“模型要工具、runtime 执行、结果回上下文”。**
+JCode 外围工程很多，但主回路并不神秘：模型提出 tool call，runtime 执行工具，结果再回到下一轮上下文。
 
 追踪一次用户输入如何变成：
 
@@ -10,7 +10,7 @@
 模型输出 -> 工具调用 -> 工具结果 -> 下一轮模型输入
 ```
 
-JCode 外围工程很多，但核心仍然是普通 agent loop。
+后面的复杂度都围绕这条 loop 展开。
 
 ## 最小 Agent Loop
 
@@ -254,7 +254,7 @@ Registry::definitions()
 
 Agent loop 的 provider stream 部分可以对照 [mini/03_provider_stream.py](../../mini/03_provider_stream.py)。它只保留 text delta、tool use start、tool input delta、tool use end 这条线。
 
-这个最小复现的价值是把“模型流式拼 JSON tool input”单独拎出来。真实 JCode 要处理更多事件、错误、usage、native tool call 和 session 保存，但核心仍然是把 stream 组装成可执行工具调用，再把 tool result 放回下一轮 messages。
+这个最小复现的作用是把“模型流式拼 JSON tool input”单独拎出来。真实 JCode 要处理更多事件、错误、usage、native tool call 和 session 保存，但核心仍然是把 stream 组装成可执行工具调用，再把 tool result 放回下一轮 messages。
 
 ## 看到这里，能说清这几件事
 

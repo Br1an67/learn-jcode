@@ -1,8 +1,8 @@
 # s04 - 工具系统
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：工具系统的难点不是工具数量，而是 schema、执行器、权限、截断和事件要走同一条 registry 边界。**
+工具系统难的不是工具多，而是工具 schema、执行器、权限、输出截断和事件记录都要收在同一条 registry 边界里。
 
 看懂 JCode 怎样把工具交给模型。
 
@@ -21,15 +21,15 @@ flowchart TD
   Guard --> Result["ToolOutput"]
 ```
 
-这张图把工具系统的两条线放在一起：`definitions()` 是给模型看的 schema，`execute()` 是 runtime 真正执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
+这张图把工具系统的两条线放在一起：`definitions()` 生成给模型看的 schema，`execute()` 是 runtime 执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
 
 ## 这节只抓主线
 
-工具系统先看合同：每个工具都要同时给出模型可见的 schema 和 runtime 可调用的 `execute()`。这就是 `Tool` trait 的意义。模型看到的是 `ToolDefinition`，真正执行时走 registry。
+工具系统先看接口约定：每个工具都要同时给出模型可见的 schema 和 runtime 可调用的 `execute()`。这就是 `Tool` trait 的意义。模型看到的是 `ToolDefinition`，执行时走 registry。
 
 Registry 不是一个普通 map。它同时管理 base tools、session-specific tools、skill registry、compaction 相关状态、allowed tool 过滤、别名解析、telemetry、错误和输出截断。下面的代码节选会直接展示这几层，不需要读者自己从一堆工具文件里拼。
 
-JCode 把基础 coding 工具和 harness 工具放在同一个系统里：`read/write/edit/bash/grep/ls` 是手，`memory/selfdev/swarm/side_panel/mcp` 是环境能力。这个统一 registry 是 agent loop 能把模型 tool call 变成真实行为的关键。
+JCode 把基础 coding 工具和 harness 工具放在同一个系统里：`read/write/edit/bash/grep/ls` 负责操作代码库，`memory/selfdev/swarm/side_panel/mcp` 负责操作运行时环境。agent loop 能把模型的 tool call 变成真实动作，靠的就是这个统一 registry。
 
 ## 核心代码节选
 
@@ -57,7 +57,7 @@ pub trait Tool: Send + Sync {
 
 这段代码把工具的两面都放在一起：`to_definition()` 给模型看，`execute()` 给 runtime 调。很多 demo 只写 function call，JCode 这里已经把 provider schema 和执行入口分开了。
 
-`Registry::base_tools()` 能看出 JCode 默认给模型哪些手：
+`Registry::base_tools()` 能看出 JCode 默认给模型哪些基础工具：
 
 ```rust
 // src/tool/mod.rs，精简版
@@ -234,7 +234,7 @@ JCode: 长期多会话本地 agent runtime
 
 工具 registry 可以对照 [mini/02_tool_registry.py](../../mini/02_tool_registry.py)。它只保留一个工具注册表，同时产出 model-visible definition 和 runtime execution。
 
-这个最小复现能帮助你固定两层边界：模型看见的是 name、description、schema；runtime 调用的是 handler。JCode 的 `Registry` 更复杂，但复杂度主要加在 allowed tools、alias、telemetry、context guard 和 session-specific tools 上。
+这个最小复现能帮助你固定两层边界：模型看见的是 name、description、schema；runtime 调用的是 handler。JCode 的 `Registry` 更复杂，主要多了 allowed tools、alias、telemetry、context guard 和 session-specific tools。
 
 ## 一个小改造应该长什么样
 

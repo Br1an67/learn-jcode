@@ -6,7 +6,7 @@
 
 | 术语 | 本教程里的意思 | 容易误读成 |
 | --- | --- | --- |
-| model | 真正做判断的模型，例如 Claude、OpenAI、Gemini 等 provider 后面的 LLM | JCode 自己的规则系统 |
+| model | 做判断的模型，例如 Claude、OpenAI、Gemini 等 provider 后面的 LLM | JCode 自己的规则系统 |
 | harness | 模型外面的运行环境：工具、上下文、权限、状态、UI、存储 | 一组 prompt 或工作流 |
 | agent loop | 一轮又一轮把 messages 发给模型、处理 tool call、追加 tool result 的循环 | 一个复杂的 planner |
 | runtime | 支撑 agent loop 长期运行的进程、状态和后台任务集合 | 单个函数调用 |

@@ -1,12 +1,10 @@
 # s02 - 启动链路和常驻 Server
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：`jcode` 命令不是一次性 CLI，它先把你接到一个会长期持有状态的本地 server。**
+`jcode` 命令不是跑完就退出的一次性 CLI。它会连接到一个本地 server；没有 server 时，就先把 server 拉起来。
 
-读懂 `jcode` 命令启动以后发生什么。
-
-JCode 的启动链路是理解整个项目的第一把钥匙。它不是每次运行都创建一个孤立 CLI 进程，而是会连接或启动一个本地 server。
+先看启动链路。看懂 `jcode` 命令怎样连接或启动本地 server，后面 server、session、TUI 为什么要分开就容易理解。
 
 ## 启动链路图
 
@@ -43,13 +41,13 @@ JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启
 
 默认 `jcode` 命令不会直接创建 agent。它先判断 server 是否存在：没有就启动同一个 binary 的 `serve` 子命令，有就连接本地 socket。这样第一次运行会拉起常驻 server，后面的 client 可以断开、重连，而 session、provider、MCP pool、swarm state 仍留在 server。
 
-下面的代码节选会把这条线压成四段：入口交权、startup 准备、dispatch 选择、server runtime 承载状态。读完这四段，就能解释为什么 JCode 是 resident-server 架构，不是普通 CLI wrapper。
+下面的代码节选按四段看：入口交权、startup 准备、dispatch 选择、server runtime 承载状态。看完这四段，就能解释为什么 JCode 是 resident-server 架构，不是普通 CLI wrapper。
 
 ## 核心代码节选
 
 下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
 
-先把入口压成三段代码。读者不需要打开 IDE，也能看到控制权怎么从 binary 交到 CLI。
+先看入口这三段代码。读者不需要打开 IDE，也能看到控制权怎么从 binary 交到 CLI。
 
 ```rust
 // src/main.rs，节选
@@ -73,7 +71,7 @@ pub async fn run() -> Result<()> {
 }
 ```
 
-这段更直接：crate root 只是转发。真正的启动逻辑不在 `lib.rs`，而在 `src/cli/startup.rs`。
+这段更直接：crate root 只是转发。启动逻辑不在 `lib.rs`，而在 `src/cli/startup.rs`。
 
 ```rust
 // src/cli/startup.rs，精简版
@@ -168,7 +166,7 @@ JCode 的 server 负责：
 - 支持 client 断开后重连。
 - 支持 `/reload` 后继续工作。
 
-你可以把 client 理解成显示器和键盘，把 server 理解成真正运行 agent 的地方。
+可以简单理解为：client 负责交互，server 负责保存状态和运行 agent。
 
 这个设计的代价也要记住：server 需要处理断连、重连、idle timeout、reload、状态持久化。JCode 不是“多一个 server 更高级”，而是用复杂度换长期会话体验。
 

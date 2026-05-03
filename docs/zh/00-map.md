@@ -75,7 +75,7 @@ flowchart TD
 
 第二条线是模型请求：session history 经过 agent loop 整理，带上 tools 和 split prompt，交给 provider。provider stream 回来以后，JCode 把文本、tool call、usage、error 都变成内部事件。
 
-第三条线是工具执行：模型只看到 tool definition，真正执行走 registry。registry 决定工具是否可用、别名怎么解析、输出怎么截断、结果怎么回到下一轮上下文。
+第三条线是工具执行：模型只看到 tool definition，执行时走 registry。registry 决定工具是否可用、别名怎么解析、输出怎么截断、结果怎么回到下一轮上下文。
 
 第四条线是长期运行：session、memory、swarm、ambient、self-dev 都不是普通 chat demo 里的功能。它们解决的是本地 agent 长时间工作时的状态、恢复、协作和自我更新。
 

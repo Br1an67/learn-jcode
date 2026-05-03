@@ -1,12 +1,12 @@
 # s07 - Memory
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：JCode 用一轮延迟换主 turn 不等 memory，把长期记忆放到 sidecar 里慢慢召回。**
+JCode 不让主 turn 等 memory 检索。它把 memory 放到 sidecar 里后台处理，用一轮延迟换当前交互不被拖慢。
 
 读懂 JCode 为什么把 memory 做成 sidecar，而不是在每轮 `run_turn()` 里同步检索。
 
-Memory 很容易被误读成普通 RAG。JCode 这部分真正要看的不是“有没有 embedding”，而是它怎么在不拖慢主 agent 的前提下，把长期偏好、项目事实、旧会话线索带回当前上下文。
+Memory 很容易被误读成普通 RAG。读 JCode 这部分时，不要只盯着“有没有 embedding”，更要看它怎么在不拖慢主 agent 的前提下，把长期偏好、项目事实、旧会话线索带回当前上下文。
 
 ```mermaid
 flowchart TD
@@ -31,7 +31,7 @@ flowchart TD
 
 Memory 的主路径只有一句话：主 agent 在 turn 结束时把上下文丢给 sidecar，sidecar 后台检索、维护和生成 pending prompt，下一轮再把结果注入主上下文。
 
-这条线由三块代码支撑。第一块是 `MemoryAgentHandle`，它用 `try_send` 投递上下文，所以主 turn 不会等 memory。第二块是后台 `MemoryAgent::run()`，它消费 channel、维护 session state，并把真正的检索交给 `process_context()`。第三块是 prompt 组装逻辑：relevance context 决定用什么材料找 memory，extraction context 决定要不要沉淀新 memory，relevant prompt 决定下一轮注入给主模型的文本。
+这条线由三块代码支撑。第一块是 `MemoryAgentHandle`，它用 `try_send` 投递上下文，所以主 turn 不会等 memory。第二块是后台 `MemoryAgent::run()`，它消费 channel、维护 session state，并把检索交给 `process_context()`。第三块是 prompt 组装逻辑：relevance context 决定用什么材料找 memory，extraction context 决定要不要沉淀新 memory，relevant prompt 决定下一轮注入给主模型的文本。
 
 `memory` tool 和 `session_search` tool 是模型显式操作 memory/历史的入口，但这里先不讲它们。JCode 的取舍在后台 sidecar：用一轮延迟换主交互不被检索拖慢。
 

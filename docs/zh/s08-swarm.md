@@ -1,8 +1,8 @@
 # s08 - Swarm
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：swarm 不是多开几个 subagent，而是 server 替一组 agent 记住计划、成员、通信和恢复状态。**
+swarm 不是简单多开几个 subagent。JCode 把计划、成员、通信和恢复状态放在 server 里，让一组 agent 可以按同一份状态协作。
 
 读懂 JCode 的 swarm 为什么不是“多开几个 subagent”。
 
@@ -256,7 +256,7 @@ JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：
 
 这部分最能体现 JCode 和 pi 的差异。pi 更克制，JCode 更激进。
 
-不要把 swarm 理解成“多开几个 subagent”。真正难的是计划、通信、文件触达、状态恢复和集成边界。
+不要把 swarm 理解成“多开几个 subagent”。难点在计划、通信、文件触达、状态恢复和集成边界。
 
 ## 先把这个判断记住
 

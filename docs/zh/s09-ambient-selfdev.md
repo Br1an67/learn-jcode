@@ -1,8 +1,8 @@
 # s09 - Ambient 和 Self-Dev
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：ambient 和 self-dev 都是在无人盯着时继续改状态，所以它们必须先有预算、门禁和恢复路径。**
+ambient 和 self-dev 都会在没有人盯着终端时继续改状态，所以必须先有预算、边界和恢复路径。
 
 读懂 JCode 两个更靠后的能力：ambient 后台循环，以及 self-dev 自我修改。
 
@@ -56,7 +56,7 @@ pub use prompt::{
 };
 ```
 
-这段代码说明 ambient 不是一个工具文件。它有指令、管理器、持久化、prompt、runner、scheduler。真正要读的是后台循环和预算，不是只看工具 schema。
+这段代码说明 ambient 不是一个工具文件。它有指令、管理器、持久化、prompt、runner、scheduler。这里要读的是后台循环和预算，不是只看工具 schema。
 
 ambient cycle 结束也必须通过工具显式上报：
 
@@ -154,7 +154,7 @@ pub async fn run_loop(self, provider: Arc<dyn Provider>) {
 
 这段代码的重点不是循环本身，而是两个边界：direct item 可以投递到具体 session，ambient item 才进入后台 agent；`AmbientLock` 防止多个 ambient runner 同时抢同一批后台维护任务。
 
-真正跑一轮时，JCode 只给 ambient session 注册 ambient 专用工具：
+跑一轮 ambient 时，JCode 只给 ambient session 注册 ambient 专用工具：
 
 ```rust
 // src/ambient/runner.rs，节选
@@ -232,7 +232,7 @@ Self-dev 的主线是“让 JCode 改自己”必须经过受控 session。显�
 
 `SelfDevTool` 暴露的是一组 action：`enter/build/test/cancel-build/reload/status/socket-info`。其中 `reload`、`socket-info`、`socket-help` 会检查当前 session 是否 self-dev，这就是风险边界。launch 负责从普通会话切到 self-dev 会话，build queue 负责请求去重、锁和后台状态，reload 负责新 binary 接管旧 server 并恢复会话。
 
-Prompt 不是 self-dev 的核心。它只是把规则告诉模型；真正的边界在 CLI、tool action、build/test、session gate 和 reload 恢复。
+Prompt 不是 self-dev 的核心。它只是把规则告诉模型；边界主要在 CLI、tool action、build/test、session gate 和 reload 恢复。
 
 ### Self-Dev 核心代码节选
 
@@ -328,7 +328,7 @@ match action.as_str() {
 
 这段代码说明 self-dev 的危险动作不是所有 session 都能用。`reload` 必须在 self-dev session 里执行，这是 JCode 给“让 agent 改自己”加的边界。
 
-真正 reload 前还会保存恢复上下文、更新 canary manifest、再向 server 发 reload signal：
+reload 前还会保存恢复上下文、更新 canary manifest、再向 server 发 reload signal：
 
 ```rust
 // src/tool/selfdev/reload.rs，节选

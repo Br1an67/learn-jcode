@@ -1,14 +1,14 @@
 # s06 - TUI 和可观察性
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：JCode 的 TUI 是运行时仪表盘，server event 写进状态之后，才被压成用户能判断继续、打断还是信任的信号。**
+JCode 的 TUI 不只是把模型输出打印出来。server event 先写进 TUI state，再整理成工具状态、diff、usage、side panel 这些用户能看懂的信息。
 
 理解 UI 为什么是 harness 的一部分。
 
 很多 agent 工程只关心“模型能不能完成任务”。但实际使用时，用户还需要知道它在干什么、改了什么、卡在哪里、花了多少上下文和钱。
 
-JCode 在 TUI 上投入很多，这不是装饰。
+JCode 的 TUI 代码不少，因为它承担了状态展示和用户判断的工作。
 
 判断一个 UI 模块是不是 harness 的一部分，看它是否影响用户判断 agent 状态。tool 状态、diff、usage、memory 命中都影响判断，所以它们不是皮肤。
 
@@ -35,7 +35,7 @@ flowchart TD
   Render --> User["terminal<br/>view"]
 ```
 
-这张图说明 TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能判断 agent 状态的界面。
+这张图说明 TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能看懂的界面。
 
 ```mermaid
 sequenceDiagram
@@ -50,21 +50,21 @@ sequenceDiagram
   Data->>Render: layout + render_all()
 ```
 
-这张图比“看起来有哪些 widget”更重要。TUI 的第一性问题不是怎么画，而是谁把 runtime 事件翻译成可观察状态。
+这张图比“页面上有哪些 widget”更重要。读 TUI 时先看谁把 runtime 事件变成可观察状态，再看具体怎么画。
 
 ## 这节只抓主线
 
-TUI 的主线是事件变成判断。server/runtime 事件进入 app state，然后分别变成 info widget、tool summary、diff、side panel 和流式文本。用户看到的不是原始 protocol，而是被压缩成“我能不能继续信任这个 agent”的状态。
+TUI 的主线是事件变成界面状态。server/runtime 事件进入 app state，然后分别变成 info widget、tool summary、diff、side panel 和流式文本。用户看到的不是原始 protocol，而是整理成用户能快速判断的状态。
 
 Info widget 解决布局和信息密度：`InfoWidgetData` 收集状态，`calculate_placements()` 决定位置，`render_all()` 统一渲染。Git、todo、memory、swarm 这些 widget 的差别不在画法，而在它们各自回答用户什么问题。
 
-Tool summary 和 diff 是另外两层压缩。模型工具调用通常是 JSON，TUI 要把它压成一行可扫的动作摘要；文件编辑还可以从 tool input 提前推断 diff，而不是等完整工具结果回来。Side panel 则更进一步：它是模型能写入、追加、聚焦和删除的持久页面，不只是临时展示区。
+Tool summary 和 diff 是另外两层整理。模型工具调用通常是 JSON，TUI 要把它整理成一行容易扫过的动作摘要；文件编辑还可以从 tool input 提前推断 diff，而不是等完整工具结果回来。Side panel 则更进一步：它是模型能写入、追加、聚焦和删除的持久页面，不只是临时展示区。
 
 ## 核心代码节选
 
 下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
 
-真正的 TUI 边界在 `handle_server_event()`。它把 server event 改写成 `App` 状态，而不是等到 render 阶段才临时判断：
+TUI 的关键边界在 `handle_server_event()`。它把 server event 改写成 `App` 状态，而不是等到 render 阶段才临时判断：
 
 ```rust
 // src/tui/app/remote/server_events.rs，节选
@@ -128,9 +128,9 @@ pub fn handle_server_event(app: &mut App, event: ServerEvent, remote: &mut impl 
 
 这段代码说明一件很硬的事：TUI 不是被动消费文本流。`ToolStart` 会提交 pending assistant text、暂停 TPS、更新状态并记录正在流式出现的工具；`ToolExec` 会把累积的 JSON input 变成 `ToolCall`，交给 `observe_tool_call()`；usage、side panel、swarm、MCP 都在这里落到 app state。
 
-换句话说，render 只是最后一步。真正决定“用户能看到什么状态”的地方，是 event handler。
+换句话说，render 只是最后一步。决定用户能看到什么状态的地方，是 event handler。
 
-`InfoWidgetData` 是第二个收口点。它把分散在 session、provider、memory、swarm、ambient、usage 里的状态压成一个可渲染快照：
+`InfoWidgetData` 是第二个收口点。它把分散在 session、provider、memory、swarm、ambient、usage 里的状态整理成一个可渲染的快照：
 
 ```rust
 // src/tui/app/tui_state.rs，节选
@@ -212,7 +212,7 @@ pub fn render_all(frame: &mut Frame, placements: &[WidgetPlacement], data: &Info
 
 这段代码说明 widget 不是随便画在右边。JCode 先根据消息区域、边距和当前数据算 placement，再统一 render。可观察性在这里先变成布局问题。
 
-工具摘要也有单独的压缩层：
+工具摘要也有单独的整理逻辑：
 
 ```rust
 // src/tui/ui_tools.rs，节选
@@ -232,7 +232,7 @@ fn get_tool_summary_with_budget(tool: &ToolCall, bash_max_chars: usize, max_widt
 }
 ```
 
-这是精简版，但能看出 UI 层的责任：模型调用工具时，用户不应该看到完整 JSON。TUI 要把工具名和 input 压成一行可扫的摘要。
+这是精简版，但能看出 UI 层的责任：模型调用工具时，用户不应该看到完整 JSON。TUI 要把工具名和 input 整理成一行容易扫过的摘要。
 
 diff 也不是只等工具输出：
 
@@ -310,7 +310,7 @@ Side panel 是一个很实用的设计。它可以放：
 
 这让用户不用在主聊天流里翻来翻去。
 
-Side panel 的价值不是“多一个面板”。它把稳定参考信息从聊天流里拿出来。聊天流适合时间线，side panel 适合当前状态。
+Side panel 不是“多一个面板”。它把稳定参考信息从聊天流里拿出来：聊天流适合时间线，side panel 适合放当前状态。
 
 ## Info Widget 的意义
 
@@ -348,7 +348,7 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 ## 看到这里，能说清这几件事
 
 - 为什么 TUI 是 harness 的一部分，而不是皮肤。
-- 为什么 `handle_server_event()` 才是真正的 TUI 状态边界。
+- 为什么 `handle_server_event()` 是 TUI 的状态边界。
 - `InfoWidgetData` 和 `calculate_placements()` 解决什么问题。
 - tool summary 为什么不能直接展示原始 JSON。
 - side panel 为什么是模型可操作的状态，而不是临时展示区域。

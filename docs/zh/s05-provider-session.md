@@ -1,12 +1,12 @@
 # s05 - Provider、Auth、Session
 
-## 先看这一点
+## 先把问题说清楚
 
-**一句话先放这：provider 层把多家模型平台磨平成一种 stream，session 层把一次次 turn 固定成可恢复的长期记录。**
+provider 层负责把不同模型平台的流式输出统一成 JCode 自己的事件；session 层负责把一轮轮对话保存成可恢复的长期记录。
 
 理解 JCode 怎么把不同模型平台和长期会话接起来。
 
-很多 agent demo 把 provider 层写成一行 API 调用。但真正做产品时，provider 是一大块工程。
+很多 agent demo 把 provider 层写成一行 API 调用。但做成可用工具时，provider 会变成一大块工程。
 
 ```mermaid
 sequenceDiagram
@@ -28,9 +28,9 @@ sequenceDiagram
 
 ## 这节只抓主线
 
-Provider 层的窄腰是 `Provider` trait：JCode 内部只想面对一种形状，输入是 messages、tools、system prompt，输出是统一的 `StreamEvent`。OpenAI、Claude、Gemini、Copilot 的私有请求体和流式协议，都应该在 provider 后面被消化掉。
+Provider 层的统一入口是 `Provider` trait：JCode 内部只想面对一种接口，输入是 messages、tools、system prompt，输出是统一的 `StreamEvent`。OpenAI、Claude、Gemini、Copilot 各自的请求体和流式协议，都应该留在 provider 实现内部。
 
-`MultiProvider` 把 provider 选择和 failover 收口。Agent loop 不应该散落 `if Claude / if OpenAI`，而是把请求交给 provider 层。`complete_split()` 还把 stable system prefix 和 dynamic context 拆开，目的是减少 prompt cache 抖动。
+`MultiProvider` 负责 provider 选择和 failover。Agent loop 不应该散落 `if Claude / if OpenAI`，而是把请求交给 provider 层。`complete_split()` 还把 stable system prefix 和 dynamic context 拆开，目的是减少 prompt cache 抖动。
 
 Auth 和 session 是 provider 工程的一部分。Auth 不是保存 API key，它要处理本地命令、路径、WSL、外部登录和 terminal handoff。Session 也不是简单聊天记录，它要保存 messages、replay events、compaction state、journal entries，并能恢复成 TUI/agent 可继续消费的状态。
 
@@ -38,7 +38,7 @@ Auth 和 session 是 provider 工程的一部分。Auth 不是保存 API key，�
 
 下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
 
-Provider 层的窄腰是 `Provider` trait：
+Provider 层的统一入口是 `Provider` trait：
 
 ```rust
 // src/provider/mod.rs，节选
@@ -69,7 +69,7 @@ pub trait Provider: Send + Sync {
 }
 ```
 
-这段代码说明 JCode 内部只想面对一种 provider 形状：输入是 `Message`、`ToolDefinition`、system prompt，输出是 `StreamEvent`。OpenAI、Claude、Gemini 的私有格式都应该在 trait 后面被消化掉。
+这段代码说明 JCode 内部只想面对一种 provider 接口：输入是 `Message`、`ToolDefinition`、system prompt，输出是 `StreamEvent`。OpenAI、Claude、Gemini 的私有格式都留在具体 provider 实现里。
 
 `complete_split()` 的默认实现也很关键。它把动态系统上下文变成靠后的 synthetic message，而不是混进稳定 system prefix。这样做是为了保住 provider prompt cache 的稳定前缀。
 

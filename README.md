@@ -144,7 +144,7 @@ mdbook build
 
 这个节奏不是硬性安排。重点是不要跳过前四课直接冲 swarm 和 self-dev。那样很容易只记住名词，看不懂运行时边界。
 
-真正要做项目时，建议选一个小改造：
+后面想动手改代码时，建议选一个小改造：
 
 - 新增一个只读工具，比如 `repo_summary`。
 - 写一套 OpenAI-compatible provider profile 配置和 smoke test 文档。
