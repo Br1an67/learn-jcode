@@ -1,6 +1,6 @@
 # s03 - Agent Loop
 
-## 先把问题说清楚
+## 先看一轮对话怎么跑
 
 JCode 外围工程很多，但主回路并不神秘：模型提出 tool call，runtime 执行工具，结果再回到下一轮上下文。
 
@@ -10,7 +10,7 @@ JCode 外围工程很多，但主回路并不神秘：模型提出 tool call，r
 模型输出 -> 工具调用 -> 工具结果 -> 下一轮模型输入
 ```
 
-后面的复杂度都围绕这条 loop 展开。
+后面多数细节，都是为了让这条 loop 在真实项目里跑稳。
 
 ## 最小 Agent Loop
 
@@ -47,9 +47,9 @@ flowchart TD
   History --> Prep
 ```
 
-这张图只画正常路径：模型流式输出，JCode 收集 tool call，执行工具，再把 tool result 写回下一轮 messages。compaction、memory、UI event 都是这条主线旁边的工程。
+图里只保留正常路径：模型流式输出，JCode 收集 tool call，执行工具，再把 tool result 写回下一轮 messages。compaction、memory、UI event 都是在这条路径旁边补上的工程。
 
-## 这节只抓主线
+## 先看正常路径
 
 Agent loop 的正常路径分三段。第一段是请求前准备：修复缺失的 tool result、整理 provider messages、生成工具定义、取上一轮 memory pending result、构造 split prompt。JCode 不是把聊天记录原样丢给模型。
 
@@ -85,7 +85,7 @@ loop {
 }
 ```
 
-这段代码说明 JCode 的 agent loop 不是直接把聊天记录丢给模型。它先修 history、可能 compact、生成 tools、取上一轮 memory 结果，再用 split prompt 调 provider。
+这里可以看出，JCode 的 agent loop 不是直接把聊天记录丢给模型。它先修 history、可能 compact、生成 tools、取上一轮 memory 结果，再用 split prompt 调 provider。
 
 stream 事件里，先只看 tool call 相关的四个分支：
 
@@ -139,7 +139,7 @@ match result {
 }
 ```
 
-这段代码把 agent loop 接回下一轮：模型发 tool call，registry 执行工具，工具结果被写回成下一轮 `Role::User` message。没有这一步，模型不会看到工具结果。
+这一步把 agent loop 接回下一轮：模型发 tool call，registry 执行工具，工具结果被写回成下一轮 `Role::User` message。没有这一步，模型不会看到工具结果。
 
 再看转换函数：
 
@@ -184,7 +184,7 @@ pub(super) fn tool_output_to_content_blocks(
 10. 把 tool output 转成 content blocks。
 11. 如果还有工具调用，继续 loop。
 
-这是 JCode 最核心的路径。
+这一段是读后面章节的基础。
 
 ## 为什么要 split system prompt
 
@@ -192,7 +192,7 @@ JCode 会把 prompt 分成 static 和 dynamic 部分。原因很直接：有些 
 
 Memory、时间、动态状态这类内容如果混进静态 prefix，会破坏 cache。
 
-这类细节很能体现 harness 工程和 demo 工程的区别。demo 只关心能不能答，harness 要关心长期成本和延迟。
+这类细节就是 harness 和 demo 的区别。demo 只关心能不能答，harness 还要关心长期成本和延迟。
 
 ## Memory 为什么在这里出现
 
@@ -205,7 +205,7 @@ Memory、时间、动态状态这类内容如果混进静态 prefix，会破坏 
 
 这样主 agent 不会因为 memory search 变慢。
 
-这是一种取舍：memory 不是每次都立刻最完整，但交互不会被检索拖住。教程里讲 memory 时都按这个取舍理解。
+这是一种取舍：memory 不是每次都立刻最完整，但交互不会被检索拖住。后面讲 memory 时，也会沿着这个取舍看。
 
 ## Tool Result 怎么回到模型
 
@@ -248,7 +248,7 @@ Registry::definitions()
   -> next provider messages
 ```
 
-只记“JCode 支持工具调用”没有意义。你要记住函数和数据结构怎么接起来。
+只记“JCode 支持工具调用”没有意义。更重要的是看清函数和数据结构怎么接起来。
 
 ## 最小复现
 
@@ -256,7 +256,7 @@ Agent loop 的 provider stream 部分可以对照 [mini/03_provider_stream.py](.
 
 这个最小复现的作用是把“模型流式拼 JSON tool input”单独拎出来。真实 JCode 要处理更多事件、错误、usage、native tool call 和 session 保存，但核心仍然是把 stream 组装成可执行工具调用，再把 tool result 放回下一轮 messages。
 
-## 看到这里，能说清这几件事
+## 读完后检查一下
 
 - `run_turn()` 为什么先整理 messages、tools、memory 和 split prompt。
 - `ToolUseStart`、`ToolInputDelta`、`ToolUseEnd` 怎么拼成一个 `ToolCall`。

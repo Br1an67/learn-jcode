@@ -1,10 +1,8 @@
 # s04 - 工具系统
 
-## 先把问题说清楚
+## 先看工具怎么接进来
 
 工具系统难的不是工具多，而是工具 schema、执行器、权限、输出截断和事件记录都要收在同一条 registry 边界里。
-
-看懂 JCode 怎样把工具交给模型。
 
 工具系统是 coding-agent harness 的核心。没有工具，模型只能聊天。有了工具，模型才能读代码、改代码、跑测试、查历史、和其他 agent 协作。
 
@@ -23,13 +21,13 @@ flowchart TD
 
 这张图把工具系统的两条线放在一起：`definitions()` 生成给模型看的 schema，`execute()` 是 runtime 执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
 
-## 这节只抓主线
+## 先看两条路径
 
 工具系统先看接口约定：每个工具都要同时给出模型可见的 schema 和 runtime 可调用的 `execute()`。这就是 `Tool` trait 的意义。模型看到的是 `ToolDefinition`，执行时走 registry。
 
 Registry 不是一个普通 map。它同时管理 base tools、session-specific tools、skill registry、compaction 相关状态、allowed tool 过滤、别名解析、telemetry、错误和输出截断。下面的代码节选会直接展示这几层，不需要读者自己从一堆工具文件里拼。
 
-JCode 把基础 coding 工具和 harness 工具放在同一个系统里：`read/write/edit/bash/grep/ls` 负责操作代码库，`memory/selfdev/swarm/side_panel/mcp` 负责操作运行时环境。agent loop 能把模型的 tool call 变成真实动作，靠的就是这个统一 registry。
+JCode 把基础 coding 工具和 harness 工具放在同一个系统里：`read/write/edit/bash/grep/ls` 负责操作代码库，`memory/selfdev/swarm/side_panel/mcp` 负责操作运行时环境。agent loop 能把模型的 tool call 变成真实动作，靠的就是这个 registry。
 
 ## 核心代码节选
 
@@ -183,7 +181,7 @@ conversation_search
 
 这些不是最小 agent 必需，但能显著改善效率和可观察性。
 
-这里不要只数工具数量。工具越多，越容易污染 prompt、撑爆上下文、让模型误选工具。JCode 的重点是工具治理，不是“工具越多越好”。
+这里不要只数工具数量。工具越多，越容易污染 prompt、撑爆上下文、让模型误选工具。JCode 的重点是管理工具，而不是“工具越多越好”。
 
 ### Harness 级工具
 
@@ -213,13 +211,13 @@ selfdev
 - tool output 会被 context guard 截断，防止撑爆上下文。
 - MCP 工具可以在后台连接后动态注册。
 
-这就是 JCode 和玩具 demo 的差距。工具多了以后，问题不再是“怎么 call function”，而是“怎么治理工具生态”。
+这就是 JCode 和小 demo 的差距。工具多了以后，问题不再是“怎么 call function”，而是“怎么让工具清单可控”。
 
 ## 和 pi-mono 的差异
 
-pi 的默认哲学更克制：`read/write/edit/bash` 就够强。
+pi 的默认取向更克制：`read/write/edit/bash` 就够强。
 
-JCode 的哲学更像：基础工具要强，同时把 memory、MCP、subagent、swarm、side panel 这类 harness 能力也变成工具。
+JCode 的取向是：基础工具要强，同时把 memory、MCP、subagent、swarm、side panel 这类 harness 能力也变成工具。
 
 这不是谁对谁错。差异在目标：
 
@@ -228,7 +226,7 @@ pi: 最小有效 coding harness
 JCode: 长期多会话本地 agent runtime
 ```
 
-读到这里要能说出代价：pi 小，所以容易改；JCode 大，所以必须处理缓存、截断、动态注册、权限和 UI 状态。
+代价也要一起看：pi 小，所以容易改；JCode 大，所以必须处理缓存、截断、动态注册、权限和 UI 状态。
 
 ## 最小复现
 
@@ -257,7 +255,7 @@ tracked file count:
 
 它比天气 API 工具更适合 JCode 教程，因为它走的是 coding harness 的真实路径：schema、registry、execute、tool result、上下文截断。顺序反了，比如先做 widget，会把一个工具入门任务变成 UI 任务。
 
-## 看到这里，能说清这几件事
+## 读完后检查一下
 
 - `Tool` trait 里哪些方法给模型看，哪些方法给 runtime 调。
 - 为什么 `base_tools()` 可以缓存，而 `subagent` 这类工具需要 session-specific 注册。

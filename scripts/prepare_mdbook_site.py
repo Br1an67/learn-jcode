@@ -15,7 +15,7 @@ ZH_LESSONS = [
     ("00-map.md", "00 - 全局地图"),
     ("glossary.md", "术语表"),
     ("s01-harness-mindset.md", "s01 - Harness 心智"),
-    ("s02-startup-server.md", "s02 - 启动链路和常驻 Server"),
+    ("s02-startup-server.md", "s02 - 启动过程和常驻 Server"),
     ("s03-agent-loop.md", "s03 - Agent Loop"),
     ("s04-tool-system.md", "s04 - 工具系统"),
     ("s05-provider-session.md", "s05 - Provider、Auth、Session"),

@@ -23,7 +23,7 @@
 | sidecar | 主 agent loop 旁边的后台组件，不阻塞主 turn，比如 memory agent | 独立产品或插件 |
 | memory | JCode 的长期召回系统，用 sidecar 非阻塞检索并在下一轮注入 | 手动笔记或普通 RAG demo |
 | pending memory | memory sidecar 已经算好、等待主 agent 下一轮取走的 prompt | 当前轮立即生效的上下文 |
-| swarm | server-level 多 agent 协作 runtime，包含 plan、worker、channel、heartbeat、report | 多开几个 subagent |
+| swarm | server 维护的多 agent 协作状态，包含 plan、worker、channel、heartbeat、report | 多开几个 subagent |
 | coordinator | swarm 里的协调会话，负责计划和整合 | 更聪明的模型 |
 | worker | swarm 里的工作会话，接收任务、汇报进度和结果 | 普通函数调用 |
 | channel | swarm 内的通信订阅关系，由 server 维护 channel/session 索引 | prompt 里的 `#name` 约定 |
@@ -46,7 +46,7 @@ client 负责交互和展示，server 负责长期状态。client 退出不等�
 
 ### provider 和 agent loop
 
-agent loop 只处理 JCode 内部消息和 `StreamEvent`。provider 层负责消化不同平台的请求体、鉴权、stream 格式和缓存行为。这个边界让 JCode 不需要在 turn loop 里写一堆 provider-specific 分支。
+agent loop 只处理 JCode 内部消息和 `StreamEvent`。provider 层负责处理不同平台的请求体、鉴权、stream 格式和缓存行为。这个边界让 JCode 不需要在 turn loop 里写一堆 provider-specific 分支。
 
 ### tool definition 和 tool execution
 

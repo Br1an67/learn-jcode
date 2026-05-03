@@ -94,7 +94,7 @@ learn-jcode/
 | 00 | [全局地图](./docs/zh/00-map.md) | [Global Map](./docs/en/00-map.md) |
 | glossary | [术语表](./docs/zh/glossary.md) | [Glossary](./docs/en/glossary.md) |
 | s01 | [Harness 心智](./docs/zh/s01-harness-mindset.md) | [Harness Mindset](./docs/en/s01-harness-mindset.md) |
-| s02 | [启动链路和常驻 Server](./docs/zh/s02-startup-server.md) | [Startup and Resident Server](./docs/en/s02-startup-server.md) |
+| s02 | [启动过程和常驻 Server](./docs/zh/s02-startup-server.md) | [Startup and Resident Server](./docs/en/s02-startup-server.md) |
 | s03 | [Agent Loop](./docs/zh/s03-agent-loop.md) | [Agent Loop](./docs/en/s03-agent-loop.md) |
 | s04 | [工具系统](./docs/zh/s04-tool-system.md) | [Tool System](./docs/en/s04-tool-system.md) |
 | s05 | [Provider、Auth、Session](./docs/zh/s05-provider-session.md) | [Provider, Auth, Session](./docs/en/s05-provider-session.md) |
@@ -131,7 +131,7 @@ mdbook build
 
 ```text
 第 0 天：跑起来，确认 provider 能登录
-第 1 天：读启动链路和 server/client
+第 1 天：读启动过程和 server/client
 第 2 天：读 agent loop
 第 3 天：读 tool registry
 第 4 天：读 provider/auth/session

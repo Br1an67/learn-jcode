@@ -1,12 +1,10 @@
 # s08 - Swarm
 
-## 先把问题说清楚
+## 先看 swarm 和 subagent 的区别
 
 swarm 不是简单多开几个 subagent。JCode 把计划、成员、通信和恢复状态放在 server 里，让一组 agent 可以按同一份状态协作。
 
-读懂 JCode 的 swarm 为什么不是“多开几个 subagent”。
-
-Swarm 的重点是 server-level coordination：计划、通信、状态恢复、文件触达、worker 进度和完成报告。把它理解成普通 subagent，会错过它最重要的工程边界。
+Swarm 要处理的是 server 里的协作状态：计划、通信、状态恢复、文件触达、worker 进度和完成报告。把它理解成普通 subagent，会错过最重要的工程问题。
 
 ```mermaid
 flowchart TD
@@ -29,13 +27,13 @@ flowchart TD
 
 这张图说明 swarm 的状态中心在 server plan，不在某个 worker 的 messages 里。worker 通过 heartbeat、checkpoint、report 回到 coordinator 和 plan。
 
-## 这节只抓主线
+## 先看协作状态放在哪里
 
-Swarm 的主线不是“启动多个模型”，而是 server 拥有一个协作计划。coordinator 更新 plan，worker 通过 heartbeat、checkpoint 和 report 回写进度，channel 负责 DM/broadcast 的去向，最后完成报告回到 coordinator。
+Swarm 的重点不是“启动多个模型”，而是 server 拥有一个协作计划。coordinator 更新 plan，worker 通过 heartbeat、checkpoint 和 report 回写进度，channel 负责 DM/broadcast 的去向，最后完成报告回到 coordinator。
 
 代码要抓四个边界：server 拥有什么状态，worker session 怎样被创建，通信索引放在哪里，文件触达怎么被其他 worker 看见。
 
-`communicate` tool 是模型操作 swarm runtime 的入口，`SubagentTool` 是一次性委派入口。把这两者分开，才能看懂 JCode 的设计：subagent 是“派一个人做一件事”，swarm 是“维护一套长期协作现场”。
+`communicate` tool 是模型操作 swarm runtime 的入口，`SubagentTool` 是一次性委派入口。把这两者分开，才能看懂 JCode 的设计：subagent 是“派一个人做一件事”，swarm 是“维护一份持续更新的协作状态”。
 
 ## 核心代码节选
 
@@ -133,7 +131,7 @@ if let Some(summary) = checkpoint_summary {
 }
 ```
 
-这段代码说明 swarm 要追踪 heartbeat、checkpoint 和 assigned session。没有这些状态，多 agent 协作只会变成多个黑盒同时跑。
+这段代码说明 swarm 要追踪 heartbeat、checkpoint 和 assigned session。没有这些状态，多 agent 协作就会变成几个 agent 各跑各的。
 
 `communicate` tool 把这些 server 能力暴露给模型。注意它不是普通聊天工具，它的 action 集合直接覆盖 spawn、计划、channel、等待成员这些 runtime 动作：
 
@@ -242,7 +240,7 @@ swarm 的 server-owned state 可以对照 [mini/06_swarm_channel.py](../../mini/
 
 真实 JCode 多了 session 连接、headless worker、plan version、file touch、completion report、worktree 和 reload 恢复。最小复现的作用是先固定边界：channel 和 task progress 属于 server，不属于某个 worker 的 prompt。
 
-## JCode 的 Swarm 关心什么
+## Swarm 具体管哪些事
 
 JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：
 
@@ -254,17 +252,17 @@ JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：
 - blocked / failed / crashed 怎么恢复。
 - worktree 什么时候用，什么时候不用。
 
-这部分最能体现 JCode 和 pi 的差异。pi 更克制，JCode 更激进。
+这部分最能体现 JCode 和 pi 的差异。pi 更克制，JCode 放进 server 的东西更多。
 
 不要把 swarm 理解成“多开几个 subagent”。难点在计划、通信、文件触达、状态恢复和集成边界。
 
-## 先把这个判断记住
+## 先记住这个取舍
 
 Swarm 补的是单 agent 做大任务的短板：一个 agent 会慢，会污染上下文，也难以并行推进相互独立的部分。
 
 代价也要记住：swarm 会引入计划、通信、文件触达、进度恢复和最终集成的复杂度。没有这些状态管理，多 agent 只是在同时制造更多不确定性。
 
-## 看到这里，能说清这几件事
+## 读完后检查一下
 
 - `run_swarm_task()` 为什么要新建 worker session。
 - 为什么 worker 要禁掉一部分递归和 todo 相关工具。

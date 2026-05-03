@@ -1,14 +1,14 @@
-# s02 - 启动链路和常驻 Server
+# s02 - 启动过程和常驻 Server
 
-## 先把问题说清楚
+## 先看启动后发生什么
 
 `jcode` 命令不是跑完就退出的一次性 CLI。它会连接到一个本地 server；没有 server 时，就先把 server 拉起来。
 
-先看启动链路。看懂 `jcode` 命令怎样连接或启动本地 server，后面 server、session、TUI 为什么要分开就容易理解。
+先看 `jcode` 启动时做了什么。看懂它怎样连接或启动本地 server，后面再看 server、session、TUI 为什么要分开会容易很多。
 
-## 启动链路图
+## 启动过程图
 
-先把启动链路画出来：
+先把这个过程画出来：
 
 ```mermaid
 flowchart TD
@@ -35,13 +35,13 @@ flowchart TD
 
 JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。
 
-## 这节只抓主线
+## 先看正常路径
 
-启动链路的控制权移动很短：binary 入口只创建 tokio runtime，crate root 只转发到 CLI startup，startup 做进程级准备，dispatch 决定是进入 `serve` 还是默认 client 路径。
+启动过程的调用顺序很短：binary 入口只创建 tokio runtime，crate root 只转发到 CLI startup，startup 做进程级准备，dispatch 决定是进入 `serve` 还是默认 client 路径。
 
 默认 `jcode` 命令不会直接创建 agent。它先判断 server 是否存在：没有就启动同一个 binary 的 `serve` 子命令，有就连接本地 socket。这样第一次运行会拉起常驻 server，后面的 client 可以断开、重连，而 session、provider、MCP pool、swarm state 仍留在 server。
 
-下面的代码节选按四段看：入口交权、startup 准备、dispatch 选择、server runtime 承载状态。看完这四段，就能解释为什么 JCode 是 resident-server 架构，不是普通 CLI wrapper。
+下面按四段看：入口交权、startup 准备、dispatch 选择、server runtime 承载状态。看完这四段，就能解释为什么 JCode 是 resident-server 架构，不是普通 CLI wrapper。
 
 ## 核心代码节选
 
@@ -115,7 +115,7 @@ tui_launch::run_tui_client(
 .await?;
 ```
 
-这段代码把 JCode 的启动模型讲清楚了：默认命令不是“新建一个本地 agent 然后开始聊天”，而是先保证 server 存在，再启动 TUI client 去连接它。
+这段代码把 JCode 的启动方式说清楚了：默认命令不是“新建一个本地 agent 然后开始聊天”，而是先保证 server 存在，再启动 TUI client 去连接它。
 
 server 侧的状态也可以直接从结构体看出来：
 
@@ -135,7 +135,7 @@ struct ServerRuntime {
 
 这不是一个薄代理。`sessions`、`provider`、`swarm_state`、`mcp_pool` 都在 server runtime 里，说明长期会话、多 client、MCP、swarm 都依赖这个常驻进程。
 
-## 启动链路
+## 启动过程
 
 简化以后是：
 
@@ -196,7 +196,7 @@ soft_interrupt_queues
 
 这个最小复现不复刻 socket、TUI 或 provider，只用几十行代码说明为什么 session 不应该绑死在 client 进程上。看完再回到这一节，`ServerRuntime` 里那些字段会更容易放回位置。
 
-## 看到这里，能说清这几件事
+## 读完后检查一下
 
 - 第一次运行 `jcode` 和第二次运行有什么区别。
 - client 退出以后 server 会不会马上死？

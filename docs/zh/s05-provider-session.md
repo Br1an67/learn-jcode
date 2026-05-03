@@ -1,12 +1,10 @@
 # s05 - Provider、Auth、Session
 
-## 先把问题说清楚
+## 先看两个问题
 
 provider 层负责把不同模型平台的流式输出统一成 JCode 自己的事件；session 层负责把一轮轮对话保存成可恢复的长期记录。
 
-理解 JCode 怎么把不同模型平台和长期会话接起来。
-
-很多 agent demo 把 provider 层写成一行 API 调用。但做成可用工具时，provider 会变成一大块工程。
+很多 agent demo 把 provider 层写成一行 API 调用。但做成可用工具时，provider 会变成一整块工程。
 
 ```mermaid
 sequenceDiagram
@@ -26,7 +24,7 @@ sequenceDiagram
 
 这张图说明 provider 层的职责：agent loop 不应该理解每个平台的私有 stream 格式，`MultiProvider` 和具体 provider 负责把它们统一成 `StreamEvent`。
 
-## 这节只抓主线
+## 先看三块代码
 
 Provider 层的统一入口是 `Provider` trait：JCode 内部只想面对一种接口，输入是 messages、tools、system prompt，输出是统一的 `StreamEvent`。OpenAI、Claude、Gemini、Copilot 各自的请求体和流式协议，都应该留在 provider 实现内部。
 
@@ -131,7 +129,7 @@ fn run_external_login_command_inner(
 }
 ```
 
-这段代码解释了为什么 auth 不是配置项小功能。JCode 运行在 TUI、SSH、headless、外部 CLI 登录这些环境里，登录流程要处理真实终端状态，不是读取一个环境变量就结束。
+这段代码解释了为什么 auth 不是一个配置项。JCode 运行在 TUI、SSH、headless、外部 CLI 登录这些环境里，登录流程要处理真实终端状态，不是读取一个环境变量就结束。
 
 Session 的存储形状也值得直接看：
 
@@ -173,7 +171,7 @@ pub struct StoredCompactionState {
 
 JCode 的 provider 层就是把这些差异统一成内部 runtime 能消费的接口和事件。
 
-## Auth 不是边角料
+## Auth 不是小配置
 
 JCode 支持很多登录方式：
 
@@ -224,9 +222,9 @@ JCode README 提到可以从 Codex、Claude Code、OpenCode、pi 恢复会话。
 - provider metadata 不同。
 - thinking/reasoning 是否保留不同。
 
-所以 import/session/render 是很值得读的部分。
+所以 import、session、render 都值得单独看。
 
-## 这里要记住的两个判断
+## 这里先记两个判断
 
 第一，session import 难点不是“把文本搬过去”。OpenCode、Codex、Claude Code、pi 的会话结构不同，JCode 至少要对齐这些东西：
 
@@ -255,7 +253,7 @@ provider stream 这条线也可以看 [mini/03_provider_stream.py](../../mini/03
 
 session 这条线可以看 [mini/05_session_journal.py](../../mini/05_session_journal.py)。它把 session 拆成 append-only journal、render view 和 replay messages 三个动作。真实 JCode 多了 compaction、usage、import、active process 和 memory profile，但底层判断一致：session 不是一段聊天文本，而是可恢复的结构化运行记录。
 
-## 看到这里，能说清这几件事
+## 读完后检查一下
 
 - `Provider` trait 为什么把输出统一成 `StreamEvent`。
 - `complete_split()` 为什么要区分 static 和 dynamic system prompt。

@@ -1,10 +1,8 @@
 # s07 - Memory
 
-## 先把问题说清楚
+## 先看 memory 为什么不阻塞
 
 JCode 不让主 turn 等 memory 检索。它把 memory 放到 sidecar 里后台处理，用一轮延迟换当前交互不被拖慢。
-
-读懂 JCode 为什么把 memory 做成 sidecar，而不是在每轮 `run_turn()` 里同步检索。
 
 Memory 很容易被误读成普通 RAG。读 JCode 这部分时，不要只盯着“有没有 embedding”，更要看它怎么在不拖慢主 agent 的前提下，把长期偏好、项目事实、旧会话线索带回当前上下文。
 
@@ -27,9 +25,9 @@ flowchart TD
 
 这张图是 memory 的关键：主 agent 只投递上下文，检索和维护在 sidecar 里跑，结果下一轮再进入主上下文。
 
-## 这节只抓主线
+## 先看这条路
 
-Memory 的主路径只有一句话：主 agent 在 turn 结束时把上下文丢给 sidecar，sidecar 后台检索、维护和生成 pending prompt，下一轮再把结果注入主上下文。
+它的路径可以先简化成一句话：主 agent 在 turn 结束时把上下文丢给 sidecar，sidecar 后台检索、维护和生成 pending prompt，下一轮再把结果注入主上下文。
 
 这条线由三块代码支撑。第一块是 `MemoryAgentHandle`，它用 `try_send` 投递上下文，所以主 turn 不会等 memory。第二块是后台 `MemoryAgent::run()`，它消费 channel、维护 session state，并把检索交给 `process_context()`。第三块是 prompt 组装逻辑：relevance context 决定用什么材料找 memory，extraction context 决定要不要沉淀新 memory，relevant prompt 决定下一轮注入给主模型的文本。
 
@@ -39,7 +37,7 @@ Memory 的主路径只有一句话：主 agent 在 turn 结束时把上下文丢
 
 下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
 
-核心代码先看这个 handle：
+先看这个 handle：
 
 ```rust
 // src/memory_agent.rs，节选
@@ -196,13 +194,13 @@ memory sidecar 可以对照 [mini/04_memory_sidecar.py](../../mini/04_memory_sid
 
 真实 JCode 多了 embedding、graph、cascade retrieval、prompt budget 和 display prompt，但非阻塞边界和这个最小复现一致。
 
-## 先把这个判断记住
+## 先记住这个取舍
 
 Memory 补的是单次上下文的短板：模型当前上下文装不下长期偏好、项目事实和旧会话经验，所以 JCode 用 sidecar 做非阻塞召回。
 
 代价也要记住：memory 有一轮延迟。这个延迟是有意设计，不是漏做同步检索。
 
-## 看到这里，能说清这几件事
+## 读完后检查一下
 
 - `MemoryAgentHandle::update_context_sync_with_dir()` 为什么用 `try_send`。
 - Memory sidecar 和 `run_turn()` 的边界在哪里。
