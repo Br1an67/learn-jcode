@@ -17,7 +17,7 @@ The root README should stay short. It explains who should read the course, what 
 
 Lessons live in `docs/{zh,en}`. Each lesson should be self-contained: a diagram, short code excerpts, and plain explanation. A reader should not need to jump between IDE tabs just to understand the main mechanism.
 
-The `mini/` directory is not a task track. It contains reduced mechanism specimens for parts of JCode that are large in the real source.
+The `mini/` directory is not a task track. It contains minimal reproductions for parts of JCode that are large in the real source.
 
 ## Current Structure
 
@@ -54,9 +54,9 @@ learn-jcode/
 └── .gitignore
 ```
 
-## Mini Specimens
+## Mini Minimal Reproductions
 
-Current specimens:
+Current minimal reproductions:
 
 ```text
 mini/01_server_client.py

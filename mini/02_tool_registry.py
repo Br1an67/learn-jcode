@@ -1,4 +1,6 @@
-"""Tiny reproduction of JCode's tool registry.
+"""JCode tool registry 的最小复现。
+
+Tiny reproduction of JCode's tool registry.
 
 The same registry produces model-visible tool definitions and executes
 tool calls at runtime.

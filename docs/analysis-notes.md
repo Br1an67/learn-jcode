@@ -51,5 +51,5 @@ The repository should stay small and readable:
 - `README.md`: Chinese main tutorial.
 - `README-en.md`: English main tutorial.
 - `docs/zh` and `docs/en`: complete lesson tracks.
-- `mini/`: reduced mechanism specimens connected from the relevant lessons.
+- `mini/`: minimal reproductions connected from the relevant lessons.
 - `docs/analysis-notes.md`: source analysis and editorial decisions.

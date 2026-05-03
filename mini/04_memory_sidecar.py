@@ -1,4 +1,6 @@
-"""Tiny reproduction of non-blocking memory sidecar behavior.
+"""非阻塞 memory sidecar 行为的最小复现。
+
+Tiny reproduction of non-blocking memory sidecar behavior.
 
 The main turn submits context without waiting. The sidecar computes a memory
 prompt later, so the next turn can inject it.

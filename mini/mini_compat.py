@@ -1,4 +1,7 @@
-"""Shared tiny types for the mini minimal reproductions."""
+"""mini/ 最小复现共用的小类型。
+
+Shared tiny types for the mini minimal reproductions.
+"""
 
 from dataclasses import dataclass
 from typing import Callable, Any

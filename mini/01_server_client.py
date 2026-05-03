@@ -1,4 +1,6 @@
-"""Tiny reproduction of JCode's resident server/client shape.
+"""JCode 常驻 server/client 形状的最小复现。
+
+Tiny reproduction of JCode's resident server/client shape.
 
 JCode does not put all state in the TUI client. A resident server owns
 sessions and accepts clients that can connect, disconnect, and reconnect.
