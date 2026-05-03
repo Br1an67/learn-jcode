@@ -79,7 +79,7 @@ flowchart TD
 
 第四条线是长期运行：session、memory、swarm、ambient、self-dev 都不是普通 chat demo 里的功能。它们解决的是本地 agent 长时间工作时的状态、恢复、协作和自我更新。
 
-## 读完这页你应该能解释什么
+## 看到这里，能说清这几件事
 
 - 为什么 JCode 不是一个简单 CLI wrapper。
 - 为什么 server、provider、session、tool registry 必须分开看。

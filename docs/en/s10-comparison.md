@@ -1,8 +1,8 @@
 # s10 - Boundaries: JCode, pi, OpenCode, Claude Code
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: JCode is not most useful as a minimal loop; it is useful because a local long-running runtime shows the cost of state, recovery, and coordination.**
+**Short version: JCode is not most useful as a minimal loop; it is useful because a local long-running runtime shows the cost of state, recovery, and coordination.**
 
 Place the previous lessons back into the coding-agent runtime landscape: what JCode is good for learning, and where it differs from pi, OpenCode, and Claude Code public behavior.
 
@@ -22,7 +22,7 @@ This diagram sets the boundary: the course reads JCode. pi, OpenCode, and Claude
 
 | Dimension | pi-mono | OpenCode | Claude Code | JCode |
 | --- | --- | --- | --- | --- |
-| Learning value | Minimal coding harness | Open platform and multi-surface product | Mature product behavior | Local multi-provider long-running runtime |
+| Best for reading | Minimal coding harness | Open platform and multi-surface product | Mature product behavior | Local multi-provider long-running runtime |
 | Tool philosophy | Few tools, centered on `read/write/edit/bash` | Platform tools and extensions | Public behavior shows tools, permissions, subagents, skills | Base tools plus memory/MCP/swarm/self-dev in the registry |
 | Runtime | Smaller and easier to read first | Client/server and platform integration | Product abstraction is complete, source is closed | Resident server owns sessions, providers, MCP, swarm, events |
 | Session | Lighter | Platform experience matters more | Public behavior supports long-running work | Journal, render, import, replay, multi-client |
@@ -231,7 +231,7 @@ Claude Code is closed source, so this course does not discuss it as source. The 
 
 JCode's value is source readability. You can see where those capabilities land: `Registry`, `ServerRuntime`, `Session`, `MemoryAgent`, `swarm_state`, `SelfDevTool`. That is why this course stays centered on JCode source.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why JCode complexity mainly comes from product-grade runtime, not the agent loop itself.
 - Why pi is good for minimal path learning and JCode is good for long-running runtime learning.

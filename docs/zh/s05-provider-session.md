@@ -1,8 +1,8 @@
 # s05 - Provider、Auth、Session
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：provider 层把多家模型平台磨平成一种 stream，session 层把一次次 turn 固定成可恢复的长期记录。**
+**一句话先放这：provider 层把多家模型平台磨平成一种 stream，session 层把一次次 turn 固定成可恢复的长期记录。**
 
 理解 JCode 怎么把不同模型平台和长期会话接起来。
 
@@ -26,7 +26,7 @@ sequenceDiagram
 
 这张图说明 provider 层的职责：agent loop 不应该理解每个平台的私有 stream 格式，`MultiProvider` 和具体 provider 负责把它们统一成 `StreamEvent`。
 
-## 本课直接讲清楚的主线
+## 这节只抓主线
 
 Provider 层的窄腰是 `Provider` trait：JCode 内部只想面对一种形状，输入是 messages、tools、system prompt，输出是统一的 `StreamEvent`。OpenAI、Claude、Gemini、Copilot 的私有请求体和流式协议，都应该在 provider 后面被消化掉。
 
@@ -249,13 +249,13 @@ JCode 不能让 turn loop 到处写 provider-specific 分支。
 
 ## 最小复现
 
-provider stream 这条线也可以看 [mini/03_provider_stream.py](../../mini/03_provider_stream.py)。在 `s03` 里它解释 agent loop，在本课里它解释 provider 的职责：把平台私有 stream 归一成 JCode 能处理的事件。
+provider stream 这条线也可以看 [mini/03_provider_stream.py](../../mini/03_provider_stream.py)。在 `s03` 里它解释 agent loop，在这一页里它解释 provider 的职责：把平台私有 stream 归一成 JCode 能处理的事件。
 
 真实 provider 要额外处理 auth、model id、request body、tool schema、usage、error 和 retry。最小复现只留下 stream 归一化后的形状，避免读者把 provider 误读成普通 HTTP wrapper。
 
 session 这条线可以看 [mini/05_session_journal.py](../../mini/05_session_journal.py)。它把 session 拆成 append-only journal、render view 和 replay messages 三个动作。真实 JCode 多了 compaction、usage、import、active process 和 memory profile，但底层判断一致：session 不是一段聊天文本，而是可恢复的结构化运行记录。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - `Provider` trait 为什么把输出统一成 `StreamEvent`。
 - `complete_split()` 为什么要区分 static 和 dynamic system prompt。

@@ -1,8 +1,8 @@
 # s04 - 工具系统
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：工具系统的难点不是工具数量，而是 schema、执行器、权限、截断和事件要走同一条 registry 边界。**
+**一句话先放这：工具系统的难点不是工具数量，而是 schema、执行器、权限、截断和事件要走同一条 registry 边界。**
 
 看懂 JCode 怎样把工具交给模型。
 
@@ -23,7 +23,7 @@ flowchart TD
 
 这张图把工具系统的两条线放在一起：`definitions()` 是给模型看的 schema，`execute()` 是 runtime 真正执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
 
-## 本课直接讲清楚的主线
+## 这节只抓主线
 
 工具系统先看合同：每个工具都要同时给出模型可见的 schema 和 runtime 可调用的 `execute()`。这就是 `Tool` trait 的意义。模型看到的是 `ToolDefinition`，真正执行时走 registry。
 
@@ -257,7 +257,7 @@ tracked file count:
 
 它比天气 API 工具更适合 JCode 教程，因为它走的是 coding harness 的真实路径：schema、registry、execute、tool result、上下文截断。顺序反了，比如先做 widget，会把一个工具入门任务变成 UI 任务。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - `Tool` trait 里哪些方法给模型看，哪些方法给 runtime 调。
 - 为什么 `base_tools()` 可以缓存，而 `subagent` 这类工具需要 session-specific 注册。

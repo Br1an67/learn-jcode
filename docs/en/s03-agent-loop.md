@@ -1,8 +1,8 @@
 # s03 - Agent Loop
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: however large JCode gets, the main loop is still model asks for a tool, runtime executes it, result returns to context.**
+**Short version: however large JCode gets, the main loop is still model asks for a tool, runtime executes it, result returns to context.**
 
 Trace one user input as it becomes:
 
@@ -47,7 +47,7 @@ flowchart TD
 
 This diagram shows the normal path only: the model streams output, JCode collects a tool call, executes it, and writes the tool result back into the next messages. Compaction, memory, and UI events are engineering around this path.
 
-## Main Line Covered Here
+## The Line To Follow
 
 The normal agent loop has three sections. First, request preparation: repair missing tool results, shape provider messages, build tool definitions, take the previous memory result, and build the split prompt. JCode does not send raw chat history directly to the model.
 
@@ -254,7 +254,7 @@ For the provider-stream part of the agent loop, compare [mini/03_provider_stream
 
 This minimal reproduction isolates the part where the model streams JSON tool input over time. Real JCode handles more events, errors, usage, native tool calls, and session persistence, but the core is still: assemble stream fragments into an executable tool call, then feed the tool result into the next messages.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why `run_turn()` prepares messages, tools, memory, and split prompts before calling the provider.
 - How `ToolUseStart`, `ToolInputDelta`, and `ToolUseEnd` become one `ToolCall`.

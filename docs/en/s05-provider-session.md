@@ -1,8 +1,8 @@
 # s05 - Provider, Auth, Session
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: providers flatten different model platforms into one stream, while sessions make separate turns recoverable as one long record.**
+**Short version: providers flatten different model platforms into one stream, while sessions make separate turns recoverable as one long record.**
 
 Understand how JCode connects different model platforms and long-running sessions.
 
@@ -26,7 +26,7 @@ sequenceDiagram
 
 This diagram shows the provider layer's job: the agent loop should not understand every private provider stream format. `MultiProvider` and concrete providers normalize those formats into `StreamEvent`.
 
-## Main Line Covered Here
+## The Line To Follow
 
 The provider narrow waist is the `Provider` trait: inside JCode, requests have one shape, with messages, tools, system prompt, and a normalized `StreamEvent` output. OpenAI, Claude, Gemini, and Copilot-specific request bodies and streaming formats are absorbed behind that boundary.
 
@@ -255,7 +255,7 @@ Real providers also handle auth, model IDs, request bodies, tool schemas, usage,
 
 The session path maps to [mini/05_session_journal.py](../../mini/05_session_journal.py). It reduces a session to append-only journal events, a rendered view, and replay messages. Real JCode adds compaction, usage, import, active processes, and memory profiles, but the judgment is the same: a session is recoverable structured runtime state, not a chat transcript.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why the `Provider` trait normalizes output into `StreamEvent`.
 - Why `complete_split()` separates static and dynamic system prompts.

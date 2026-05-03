@@ -1,14 +1,14 @@
 # s01 - Harness Mindset
 
-## The Point
+## Start Here
 
-**The One-Line Takeaway: the model decides; JCode turns files, terminal access, state, permissions, and UI into the world the model can act in.**
+**Short version: the model decides; JCode turns files, terminal access, state, permissions, and UI into the world the model can act in.**
 
 JCode is not a "chat wrapper written in Rust." It is a coding-agent harness.
 
 This has to be clear before you read the source. Otherwise, a lot of the repository will look unrelated to LLMs: server, socket, TUI, OAuth, provider catalog, session journal, memory, MCP, swarm, reload. These are not side quests. They are the harness.
 
-This lesson does not read implementation yet. It sets the reading angle. If the angle is wrong, you will misread server, TUI, and session code as "extra features."
+This section does not read implementation yet. It sets the reading angle. If the angle is wrong, you will misread server, TUI, and session code as "extra features."
 
 ## Agent vs Harness
 
@@ -65,11 +65,11 @@ For a coding agent:
 - Provider integration is the engine adapter: Claude, OpenAI, Gemini, Copilot, OpenRouter, OpenAI-compatible endpoints.
 - Memory is long-term experience: preferences, project facts, old session clues.
 
-## Why JCode Is Worth Studying
+## Why Read JCode
 
 If you only want the minimal agent loop, JCode is too large. It is a second-stage project: you already know what a loop and tool call are, and now you want to see how a long-running runtime handles real complexity.
 
-JCode is worth studying because it shows product-grade complexity:
+Read JCode for the product-grade complexity around the loop:
 
 ```text
 Toy agent:
@@ -90,9 +90,9 @@ LLM + tools + loop
   + recovery
 ```
 
-That is the learning value.
+That is why JCode is worth reading after the basics.
 
-## Where JCode Sits
+## When JCode Makes Sense
 
 ### Distance From A Minimal Harness
 
@@ -108,7 +108,7 @@ OpenCode and JCode are both open-source coding agents with client/server thinkin
 
 Products such as Claude Code provide public behavioral reference points: tools, permissions, subagents, skills, and long-running work. This course does not discuss or depend on non-public source code. We read JCode.
 
-## What to Keep From This Lesson
+## Keep This In Mind
 
 Use this sentence to calibrate the rest of the course:
 
@@ -126,7 +126,7 @@ That sentence changes how you read the source:
 
 A good reading also tracks cost. A resident server reuses state, but it also brings reload, socket, and lifecycle management. Most major JCode designs have this shape: benefit and cost together.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why this course says "the model is the agent; JCode is the harness."
 - Why server, TUI, session, and memory are not side features.

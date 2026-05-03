@@ -1,6 +1,6 @@
 # 00 - Global Map
 
-## What This Course Explains
+## What This Course Is About
 
 JCode is best read as a local coding-agent runtime. The model decides what to do next; JCode connects tools, context, permissions, state, and UI around that model.
 
@@ -79,7 +79,7 @@ The third line is tool execution. The model sees tool definitions; runtime execu
 
 The fourth line is long-running behavior. Session, memory, swarm, ambient, and self-dev are not normal chat-demo features. They handle state, recovery, coordination, and self-update for a local agent that keeps working over time.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why JCode is not a thin CLI wrapper.
 - Why server, provider, session, and tool registry need separate boundaries.

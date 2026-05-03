@@ -1,8 +1,8 @@
 # s07 - Memory
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：JCode 用一轮延迟换主 turn 不等 memory，把长期记忆放到 sidecar 里慢慢召回。**
+**一句话先放这：JCode 用一轮延迟换主 turn 不等 memory，把长期记忆放到 sidecar 里慢慢召回。**
 
 读懂 JCode 为什么把 memory 做成 sidecar，而不是在每轮 `run_turn()` 里同步检索。
 
@@ -27,13 +27,13 @@ flowchart TD
 
 这张图是 memory 的关键：主 agent 只投递上下文，检索和维护在 sidecar 里跑，结果下一轮再进入主上下文。
 
-## 本课直接讲清楚的主线
+## 这节只抓主线
 
 Memory 的主路径只有一句话：主 agent 在 turn 结束时把上下文丢给 sidecar，sidecar 后台检索、维护和生成 pending prompt，下一轮再把结果注入主上下文。
 
 这条线由三块代码支撑。第一块是 `MemoryAgentHandle`，它用 `try_send` 投递上下文，所以主 turn 不会等 memory。第二块是后台 `MemoryAgent::run()`，它消费 channel、维护 session state，并把真正的检索交给 `process_context()`。第三块是 prompt 组装逻辑：relevance context 决定用什么材料找 memory，extraction context 决定要不要沉淀新 memory，relevant prompt 决定下一轮注入给主模型的文本。
 
-`memory` tool 和 `session_search` tool 是模型显式操作 memory/历史的入口，但它们不是这课的主角。JCode 的取舍在后台 sidecar：用一轮延迟换主交互不被检索拖慢。
+`memory` tool 和 `session_search` tool 是模型显式操作 memory/历史的入口，但这里先不讲它们。JCode 的取舍在后台 sidecar：用一轮延迟换主交互不被检索拖慢。
 
 ## 核心代码节选
 
@@ -147,7 +147,7 @@ pub(crate) fn format_relevant_prompt(entries: &[MemoryEntry], limit: usize) -> O
 }
 ```
 
-这就是本课主线里说的三种 prompt：relevance 负责找，extraction 负责沉淀，relevant prompt 负责注入。
+这里有三种 prompt：relevance 负责找，extraction 负责沉淀，relevant prompt 负责注入。
 
 JCode 的 memory 不是“用户手动保存一条笔记”。它更像自动召回：
 
@@ -196,13 +196,13 @@ memory sidecar 可以对照 [mini/04_memory_sidecar.py](../../mini/04_memory_sid
 
 真实 JCode 多了 embedding、graph、cascade retrieval、prompt budget 和 display prompt，但非阻塞边界和这个最小复现一致。
 
-## 这课应该带走的判断
+## 先把这个判断记住
 
 Memory 补的是单次上下文的短板：模型当前上下文装不下长期偏好、项目事实和旧会话经验，所以 JCode 用 sidecar 做非阻塞召回。
 
 代价也要记住：memory 有一轮延迟。这个延迟是有意设计，不是漏做同步检索。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - `MemoryAgentHandle::update_context_sync_with_dir()` 为什么用 `try_send`。
 - Memory sidecar 和 `run_turn()` 的边界在哪里。

@@ -4,7 +4,7 @@ This directory contains the English lesson docs. The root README is only the ent
 
 Course map:
 
-| Lesson | Topic | Goal |
+| Lesson | Topic | What it covers |
 | --- | --- | --- |
 | [00](./00-map.md) | Global map | See the overall shape of the JCode runtime |
 | [glossary](./glossary.md) | Glossary | Fix recurring runtime terms |

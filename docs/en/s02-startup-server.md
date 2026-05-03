@@ -1,8 +1,8 @@
 # s02 - Startup and Resident Server
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: `jcode` is not a throwaway CLI process; it connects you to a local server that keeps long-lived state.**
+**Short version: `jcode` is not a throwaway CLI process; it connects you to a local server that keeps long-lived state.**
 
 Understand what happens after the `jcode` command starts.
 
@@ -37,7 +37,7 @@ flowchart TD
 
 JCode does not keep all state inside the TUI client because clients can disconnect, restart, and reconnect. Sessions, providers, MCP pools, and swarm state live in the server so long-running work and multiple clients can survive. The cost is that the server must handle lifecycle, sockets, reload, and state recovery.
 
-## Main Line Covered Here
+## The Line To Follow
 
 The startup control path is short: the binary entrypoint only creates the tokio runtime, the crate root hands off to CLI startup, startup prepares the process, and dispatch chooses either `serve` or the default client path.
 
@@ -198,7 +198,7 @@ If the resident server/client boundary still feels abstract, read [mini/01_serve
 
 This minimal reproduction does not reproduce sockets, TUI, or providers. It uses a few lines to show why session state should not be tied to the client process. After that, the `ServerRuntime` fields in this lesson should have a clearer place.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - What is different between the first and second `jcode` run.
 - Does the server die immediately when a client exits?

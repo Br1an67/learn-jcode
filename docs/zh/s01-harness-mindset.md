@@ -1,14 +1,14 @@
 # s01 - Harness 心智
 
-## 先说结论
+## 先看这一点
 
-**本课一句话：模型负责做决定，JCode 负责把文件、终端、状态、权限和 UI 变成模型能行动的环境。**
+**一句话先放这：模型负责做决定，JCode 负责把文件、终端、状态、权限和 UI 变成模型能行动的环境。**
 
 JCode 不是一个“Rust 写的聊天壳”。它是一个 coding-agent harness。
 
 这句话要先理解，不然后面读源码会很痛苦。因为你会看到大量看起来和 LLM 无关的代码：server、socket、TUI、OAuth、provider catalog、session journal、memory、MCP、swarm、reload。这些不是旁枝，它们就是 harness。
 
-本课不读具体实现，只定学习视角。视角错了，后面会把 server、TUI、session 都误读成“额外功能”。
+这一节先不碰具体实现，只把视角摆正。视角错了，后面会把 server、TUI、session 都误读成“额外功能”。
 
 ## Agent 和 Harness 的边界
 
@@ -65,11 +65,11 @@ flowchart TD
 - Provider integration 是发动机适配层：Claude、OpenAI、Gemini、Copilot、OpenRouter、OpenAI-compatible。
 - Memory 是长期经验：用户偏好、项目事实、旧会话线索。
 
-## 为什么 JCode 值得学
+## 为什么要读 JCode
 
 如果只想理解最小 agent loop，JCode 太大了。它更适合作为第二阶段项目：你已经知道 loop 和 tool call 是什么，现在想看长期 runtime 怎么处理真实复杂度。
 
-JCode 值得学的是产品化之后的复杂性：
+读 JCode，看的就是产品化之后那堆复杂性：
 
 ```text
 玩具 agent:
@@ -90,9 +90,9 @@ LLM + tools + loop
   + recovery
 ```
 
-这就是 JCode 的学习价值。
+这就是为什么后面值得读 JCode。
 
-## JCode 的学习位置
+## 什么时候该读 JCode
 
 ### 和最小 harness 的距离
 
@@ -108,7 +108,7 @@ OpenCode 和 JCode 都是开源 coding agent，都有 client/server 思路。Ope
 
 Claude Code 这类产品能给我们公开行为上的参照，比如工具、权限、subagent、skills、长期任务等能力形态。但本教程不讨论、也不依赖任何非公开源码。我们只读 JCode。
 
-## 这课应该带走的结论
+## 先把这个判断记住
 
 读 JCode 时先用这句话校准视角：
 
@@ -126,7 +126,7 @@ Claude Code 这类产品能给我们公开行为上的参照，比如工具、�
 
 也要记住代价：常驻 server 能复用状态，但带来 reload、socket、生命周期管理这些复杂度。JCode 的每个大设计都类似，收益和代价一起出现。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - 为什么本教程说“模型是 agent，JCode 是 harness”。
 - 为什么 server、TUI、session、memory 不是旁枝功能。

@@ -1,12 +1,12 @@
 # s10 - 边界课：JCode、pi、OpenCode、Claude Code
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：JCode 的学习价值不在最小 loop，而在一个本地长期 runtime 如何为状态、恢复和协作付账。**
+**一句话先放这：JCode 的价值不在最小 loop，而在一个本地长期 runtime 如何为状态、恢复和协作付账。**
 
-把前面几课放回 coding-agent runtime 的坐标系里：JCode 适合学什么，和 pi、OpenCode、Claude Code 公开能力相比，边界在哪里。
+把前面几课放回 coding-agent runtime 的坐标系里：JCode 适合拿来看什么，和 pi、OpenCode、Claude Code 公开能力相比，边界在哪里。
 
-这课只讨论公开行为、公开文档和源码可见的开源项目。Claude Code 不讨论非公开或泄露源码。
+这里只讨论公开行为、公开文档和源码可见的开源项目。Claude Code 不讨论非公开或泄露源码。
 
 ```mermaid
 flowchart TD
@@ -16,13 +16,13 @@ flowchart TD
   JCode["JCode<br/>本地 Rust runtime"] --> Lessons
 ```
 
-这张图说明本课的边界：教程主体只读 JCode；pi、OpenCode、Claude Code 只用来校准取舍，不是本项目的依赖对象。
+这张图说明边界：教程主体只读 JCode；pi、OpenCode、Claude Code 只用来校准取舍，不是本项目的依赖对象。
 
 ## JCode 的位置
 
 | 维度 | pi-mono | OpenCode | Claude Code | JCode |
 | --- | --- | --- | --- | --- |
-| 学习价值 | 看最小 coding harness | 看开放平台和多端产品 | 看成熟产品的公开能力形态 | 看本地多 provider 长期 runtime |
+| 适合拿来看什么 | 最小 coding harness | 开放平台和多端产品 | 成熟产品的公开能力形态 | 本地多 provider 长期 runtime |
 | 工具哲学 | 少工具，重 `read/write/edit/bash` | 平台化工具和扩展 | 公开能力体现出工具、权限、subagent、skills 等机制 | 基础工具 + memory/MCP/swarm/self-dev 都进 registry |
 | Runtime | 更小，更适合先读 | client/server 和平台整合更明显 | 产品侧抽象完整，源码不公开 | 常驻 server 管 session、provider、MCP、swarm、event |
 | Session | 更轻 | 更强调平台体验 | 公开能力支持长期工作流 | journal、render、import、replay、multi-client |
@@ -52,7 +52,7 @@ flowchart TD
 | 多 agent 状态放哪里 | 更克制，重点仍是最小有效工具 | 偏平台协作和 session/fork 能力 | `SwarmState`、`VersionedPlan`、channel、heartbeat、file touch |
 | 自我修改是不是核心 | 不是主线 | 不是主线 | `selfdev` 是工具、session capability、build/reload 恢复链路 |
 
-这张表是本课最硬的判断：JCode 不是“比 pi 多几个工具”。它把更多事情放进同一个本地 runtime，所以你读到的复杂度来自状态归属，而不是代码写得绕。
+这张表最想说明的是：JCode 不是“比 pi 多几个工具”。它把更多事情放进同一个本地 runtime，所以你读到的复杂度来自状态归属，而不是代码写得绕。
 
 ## 五段代码看边界
 
@@ -231,7 +231,7 @@ Claude Code 是闭源产品，本教程不按源码讨论它。能比较的只�
 
 JCode 的价值在于源码可读。你可以看到这些能力落在什么结构上：`Registry`、`ServerRuntime`、`Session`、`MemoryAgent`、`swarm_state`、`SelfDevTool`。这也是本教程只围绕 JCode 源码展开的原因。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - 为什么 JCode 的复杂度主要来自 product-grade runtime，而不是 agent loop 本身。
 - 为什么 pi 适合学最小路径，JCode 适合学长期 runtime。

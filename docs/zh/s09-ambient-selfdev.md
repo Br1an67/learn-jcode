@@ -1,8 +1,8 @@
 # s09 - Ambient 和 Self-Dev
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：ambient 和 self-dev 都是在无人盯着时继续改状态，所以它们必须先有预算、门禁和恢复路径。**
+**一句话先放这：ambient 和 self-dev 都是在无人盯着时继续改状态，所以它们必须先有预算、门禁和恢复路径。**
 
 读懂 JCode 两个更靠后的能力：ambient 后台循环，以及 self-dev 自我修改。
 
@@ -203,7 +203,7 @@ Ambient 是后台 agent。它不是用户发一句做一句，而是在资源允
 - 做低风险主动任务。
 - 自己决定下次什么时候醒来。
 
-这个方向还很实验，学习价值在于它把长期 agent 的环境维护问题摆到了源码里。
+这个方向还很实验，值得看的地方在于它把长期 agent 的环境维护问题摆到了源码里。
 
 读 ambient 时重点看资源限制。后台 agent 如果没有预算和优先级控制，会变成另一个干扰源。
 
@@ -461,7 +461,7 @@ Self-dev 是让 JCode 改自己。
 - 必须跑 `cargo check`。
 - 不要一上来改 provider、server reload、compaction、swarm。
 
-## 这课应该带走的判断
+## 先把这个判断记住
 
 Ambient 补的是用户不会每次显式要求维护环境的短板。它把近期 session、memory、git 活动这类维护工作放到后台循环里。
 
@@ -469,7 +469,7 @@ Self-dev 补的是 JCode 自己也需要被快速改造的需求。边界是分�
 
 风险也要一起记住：ambient 没有资源限制会变成干扰源；self-dev 改 reload 或 server state 可能让正在运行的 session 丢状态。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - ambient 为什么需要 scheduler、budget 和 `end_ambient_cycle`。
 - ambient agent 为什么不能无限后台运行。

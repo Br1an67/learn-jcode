@@ -1,8 +1,8 @@
 # s06 - TUI 和可观察性
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：JCode 的 TUI 是运行时仪表盘，server event 写进状态之后，才被压成用户能判断继续、打断还是信任的信号。**
+**一句话先放这：JCode 的 TUI 是运行时仪表盘，server event 写进状态之后，才被压成用户能判断继续、打断还是信任的信号。**
 
 理解 UI 为什么是 harness 的一部分。
 
@@ -52,7 +52,7 @@ sequenceDiagram
 
 这张图比“看起来有哪些 widget”更重要。TUI 的第一性问题不是怎么画，而是谁把 runtime 事件翻译成可观察状态。
 
-## 本课直接讲清楚的主线
+## 这节只抓主线
 
 TUI 的主线是事件变成判断。server/runtime 事件进入 app state，然后分别变成 info widget、tool summary、diff、side panel 和流式文本。用户看到的不是原始 protocol，而是被压缩成“我能不能继续信任这个 agent”的状态。
 
@@ -345,7 +345,7 @@ OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open pl
 
 判断一个 widget 是否必要，就问一句：删掉它，用户会少知道什么？答不上来，这个 widget 的用途还没讲清楚。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - 为什么 TUI 是 harness 的一部分，而不是皮肤。
 - 为什么 `handle_server_event()` 才是真正的 TUI 状态边界。

@@ -1,8 +1,8 @@
 # s02 - 启动链路和常驻 Server
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：`jcode` 命令不是一次性 CLI，它先把你接到一个会长期持有状态的本地 server。**
+**一句话先放这：`jcode` 命令不是一次性 CLI，它先把你接到一个会长期持有状态的本地 server。**
 
 读懂 `jcode` 命令启动以后发生什么。
 
@@ -10,7 +10,7 @@ JCode 的启动链路是理解整个项目的第一把钥匙。它不是每次�
 
 ## 启动链路图
 
-把本课内容先压成一张图：
+先把启动链路画出来：
 
 ```mermaid
 flowchart TD
@@ -37,7 +37,7 @@ flowchart TD
 
 JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。
 
-## 本课直接讲清楚的主线
+## 这节只抓主线
 
 启动链路的控制权移动很短：binary 入口只创建 tokio runtime，crate root 只转发到 CLI startup，startup 做进程级准备，dispatch 决定是进入 `serve` 还是默认 client 路径。
 
@@ -196,9 +196,9 @@ soft_interrupt_queues
 
 如果常驻 server/client 的边界还不清楚，可以看 [mini/01_server_client.py](../../mini/01_server_client.py)。它只保留一个点：server 拥有 session，client 可以断开再连回来。
 
-这个最小复现不复刻 socket、TUI 或 provider，只用几十行代码说明为什么 session 不应该绑死在 client 进程上。看完再回到本课，`ServerRuntime` 里那些字段会更容易放回位置。
+这个最小复现不复刻 socket、TUI 或 provider，只用几十行代码说明为什么 session 不应该绑死在 client 进程上。看完再回到这一节，`ServerRuntime` 里那些字段会更容易放回位置。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - 第一次运行 `jcode` 和第二次运行有什么区别。
 - client 退出以后 server 会不会马上死？

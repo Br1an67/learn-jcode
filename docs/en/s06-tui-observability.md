@@ -1,8 +1,8 @@
 # s06 - TUI and Observability
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: JCode's TUI is a runtime dashboard: server events are written into state before they become signals the user can use to continue, interrupt, or trust the agent.**
+**Short version: JCode's TUI is a runtime dashboard: server events are written into state before they become signals the user can use to continue, interrupt, or trust the agent.**
 
 Understand why UI is part of the harness.
 
@@ -52,7 +52,7 @@ sequenceDiagram
 
 This diagram matters more than a widget inventory. The first TUI question is not how drawing works; it is who translates runtime events into observable state.
 
-## Main Line Covered Here
+## The Line To Follow
 
 The TUI path is event to judgment. Server/runtime events enter app state, then become info widgets, tool summaries, diffs, side panels, and streamed text. Users do not see raw protocol; they see state compressed into "can I still trust what this agent is doing?"
 
@@ -345,7 +345,7 @@ Why does the user need this information?
 
 To judge whether a widget matters, ask: if this were removed, what would the user stop knowing? If you cannot answer, the widget's purpose is not clear enough.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why TUI is part of the harness rather than a skin.
 - Why `handle_server_event()` is the real TUI state boundary.

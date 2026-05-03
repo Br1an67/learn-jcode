@@ -1,8 +1,8 @@
 # s03 - Agent Loop
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：JCode 外围再复杂，主回路还是“模型要工具、runtime 执行、结果回上下文”。**
+**一句话先放这：JCode 外围再复杂，主回路还是“模型要工具、runtime 执行、结果回上下文”。**
 
 追踪一次用户输入如何变成：
 
@@ -49,7 +49,7 @@ flowchart TD
 
 这张图只画正常路径：模型流式输出，JCode 收集 tool call，执行工具，再把 tool result 写回下一轮 messages。compaction、memory、UI event 都是这条主线旁边的工程。
 
-## 本课直接讲清楚的主线
+## 这节只抓主线
 
 Agent loop 的正常路径分三段。第一段是请求前准备：修复缺失的 tool result、整理 provider messages、生成工具定义、取上一轮 memory pending result、构造 split prompt。JCode 不是把聊天记录原样丢给模型。
 
@@ -256,7 +256,7 @@ Agent loop 的 provider stream 部分可以对照 [mini/03_provider_stream.py](.
 
 这个最小复现的价值是把“模型流式拼 JSON tool input”单独拎出来。真实 JCode 要处理更多事件、错误、usage、native tool call 和 session 保存，但核心仍然是把 stream 组装成可执行工具调用，再把 tool result 放回下一轮 messages。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - `run_turn()` 为什么先整理 messages、tools、memory 和 split prompt。
 - `ToolUseStart`、`ToolInputDelta`、`ToolUseEnd` 怎么拼成一个 `ToolCall`。

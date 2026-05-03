@@ -1,8 +1,8 @@
 # s08 - Swarm
 
-## 本课目标
+## 先看这一点
 
-**本课一句话：swarm 不是多开几个 subagent，而是 server 替一组 agent 记住计划、成员、通信和恢复状态。**
+**一句话先放这：swarm 不是多开几个 subagent，而是 server 替一组 agent 记住计划、成员、通信和恢复状态。**
 
 读懂 JCode 的 swarm 为什么不是“多开几个 subagent”。
 
@@ -29,7 +29,7 @@ flowchart TD
 
 这张图说明 swarm 的状态中心在 server plan，不在某个 worker 的 messages 里。worker 通过 heartbeat、checkpoint、report 回到 coordinator 和 plan。
 
-## 本课直接讲清楚的主线
+## 这节只抓主线
 
 Swarm 的主线不是“启动多个模型”，而是 server 拥有一个协作计划。coordinator 更新 plan，worker 通过 heartbeat、checkpoint 和 report 回写进度，channel 负责 DM/broadcast 的去向，最后完成报告回到 coordinator。
 
@@ -258,13 +258,13 @@ JCode 的 swarm 不是普通 subagent。它关心多 agent 协作运行时：
 
 不要把 swarm 理解成“多开几个 subagent”。真正难的是计划、通信、文件触达、状态恢复和集成边界。
 
-## 这课应该带走的判断
+## 先把这个判断记住
 
 Swarm 补的是单 agent 做大任务的短板：一个 agent 会慢，会污染上下文，也难以并行推进相互独立的部分。
 
 代价也要记住：swarm 会引入计划、通信、文件触达、进度恢复和最终集成的复杂度。没有这些状态管理，多 agent 只是在同时制造更多不确定性。
 
-## 读完你应该能解释什么
+## 看到这里，能说清这几件事
 
 - `run_swarm_task()` 为什么要新建 worker session。
 - 为什么 worker 要禁掉一部分递归和 todo 相关工具。

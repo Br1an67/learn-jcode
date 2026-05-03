@@ -1,8 +1,8 @@
 # s08 - Swarm
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: swarm is not opening more subagents; it is the server remembering plans, members, communication, and recovery state for a group of agents.**
+**Short version: swarm is not opening more subagents; it is the server remembering plans, members, communication, and recovery state for a group of agents.**
 
 Understand why JCode swarm is not just "open several subagents."
 
@@ -29,7 +29,7 @@ flowchart TD
 
 This diagram shows that swarm state is centered on the server plan, not inside one worker's messages. Workers return to the coordinator and plan through heartbeat, checkpoint, and reports.
 
-## Main Line Covered Here
+## The Line To Follow
 
 Swarm is not "start several models." The server owns a coordination plan. The coordinator updates the plan, workers write heartbeat, checkpoint, and reports back into progress, channels route DM/broadcast messages, and completion reports return to the coordinator.
 
@@ -258,13 +258,13 @@ This is where JCode differs strongly from pi. pi is restrained; JCode is more ag
 
 Do not read swarm as "open several subagents." The hard parts are plan ownership, communication, file touches, state recovery, and integration boundaries.
 
-## Judgment To Keep
+## Keep This In Mind
 
 Swarm covers a weakness of one agent doing a large task: it is slow, it pollutes context, and it is bad at independent parallel work.
 
 Keep the cost with the benefit: swarm adds planning, communication, file-touch tracking, progress recovery, and final integration complexity. Without that state management, multi-agent work only creates more uncertainty.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why `run_swarm_task()` creates a worker session.
 - Why workers block some recursive and todo-related tools.

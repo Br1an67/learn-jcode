@@ -1,8 +1,8 @@
 # s07 - Memory
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: JCode trades a one-turn delay for a main turn that does not wait on memory retrieval.**
+**Short version: JCode trades a one-turn delay for a main turn that does not wait on memory retrieval.**
 
 Understand why JCode runs memory as a sidecar instead of doing synchronous retrieval inside every `run_turn()`.
 
@@ -27,7 +27,7 @@ flowchart TD
 
 This is the key memory path: the main agent only submits context, retrieval and maintenance run in the sidecar, and the result enters the main context on the next turn.
 
-## Main Line Covered Here
+## The Line To Follow
 
 The memory path fits in one sentence: the main agent submits context to a sidecar after a turn, the sidecar retrieves, maintains, and builds a pending prompt in the background, and the next turn injects that result into the main context.
 
@@ -196,13 +196,13 @@ Memory sidecar maps to [mini/04_memory_sidecar.py](../../mini/04_memory_sidecar.
 
 Real JCode adds embeddings, graph, cascade retrieval, prompt budget, and display prompt. The non-blocking boundary is the same as this minimal reproduction.
 
-## Judgment To Keep
+## Keep This In Mind
 
 Memory covers a weakness of single-turn context: it cannot remember long-term preferences, project facts, and previous-session experience. JCode uses non-blocking sidecar recall to bring that material back.
 
 Keep the cost with the benefit: memory has one-turn delay. That delay is intentional, not a missing synchronous retrieval step.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why `MemoryAgentHandle::update_context_sync_with_dir()` uses `try_send`.
 - Where the boundary sits between the memory sidecar and `run_turn()`.

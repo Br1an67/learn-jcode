@@ -1,8 +1,8 @@
 # s04 - Tool System
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: tool complexity is not the number of tools; it is keeping schema, execution, permission, truncation, and events behind one registry boundary.**
+**Short version: tool complexity is not the number of tools; it is keeping schema, execution, permission, truncation, and events behind one registry boundary.**
 
 Understand how JCode gives tools to the model.
 
@@ -23,7 +23,7 @@ flowchart TD
 
 This diagram puts the two tool paths together: `definitions()` exposes schemas to the model, while `execute()` is the runtime entrypoint. Both start from the `Tool` trait and `Registry`.
 
-## Main Line Covered Here
+## The Line To Follow
 
 Start from the contract: every tool exposes model-visible schema and runtime execution. That is the point of the `Tool` trait. The model sees `ToolDefinition`; execution goes through the registry.
 
@@ -257,7 +257,7 @@ This example shows the boundaries of tool design:
 
 It fits this tutorial better than a weather API tool because it walks the real coding-harness path: schema, registry, execute, tool result, context truncation. Starting with a widget turns a tool task into a UI task too early.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Which `Tool` trait methods are for the model and which are for runtime execution.
 - Why `base_tools()` can be cached while tools such as `subagent` need session-specific registration.

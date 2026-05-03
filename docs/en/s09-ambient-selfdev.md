@@ -1,8 +1,8 @@
 # s09 - Ambient and Self-Dev
 
-## Goal
+## Start Here
 
-**The One-Line Takeaway: ambient and self-dev both keep changing state when nobody is staring at the terminal, so they need budgets, gates, and recovery paths first.**
+**Short version: ambient and self-dev both keep changing state when nobody is staring at the terminal, so they need budgets, gates, and recovery paths first.**
 
 Understand two later-stage JCode capabilities: the ambient background loop and self-dev.
 
@@ -459,7 +459,7 @@ Be conservative:
 - Run `cargo check`.
 - Do not start with provider, server reload, compaction, or swarm.
 
-## Judgments To Keep
+## Keep This In Mind
 
 Ambient covers the fact that users will not explicitly ask for every bit of environment maintenance. It moves recent-session, memory, and git-activity maintenance into a background loop.
 
@@ -467,7 +467,7 @@ Self-dev covers the need to modify JCode itself quickly. The boundaries are bran
 
 Keep the risks with the benefits: ambient without resource limits becomes interference; self-dev changing reload or server state can lose running-session state.
 
-## What You Should Be Able To Explain
+## At This Point, You Can Say
 
 - Why ambient needs a scheduler, budget, and `end_ambient_cycle`.
 - Why an ambient agent cannot run forever in the background.
