@@ -6,8 +6,6 @@
 
 读者默认知道一点 agent loop，但还没系统读过产品级 coding-agent harness。你来这里不是为了看“JCode 很强”，而是为了知道它为什么需要 server、tool registry、provider、session、TUI、memory、swarm 这些东西。
 
-写作口径见 [docs/writing-style.md](./docs/writing-style.md)。后续新增章节都按这份规范写。
-
 ## 适合谁
 
 适合已经知道 agent loop 大概是什么，并且想继续理解这些问题的人：
@@ -33,7 +31,7 @@ learn-jcode/
 ├── README-en.md              # English entry
 ├── mermaid.min.js            # mdBook 本地 Mermaid runtime
 ├── mermaid-init.js           # mdBook Mermaid 渲染
-├── mini/                     # 缩小版机制标本，不是任务区
+├── mini/                     # 核心机制的最小复现，不是任务区
 │   ├── README.md
 │   ├── 01_server_client.py
 │   ├── 02_tool_registry.py
@@ -79,14 +77,13 @@ learn-jcode/
 │   ├── deploy-pages.md       # GitHub Pages 部署说明
 │   ├── glossary.md           # 术语表
 │   ├── project-structure.md  # 为什么这样组织项目
-│   ├── sources.md            # 源码仓库和 revision
-│   └── writing-style.md      # 写作口径和禁用表达
+│   └── sources.md            # 源码仓库和 revision
 └── .gitignore
 ```
 
 这个教程不是从零写一个 toy agent，而是读 JCode 本身。需要读者知道的内容直接写进课程，不单独开动手区。
 
-`mini/` 里是 8 个缩小版机制标本，对应 server/client、tool registry、provider stream、memory sidecar、session journal、swarm channel、ambient scheduler、self-dev reload gate。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
+`mini/` 里是 8 个核心机制的最小复现，对应 server/client、tool registry、provider stream、memory sidecar、session journal、swarm channel、ambient scheduler、self-dev reload gate。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
 
 ## 课程
 
@@ -107,7 +104,7 @@ learn-jcode/
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
 | s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
-如果某课的源码太大，可以先看 [mini/](./mini/README.md) 里的对应标本，再回到课程正文。
+如果某课的源码太大，可以先看 [mini/](./mini/) 里的对应最小复现，再回到课程正文。
 
 ## 维护检查
 
@@ -117,7 +114,7 @@ learn-jcode/
 python3 scripts/check_bilingual_structure.py
 ```
 
-这个脚本只防结构漂移，不替你判断翻译质量。它会检查中英文文件集合、标题层级、代码块语言、Mermaid 数量、表格行数和 `mini/` 标本引用是否一致。
+这个脚本只防结构漂移，不替你判断翻译质量。它会检查中英文文件集合、标题层级、代码块语言、Mermaid 数量、表格行数和 `mini/` 最小复现引用是否一致。
 
 本项目也可以用 mdBook 发布到 GitHub Pages：
 

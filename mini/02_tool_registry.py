@@ -1,4 +1,4 @@
-"""Tiny specimen of JCode's tool registry.
+"""Tiny reproduction of JCode's tool registry.
 
 The same registry produces model-visible tool definitions and executes
 tool calls at runtime.

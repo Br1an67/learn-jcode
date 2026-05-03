@@ -1,4 +1,4 @@
-"""Tiny specimen of JCode's self-dev reload gate.
+"""Tiny reproduction of JCode's self-dev reload gate.
 
 Self-dev exposes build and reload as tool actions, but reload must happen from
 a self-dev session and must leave recovery state behind.

@@ -1,8 +1,8 @@
-# Mini Mechanism Specimens
+# Mini Minimal Reproductions
 
 This directory contains small runnable files that isolate one JCode harness mechanism.
 
-It is not a separate task track. The main course still reads JCode source. These files are reduced specimens for moments where the real source is too large to see the mechanism at once.
+It is not a separate task track. The main course still reads JCode source. These files are minimal reproductions for moments where the real source is too large to see the mechanism at once.
 
 Run them with the system Python:
 

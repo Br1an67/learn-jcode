@@ -6,8 +6,6 @@ This is a JCode source-reading course for engineers. The tone is code walkthroug
 
 The reader is assumed to know roughly what an agent loop is, but not yet how a product-grade coding-agent harness is built. You are not here to read feature praise; you are here to understand why JCode needs a server, tool registry, provider layer, sessions, TUI, memory, and swarm runtime.
 
-Writing rules live in [docs/writing-style.md](./docs/writing-style.md). New lessons should follow that guide.
-
 ## Who This Is For
 
 This is for readers who already know roughly what an agent loop is and want to understand:
@@ -33,7 +31,7 @@ learn-jcode/
 ├── README-en.md              # English entry
 ├── mermaid.min.js            # local Mermaid runtime for mdBook
 ├── mermaid-init.js           # mdBook Mermaid rendering
-├── mini/                     # reduced mechanism specimens, not a task track
+├── mini/                     # minimal reproductions of core mechanisms
 │   ├── README.md
 │   ├── 01_server_client.py
 │   ├── 02_tool_registry.py
@@ -79,14 +77,13 @@ learn-jcode/
 │   ├── deploy-pages.md       # GitHub Pages deployment notes
 │   ├── glossary.md           # Term glossary
 │   ├── project-structure.md  # Why the repository is organized this way
-│   ├── sources.md            # Source repositories and revisions
-│   └── writing-style.md      # Writing tone and banned expressions
+│   └── sources.md            # Source repositories and revisions
 └── .gitignore
 ```
 
 This course is not building a toy agent from scratch; it is reading JCode itself. Things readers need to know are written directly into the lessons, not moved into a separate hands-on area.
 
-`mini/` contains eight reduced specimens for server/client, tool registry, provider stream, memory sidecar, session journal, swarm channel, ambient scheduler, and self-dev reload gate. They are not another task track; they reduce the cognitive load before reading JCode source.
+`mini/` contains eight minimal reproductions of core mechanisms: server/client, tool registry, provider stream, memory sidecar, session journal, swarm channel, ambient scheduler, and self-dev reload gate. They are not another task track; they reduce the cognitive load before reading JCode source.
 
 ## Lessons
 
@@ -107,7 +104,7 @@ Read in order, one or two lessons per day.
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
 | s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
-If a lesson's source path feels too large, read the corresponding specimen in [mini/](./mini/README.md), then return to the lesson.
+If a lesson's source path feels too large, read the corresponding minimal reproduction in [mini/](./mini/), then return to the lesson.
 
 ## Maintenance Check
 
@@ -117,7 +114,7 @@ When editing Chinese and English lessons, run the structure check first:
 python3 scripts/check_bilingual_structure.py
 ```
 
-This script only catches structure drift; it does not judge translation quality. It checks file sets, heading levels, code fence languages, Mermaid counts, table rows, and `mini/` specimen references.
+This script only catches structure drift; it does not judge translation quality. It checks file sets, heading levels, code fence languages, Mermaid counts, table rows, and `mini/` minimal-reproduction references.
 
 This project can also be published to GitHub Pages with mdBook:
 

@@ -207,11 +207,11 @@ Ambient 是后台 agent。它不是用户发一句做一句，而是在资源允
 
 读 ambient 时重点看资源限制。后台 agent 如果没有预算和优先级控制，会变成另一个干扰源。
 
-### Ambient 机制标本
+### Ambient 最小复现
 
 ambient 调度可以对照 [mini/07_ambient_scheduler.py](../../mini/07_ambient_scheduler.py)。它保留 queue、pop_ready、run cycle、end cycle、reschedule 这条线。
 
-真实 JCode 多了 active session pause、permission request、visible mode、notification、transcript、direct session delivery。标本只回答一个问题：为什么 ambient 不是 while true 后台线程。
+真实 JCode 多了 active session pause、permission request、visible mode、notification、transcript、direct session delivery。最小复现只回答一个问题：为什么 ambient 不是 while true 后台线程。
 
 ## Self-Dev
 
@@ -444,11 +444,11 @@ sequenceDiagram
 
 这两条线都在讲同一件事：后台能力必须能恢复。ambient 用 queue 恢复下一次唤醒，self-dev 用 manifest 和 reload context 恢复正在做的修改。
 
-## Self-Dev 机制标本
+## Self-Dev 最小复现
 
 self-dev reload gate 可以对照 [mini/08_selfdev_reload_gate.py](../../mini/08_selfdev_reload_gate.py)。
 
-这个标本只保留状态边界：必须进入 canary session，build 之后才能 reload，并且 reload 前要留下 pending activation 和 recovery context。
+这个最小复现只保留状态边界：必须进入 canary session，build 之后才能 reload，并且 reload 前要留下 pending activation 和 recovery context。
 
 Self-dev 是让 JCode 改自己。
 

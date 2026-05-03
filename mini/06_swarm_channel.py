@@ -1,4 +1,4 @@
-"""Tiny specimen of JCode's server-owned swarm coordination.
+"""Tiny reproduction of JCode's server-owned swarm coordination.
 
 Swarm state lives in the server: members, plans, task progress, and channel
 subscriptions are not guessed from chat history.

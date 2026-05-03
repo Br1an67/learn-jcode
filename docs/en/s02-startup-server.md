@@ -192,11 +192,11 @@ soft_interrupt_queues
 
 These fields show that the server is not just a message proxy. It is the center of sessions, coordination, tools, and UI events.
 
-## Mechanism Specimen
+## Minimal Reproduction
 
 If the resident server/client boundary still feels abstract, read [mini/01_server_client.py](../../mini/01_server_client.py). It keeps one idea: the server owns sessions, and clients can disconnect and reconnect.
 
-The specimen does not reproduce sockets, TUI, or providers. It uses a few lines to show why session state should not be tied to the client process. After that, the `ServerRuntime` fields in this lesson should have a clearer place.
+This minimal reproduction does not reproduce sockets, TUI, or providers. It uses a few lines to show why session state should not be tied to the client process. After that, the `ServerRuntime` fields in this lesson should have a clearer place.
 
 ## What You Should Be Able To Explain
 

@@ -190,11 +190,11 @@ sequenceDiagram
 
 这条状态流解释了为什么 memory 不是普通 RAG：主 turn 只投递上下文，sidecar 才做检索和 prompt 组装。当前轮不会等它，下一轮才使用 pending prompt。
 
-## 机制标本
+## 最小复现
 
 memory sidecar 可以对照 [mini/04_memory_sidecar.py](../../mini/04_memory_sidecar.py)。它只保留有界队列、非阻塞提交、后台 worker、下一轮取 pending prompt 这四个动作。
 
-真实 JCode 多了 embedding、graph、cascade retrieval、prompt budget 和 display prompt，但非阻塞边界和这个标本一致。
+真实 JCode 多了 embedding、graph、cascade retrieval、prompt budget 和 display prompt，但非阻塞边界和这个最小复现一致。
 
 ## 这课应该带走的判断
 

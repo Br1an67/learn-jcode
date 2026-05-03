@@ -1,4 +1,4 @@
-"""Shared tiny types for the mini mechanism specimens."""
+"""Shared tiny types for the mini minimal reproductions."""
 
 from dataclasses import dataclass
 from typing import Callable, Any

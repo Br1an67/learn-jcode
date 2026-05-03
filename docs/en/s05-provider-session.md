@@ -247,11 +247,11 @@ JCode cannot let turn loop code know every private provider format.
 After normalization into StreamEvent, the rest of the agent loop can handle text, thinking, tool input, and tool result consistently.
 ```
 
-## Mechanism Specimen
+## Minimal Reproduction
 
 The provider-stream path also maps to [mini/03_provider_stream.py](../../mini/03_provider_stream.py). In `s03`, it explains the agent loop. In this lesson, it explains the provider's job: normalize provider-specific streams into events JCode can process.
 
-Real providers also handle auth, model IDs, request bodies, tool schemas, usage, errors, and retry. The specimen keeps only the normalized stream shape so provider code does not get misread as a thin HTTP wrapper.
+Real providers also handle auth, model IDs, request bodies, tool schemas, usage, errors, and retry. This minimal reproduction keeps only the normalized stream shape so provider code does not get misread as a thin HTTP wrapper.
 
 The session path maps to [mini/05_session_journal.py](../../mini/05_session_journal.py). It reduces a session to append-only journal events, a rendered view, and replay messages. Real JCode adds compaction, usage, import, active processes, and memory profiles, but the judgment is the same: a session is recoverable structured runtime state, not a chat transcript.
 

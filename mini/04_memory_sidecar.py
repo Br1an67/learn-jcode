@@ -1,4 +1,4 @@
-"""Tiny specimen of non-blocking memory sidecar behavior.
+"""Tiny reproduction of non-blocking memory sidecar behavior.
 
 The main turn submits context without waiting. The sidecar computes a memory
 prompt later, so the next turn can inject it.

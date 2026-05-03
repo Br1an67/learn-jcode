@@ -1,4 +1,4 @@
-"""Tiny specimen of JCode's ambient scheduler.
+"""Tiny reproduction of JCode's ambient scheduler.
 
 Ambient work is not an infinite background loop. Work becomes a scheduled item,
 the runner pops ready items, and the agent must end the cycle explicitly.

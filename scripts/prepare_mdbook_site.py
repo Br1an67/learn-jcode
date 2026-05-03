@@ -74,7 +74,7 @@ def write_summary() -> None:
         "",
         "[首页 / Home](./README.md)",
         "[English Home](./README-en.md)",
-        "[机制标本 / Mechanism Specimens](./mini/README.md)",
+        "[最小复现 / Minimal Reproductions](./mini/README.md)",
         "",
         "---",
         "",

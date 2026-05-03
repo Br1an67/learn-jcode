@@ -2,8 +2,6 @@
 
 This directory contains the English lesson docs. The root README is only the entry point; read the course in this order.
 
-The writing follows [../writing-style.md](../writing-style.md): source walkthrough, not marketing copy. Each lesson should answer three questions: what the core flow is, where the code boundary sits, and what conclusion to keep.
-
 Course map:
 
 | Lesson | Topic | Goal |

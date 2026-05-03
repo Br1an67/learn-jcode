@@ -207,11 +207,11 @@ This is experimental, but important because it points toward long-running agent 
 
 When reading ambient, watch resource limits. A background agent without budget and priority rules becomes another source of interference.
 
-### Ambient Mechanism Specimen
+### Ambient Minimal Reproduction
 
 Ambient scheduling maps to [mini/07_ambient_scheduler.py](../../mini/07_ambient_scheduler.py). It keeps the queue, pop_ready, run cycle, end cycle, and reschedule path.
 
-Real JCode adds active-session pause, permission requests, visible mode, notifications, transcripts, and direct session delivery. The specimen answers one question first: why ambient is not a `while true` background thread.
+Real JCode adds active-session pause, permission requests, visible mode, notifications, transcripts, and direct session delivery. The minimal reproduction answers one question first: why ambient is not a `while true` background thread.
 
 ## Self-Dev
 
@@ -442,11 +442,11 @@ sequenceDiagram
 
 Both lines point to the same rule: background capabilities must be recoverable. Ambient uses a queue to recover the next wake-up. Self-dev uses manifest and reload context to recover the active modification.
 
-## Self-Dev Mechanism Specimen
+## Self-Dev Minimal Reproduction
 
 Self-dev reload gates map to [mini/08_selfdev_reload_gate.py](../../mini/08_selfdev_reload_gate.py).
 
-The specimen keeps only the state boundary: enter a canary session, build before reload, and leave pending activation plus recovery context before restart.
+This minimal reproduction keeps only the state boundary: enter a canary session, build before reload, and leave pending activation plus recovery context before restart.
 
 Self-dev lets JCode modify itself.
 

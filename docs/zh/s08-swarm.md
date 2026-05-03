@@ -236,11 +236,11 @@ sequenceDiagram
 
 这条线说明 swarm 的核心不是“多开模型”，而是把协作事实放进 server：谁被分配了任务、谁还活着、谁在哪个 channel、谁交了 report。没有这些状态，coordinator 只能靠聊天记录猜。
 
-## 机制标本
+## 最小复现
 
 swarm 的 server-owned state 可以对照 [mini/06_swarm_channel.py](../../mini/06_swarm_channel.py)。它只保留 members、channels、task_progress、inbox 四个结构。
 
-真实 JCode 多了 session 连接、headless worker、plan version、file touch、completion report、worktree 和 reload 恢复。标本的作用是先固定边界：channel 和 task progress 属于 server，不属于某个 worker 的 prompt。
+真实 JCode 多了 session 连接、headless worker、plan version、file touch、completion report、worktree 和 reload 恢复。最小复现的作用是先固定边界：channel 和 task progress 属于 server，不属于某个 worker 的 prompt。
 
 ## JCode 的 Swarm 关心什么
 

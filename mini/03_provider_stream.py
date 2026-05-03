@@ -1,4 +1,4 @@
-"""Tiny specimen of provider streaming and tool-call assembly.
+"""Tiny reproduction of provider streaming and tool-call assembly.
 
 JCode providers normalize platform-specific streams into internal events.
 The agent loop collects tool input deltas, executes the tool, and appends

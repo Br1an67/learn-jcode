@@ -190,11 +190,11 @@ sequenceDiagram
 
 This state flow explains why memory is not ordinary RAG. The main turn only submits context; the sidecar does retrieval and prompt assembly. The current turn does not wait, and the next turn consumes the pending prompt.
 
-## Mechanism Specimen
+## Minimal Reproduction
 
 Memory sidecar maps to [mini/04_memory_sidecar.py](../../mini/04_memory_sidecar.py). It keeps four actions: bounded queue, non-blocking submit, background worker, and next-turn pending prompt.
 
-Real JCode adds embeddings, graph, cascade retrieval, prompt budget, and display prompt. The non-blocking boundary is the same as the specimen.
+Real JCode adds embeddings, graph, cascade retrieval, prompt budget, and display prompt. The non-blocking boundary is the same as this minimal reproduction.
 
 ## Judgment To Keep
 

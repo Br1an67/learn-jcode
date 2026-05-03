@@ -236,11 +236,11 @@ sequenceDiagram
 
 This line shows the core of swarm: cooperation facts live in the server. Who owns a task, who is still alive, who is in which channel, and who reported completion are runtime state, not guesses from chat history.
 
-## Mechanism Specimen
+## Minimal Reproduction
 
 Server-owned swarm state maps to [mini/06_swarm_channel.py](../../mini/06_swarm_channel.py). It keeps only four structures: members, channels, task_progress, and inbox.
 
-Real JCode adds session connections, headless workers, plan versions, file touches, completion reports, worktrees, and reload recovery. The specimen fixes the boundary first: channel membership and task progress belong to the server, not to one worker's prompt.
+Real JCode adds session connections, headless workers, plan versions, file touches, completion reports, worktrees, and reload recovery. The minimal reproduction fixes the boundary first: channel membership and task progress belong to the server, not to one worker's prompt.
 
 ## What JCode Swarm Cares About
 

@@ -1,4 +1,4 @@
-"""Tiny specimen of JCode's session journal shape.
+"""Tiny reproduction of JCode's session journal shape.
 
 A session is not a plain transcript. The runtime appends structured events,
 then renders or replays them later.
