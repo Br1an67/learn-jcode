@@ -1,4 +1,4 @@
-# Learn JCode 5.5 中文课程
+# learn-jcode 中文课程
 
 这部分是中文分课文档。README 只做入口，真正学习时按这里的顺序读。
 

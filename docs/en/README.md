@@ -1,4 +1,4 @@
-# Learn JCode 5.5 English Course
+# learn-jcode English Course
 
 This directory contains the English lesson docs. The root README is only the entry point; read the course in this order.
 

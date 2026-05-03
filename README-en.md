@@ -1,6 +1,6 @@
 [中文](./README.md) | [English](./README-en.md)
 
-# Learn JCode 5.5
+# learn-jcode
 
 This is a JCode source-reading course for engineers. The tone is code walkthrough, not product brochure.
 
@@ -24,7 +24,7 @@ If agents are completely new to you, read a minimal agent-loop demo first, then 
 ## Project Structure
 
 ```text
-learn-jcode-5.5/
+learn-jcode/
 ├── .github/
 │   └── workflows/
 │       └── deploy-pages.yml  # GitHub Pages deployment

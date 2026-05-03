@@ -22,7 +22,7 @@ The `mini/` directory is not a task track. It contains reduced mechanism specime
 ## Current Structure
 
 ```text
-learn-jcode-5.5/
+learn-jcode/
 ├── README.md
 ├── README-en.md
 ├── mini/

@@ -1,6 +1,6 @@
 [中文](./README.md) | [English](./README-en.md)
 
-# Learn JCode 5.5
+# learn-jcode
 
 这是一份给工程师看的 JCode 源码课程。写法按“同事带你读代码”来，不写宣传稿，不堆黑话。
 
@@ -24,7 +24,7 @@
 ## 项目结构
 
 ```text
-learn-jcode-5.5/
+learn-jcode/
 ├── .github/
 │   └── workflows/
 │       └── deploy-pages.yml  # GitHub Pages 部署
