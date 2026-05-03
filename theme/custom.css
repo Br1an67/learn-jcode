@@ -33,8 +33,12 @@
   --jcode-warm: var(--solar-orange);
   --jcode-accent-soft: rgba(38, 139, 210, 0.11);
   --jcode-cyan-soft: rgba(42, 161, 152, 0.11);
-  --jcode-code-bg: #073642;
-  --jcode-code-border: rgba(0, 43, 54, 0.2);
+  --jcode-code-bg: rgba(253, 246, 227, 0.82);
+  --jcode-code-fg: var(--solar-base02);
+  --jcode-code-border: rgba(88, 110, 117, 0.24);
+  --jcode-code-shadow: rgba(0, 43, 54, 0.1);
+  --jcode-code-gloss: rgba(255, 255, 255, 0.38);
+  --jcode-code-pill-bg: rgba(238, 232, 213, 0.78);
 }
 
 .ayu,
@@ -52,8 +56,12 @@
   --jcode-warm: #f07f4f;
   --jcode-accent-soft: rgba(38, 139, 210, 0.18);
   --jcode-cyan-soft: rgba(42, 161, 152, 0.16);
-  --jcode-code-bg: #001f27;
+  --jcode-code-bg: rgba(0, 31, 39, 0.9);
+  --jcode-code-fg: var(--solar-base2);
   --jcode-code-border: rgba(238, 232, 213, 0.12);
+  --jcode-code-shadow: rgba(0, 0, 0, 0.28);
+  --jcode-code-gloss: rgba(255, 255, 255, 0.08);
+  --jcode-code-pill-bg: rgba(7, 54, 66, 0.88);
 }
 
 html {
@@ -213,14 +221,88 @@ body {
   font-family: var(--jcode-mono);
 }
 
-.content pre {
+.content pre:not(.mermaid) {
+  position: relative;
   max-width: 1040px;
   margin: 1.2rem 0 1.8rem;
+  overflow-x: auto;
   border: 1px solid var(--jcode-code-border);
-  border-radius: 16px;
-  background: var(--jcode-code-bg);
+  border-left: 5px solid var(--jcode-accent);
+  border-radius: 15px;
+  padding: 1.34rem 4.7rem 1.12rem 1.25rem;
+  background:
+    linear-gradient(180deg, var(--jcode-code-gloss), transparent 5rem),
+    var(--jcode-code-bg);
+  color: var(--jcode-code-fg);
+  font-size: 0.92rem;
   line-height: 1.58;
-  box-shadow: 0 14px 38px rgba(0, 43, 54, 0.15);
+  box-shadow: 0 10px 28px var(--jcode-code-shadow);
+}
+
+.content pre:not(.mermaid)::before {
+  position: absolute;
+  top: 0.54rem;
+  right: 0.72rem;
+  border: 1px solid rgba(38, 139, 210, 0.24);
+  border-radius: 999px;
+  padding: 0.08rem 0.48rem;
+  background: var(--jcode-code-pill-bg);
+  color: var(--jcode-muted);
+  font-family: var(--jcode-sans);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+  content: "code";
+}
+
+.content pre:not(.mermaid):has(code.language-rust)::before {
+  content: "rust";
+}
+
+.content pre:not(.mermaid):has(code.language-ts)::before {
+  content: "ts";
+}
+
+.content pre:not(.mermaid):has(code.language-bash)::before {
+  content: "bash";
+}
+
+.content pre:not(.mermaid):has(code.language-text)::before {
+  content: "text";
+}
+
+.content pre:not(.mermaid) code {
+  display: block;
+  min-width: max-content;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.content pre:not(.mermaid) code.hljs {
+  background: transparent;
+  color: inherit;
+}
+
+.content pre:has(> pre.playground) {
+  padding: 0;
+}
+
+.content pre.playground {
+  margin: 0;
+  border: 0;
+  border-left: 0;
+  border-radius: 12px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.content pre.playground::before,
+.content pre:not(.mermaid).playground::before {
+  display: none;
+  content: none;
 }
 
 .content :not(pre) > code {
