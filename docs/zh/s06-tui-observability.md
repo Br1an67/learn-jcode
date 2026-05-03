@@ -6,9 +6,9 @@ JCode 的 TUI 不只是把模型输出打印出来。server event 先写进 TUI 
 
 很多 agent 工程只关心“模型能不能完成任务”。但实际使用时，用户还需要知道它在干什么、改了什么、卡在哪里、花了多少上下文和钱。
 
-JCode 的 TUI 代码不少，因为它要把运行状态整理成用户看得懂的界面状态。
+JCode 的 TUI 代码不少，因为它要把运行状态整理成用户看得懂的界面。
 
-判断一个 UI 模块是不是 harness 的一部分，看它是否影响用户判断 agent 状态。tool 状态、diff、usage、memory 命中都影响判断，所以它们不是皮肤。
+判断一个 UI 模块是不是 harness 的一部分，可以看它会不会影响用户判断 agent 状态。tool 状态、diff、usage、memory 命中都会影响判断，所以它们不是皮肤。
 
 ```mermaid
 flowchart TD
@@ -33,7 +33,7 @@ flowchart TD
   Render --> User["terminal<br/>view"]
 ```
 
-这张图说明 TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能看懂的界面。
+TUI 不是 stdout 包装。server/runtime 事件先写入 TUI state，再分别变成 widget、tool summary、diff，最后渲染成用户能看懂的界面。
 
 ```mermaid
 sequenceDiagram
@@ -52,7 +52,7 @@ sequenceDiagram
 
 ## 先看事件怎么变成界面
 
-TUI 的路径是：server/runtime 事件进入 app state，然后分别变成 info widget、tool summary、diff、side panel 和流式文本。用户看到的不是原始 protocol，而是整理过的状态。
+TUI 的路径是：server/runtime 事件进入 app state，然后分别变成 info widget、tool summary、diff、side panel 和流式文本。用户看到的不是原始 protocol，而是整理后的状态。
 
 Info widget 解决布局和信息密度：`InfoWidgetData` 收集状态，`calculate_placements()` 决定位置，`render_all()` 统一渲染。Git、todo、memory、swarm 这些 widget 的差别不在画法，而在它们各自回答用户什么问题。
 
@@ -128,7 +128,7 @@ pub fn handle_server_event(app: &mut App, event: ServerEvent, remote: &mut impl 
 
 换句话说，render 只是最后一步。决定用户能看到什么状态的地方，是 event handler。
 
-`InfoWidgetData` 是第二个收口点。它把分散在 session、provider、memory、swarm、ambient、usage 里的状态整理成一个可渲染的快照：
+`InfoWidgetData` 是第二个集中处理的地方。它把分散在 session、provider、memory、swarm、ambient、usage 里的状态整理成一个可渲染的快照：
 
 ```rust
 // src/tui/app/tui_state.rs，节选
@@ -179,7 +179,7 @@ fn info_widget_data(&self) -> crate::tui::info_widget::InfoWidgetData {
 }
 ```
 
-这段不是完整源码，但结构够用了：widget 不应该各自乱查状态。JCode 先准备 `InfoWidgetData`，再让布局和 render 消费它。这样 TUI 才能在信息很多的时候保持一致。
+这段不是完整源码，但结构够用了：widget 不应该各自乱查状态。JCode 先准备 `InfoWidgetData`，再让布局和 render 消费它。信息多的时候，这样更容易保持一致。
 
 Info widget 的入口不是某个具体 widget，而是布局和统一渲染：
 
@@ -208,7 +208,7 @@ pub fn render_all(frame: &mut Frame, placements: &[WidgetPlacement], data: &Info
 }
 ```
 
-这段代码说明 widget 不是随便画在右边。JCode 先根据消息区域、边距和当前数据算 placement，再统一 render。到了这里，可观察性先变成布局问题。
+widget 不是随便画在右边。JCode 先根据消息区域、边距和当前数据算 placement，再统一 render。也就是说，状态展示最后会落到布局计算上。
 
 工具摘要也有单独的整理逻辑：
 
@@ -251,7 +251,7 @@ pub(super) fn generate_diff_lines_from_tool_input(tool: &ToolCall)
 }
 ```
 
-这段代码说明 JCode 可以从 tool input 提前生成 diff 线索。用户看到的“改了多少”不是最后才从文件系统算出来，TUI 在工具开始阶段就能推断一部分。
+JCode 可以从 tool input 提前生成 diff 线索。用户看到的“改了多少”不是最后才从文件系统算出来，TUI 在工具开始阶段就能推断一部分。
 
 Side panel 是模型能操作的状态，不只是 UI 组件：
 
@@ -273,7 +273,7 @@ impl Tool for SidePanelTool {
 }
 ```
 
-这段代码说明 side panel 被注册成工具。模型可以写入、追加、加载、聚焦、删除页面，所以它是 harness 状态的一部分，不只是前端展示。
+side panel 被注册成工具以后，模型就可以写入、追加、加载、聚焦、删除页面。所以它是 harness 状态的一部分，不只是前端展示。
 
 ## JCode TUI 展示什么
 
@@ -293,7 +293,7 @@ JCode 的 TUI 不只是打印 assistant text。它还处理：
 - todo 状态。
 - swarm/background 状态。
 
-这些都是 harness 的可观察性。
+这些信息都直接影响用户怎么判断当前 agent 的状态。
 
 ## Side Panel 为什么有用
 
@@ -325,13 +325,13 @@ Info widget 解决的是“状态显示不能抢主输出空间”的问题。�
 
 ## 和 OpenCode 的对比
 
-OpenCode 也重视 UI，但路线不同。OpenCode 同时走 Web/Desktop/Open platform。JCode 更偏 terminal native，强调 Ratatui 渲染、终端信息密度和本地 runtime。
+OpenCode 也重视 UI，但路线不同。OpenCode 同时做 Web、Desktop 和开放平台。JCode 更偏 terminal native，重点放在 Ratatui 渲染、终端信息密度和本地 runtime。
 
 两者都说明一件事：coding agent 的 UI 不是 shell stdout 就够了。
 
 ## 一个 widget 的判断标准
 
-判断 `info_widget_git` 或 `info_widget_todos` 这类 widget 是否成立，就看这条数据链路：
+看 `info_widget_git` 或 `info_widget_todos` 这类 widget 时，可以按这条数据链路追：
 
 ```text
 数据从哪里来？

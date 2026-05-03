@@ -23,7 +23,7 @@ ZH_LESSONS = [
     ("s07-memory.md", "s07 - Memory"),
     ("s08-swarm.md", "s08 - Swarm"),
     ("s09-ambient-selfdev.md", "s09 - Ambient 和 Self-Dev"),
-    ("s10-comparison.md", "s10 - 边界课"),
+    ("s10-comparison.md", "s10 - 对照课"),
 ]
 
 EN_LESSONS = [

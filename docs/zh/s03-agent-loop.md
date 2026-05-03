@@ -2,7 +2,7 @@
 
 ## 先看一轮对话怎么跑
 
-JCode 外围工程很多，但主回路并不神秘：模型提出 tool call，runtime 执行工具，结果再回到下一轮上下文。
+JCode 外围工程很多，但最里面那圈并不复杂：模型提出 tool call，runtime 执行工具，结果再回到下一轮上下文。
 
 追踪一次用户输入如何变成：
 
@@ -55,7 +55,7 @@ Agent loop 的正常路径分三段。第一段是请求前准备：修复缺失
 
 第二段是 provider stream：模型流式输出文本，同时用 `ToolUseStart`、`ToolInputDelta`、`ToolUseEnd` 拼出工具调用。这里的关键不是 event 名字，而是 JCode 要把“模型一边说话一边组 JSON 参数”的过程恢复成可执行的 `ToolCall`。
 
-第三段是工具结果回灌：registry 执行工具，工具输出被转成 provider 能理解的 `ToolResult` content block，再作为下一轮 `Role::User` message 进入 history。session 保存的是这条完整循环后的历史，不只是 assistant 文本。
+第三段是工具结果写回：registry 执行工具，工具输出被转成 provider 能理解的 `ToolResult` content block，再作为下一轮 `Role::User` message 进入 history。session 保存的是这条完整循环后的历史，不只是 assistant 文本。
 
 ## 核心代码节选
 
@@ -85,7 +85,7 @@ loop {
 }
 ```
 
-这里可以看出，JCode 的 agent loop 不是直接把聊天记录丢给模型。它先修 history、可能 compact、生成 tools、取上一轮 memory 结果，再用 split prompt 调 provider。
+这里可以看出，JCode 的 agent loop 不是直接把聊天记录丢给模型。它先修 history，必要时 compact，再生成 tools、取上一轮 memory 结果，最后用 split prompt 调 provider。
 
 stream 事件里，先只看 tool call 相关的四个分支：
 
@@ -139,7 +139,7 @@ match result {
 }
 ```
 
-这一步把 agent loop 接回下一轮：模型发 tool call，registry 执行工具，工具结果被写回成下一轮 `Role::User` message。没有这一步，模型不会看到工具结果。
+这一步把 agent loop 接回下一轮：模型发 tool call，registry 执行工具，工具结果被写回成下一轮 `Role::User` message。少了这一步，模型就看不到工具结果。
 
 再看转换函数：
 
@@ -184,7 +184,7 @@ pub(super) fn tool_output_to_content_blocks(
 10. 把 tool output 转成 content blocks。
 11. 如果还有工具调用，继续 loop。
 
-这一段是读后面章节的基础。
+后面讲 tool、provider、memory，都会回到这条路径上。
 
 ## 为什么要 split system prompt
 
@@ -192,7 +192,7 @@ JCode 会把 prompt 分成 static 和 dynamic 部分。原因很直接：有些 
 
 Memory、时间、动态状态这类内容如果混进静态 prefix，会破坏 cache。
 
-这类细节就是 harness 和 demo 的区别。demo 只关心能不能答，harness 还要关心长期成本和延迟。
+这类细节就是 harness 和 demo 的区别。demo 只关心能不能答；harness 还要关心长期成本和延迟。
 
 ## Memory 为什么在这里出现
 
@@ -211,7 +211,7 @@ Memory、时间、动态状态这类内容如果混进静态 prefix，会破坏 
 
 工具执行后会返回 `ToolOutput`。然后 `tool_output_to_content_blocks()` 把它转成 provider 能理解的 content block。
 
-你要追的路径是：
+可以按这条路追：
 
 ```text
 StreamEvent::ToolUseStart
@@ -254,7 +254,7 @@ Registry::definitions()
 
 Agent loop 的 provider stream 部分可以对照 [mini/03_provider_stream.py](../../mini/03_provider_stream.py)。它只保留 text delta、tool use start、tool input delta、tool use end 这条线。
 
-这个最小复现的作用是把“模型流式拼 JSON tool input”单独拎出来。真实 JCode 要处理更多事件、错误、usage、native tool call 和 session 保存，但核心仍然是把 stream 组装成可执行工具调用，再把 tool result 放回下一轮 messages。
+这个最小复现只把“模型流式拼 JSON tool input”单独拎出来。真实 JCode 要处理更多事件、错误、usage、native tool call 和 session 保存，但这条路不变：把 stream 组装成可执行工具调用，再把 tool result 放回下一轮 messages。
 
 ## 读完后检查一下
 

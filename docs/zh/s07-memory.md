@@ -23,13 +23,13 @@ flowchart TD
   Pending -. 下一轮 .-> TurnNext["第 N+1 轮<br/>注入"]
 ```
 
-这张图是 memory 的关键：主 agent 只投递上下文，检索和维护在 sidecar 里跑，结果下一轮再进入主上下文。
+memory 的关键就在这里：主 agent 只投递上下文，检索和维护在 sidecar 里跑，结果下一轮再进入主上下文。
 
-## 先看这条路
+## 先看它怎么跑
 
 它的路径可以先简化成一句话：主 agent 在 turn 结束时把上下文丢给 sidecar，sidecar 后台检索、维护和生成 pending prompt，下一轮再把结果注入主上下文。
 
-这条线由三块代码支撑。第一块是 `MemoryAgentHandle`，它用 `try_send` 投递上下文，所以主 turn 不会等 memory。第二块是后台 `MemoryAgent::run()`，它消费 channel、维护 session state，并把检索交给 `process_context()`。第三块是 prompt 组装逻辑：relevance context 决定用什么材料找 memory，extraction context 决定要不要沉淀新 memory，relevant prompt 决定下一轮注入给主模型的文本。
+这条路由三块代码支撑。第一块是 `MemoryAgentHandle`，它用 `try_send` 投递上下文，所以主 turn 不会等 memory。第二块是后台 `MemoryAgent::run()`，它消费 channel、维护 session state，并把检索交给 `process_context()`。第三块是 prompt 组装逻辑：relevance context 决定用什么材料找 memory，extraction context 决定要不要沉淀新 memory，relevant prompt 决定下一轮注入给主模型的文本。
 
 `memory` tool 和 `session_search` tool 是模型显式操作 memory/历史的入口，但这里先不讲它们。JCode 的取舍在后台 sidecar：用一轮延迟换主交互不被检索拖慢。
 
@@ -87,7 +87,7 @@ async fn run(mut self) {
 }
 ```
 
-这段代码说明 memory 是一个 sidecar agent，而不是 `run_turn()` 里同步调用的一段函数。主 agent 只投递上下文，后台 agent 自己维护 session state、turn count 和检索节奏。
+这里可以看出，memory 是一个 sidecar agent，而不是 `run_turn()` 里同步调用的一段函数。主 agent 只投递上下文，后台 agent 自己维护 session state、turn count 和检索节奏。
 
 `process_context()` 里会把上下文转成检索材料，找到相关 memory 后只写入 pending prompt：
 
@@ -121,7 +121,7 @@ async fn process_context(
 }
 ```
 
-这段代码把“下一轮注入”说清楚了：memory sidecar 不直接改当前 provider request，而是把结果放到 pending memory，等主 agent 下一轮取。
+“下一轮注入”在这里落到了实现上：memory sidecar 不直接改当前 provider request，而是把结果放到 pending memory，等主 agent 下一轮取。
 
 prompt 组装也不是随便把历史拼起来。JCode 分开了 relevance context、extraction context 和最终注入文本：
 
@@ -186,7 +186,7 @@ sequenceDiagram
   Sidecar-->>Next: pending prompt
 ```
 
-这条状态流解释了为什么 memory 不是普通 RAG：主 turn 只投递上下文，sidecar 才做检索和 prompt 组装。当前轮不会等它，下一轮才使用 pending prompt。
+这条状态流解释了为什么 memory 不是普通 RAG：主 turn 只投递上下文，sidecar 做检索和 prompt 组装。当前轮不会等它，下一轮才使用 pending prompt。
 
 ## 最小复现
 
@@ -194,9 +194,9 @@ memory sidecar 可以对照 [mini/04_memory_sidecar.py](../../mini/04_memory_sid
 
 真实 JCode 多了 embedding、graph、cascade retrieval、prompt budget 和 display prompt，但非阻塞边界和这个最小复现一致。
 
-## 先记住这个取舍
+## 这里的代价
 
-Memory 补的是单次上下文的短板：模型当前上下文装不下长期偏好、项目事实和旧会话经验，所以 JCode 用 sidecar 做非阻塞召回。
+Memory 解决的是单次上下文装不下的问题：长期偏好、项目事实、旧会话经验不可能每轮都塞进当前消息，所以 JCode 用 sidecar 做非阻塞召回。
 
 代价也要记住：memory 有一轮延迟。这个延迟是有意设计，不是漏做同步检索。
 

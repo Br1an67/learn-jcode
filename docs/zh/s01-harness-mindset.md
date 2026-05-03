@@ -8,11 +8,11 @@ JCode 不是一个“Rust 写的聊天壳”。它是一个 coding-agent harness
 
 如果把它当聊天壳，后面很多代码会显得多余：server、socket、TUI、OAuth、provider catalog、session journal、memory、MCP、swarm、reload。其实这些都属于 harness，不是额外装饰。
 
-这一节先不碰具体实现，只先说明从哪里看这个项目。否则后面很容易把 server、TUI、session 都误读成“额外功能”。
+这一节先不碰具体实现，只先说明应该从哪里看这个项目。否则后面很容易把 server、TUI、session 都误读成“额外功能”。
 
 ## Agent 和 Harness 的边界
 
-这份教程会一直按这个判断读：模型才是 agent。模型负责判断下一步该做什么。外部工程负责给模型提供环境。
+这份教程会一直按这个判断读：模型才是 agent。模型负责判断下一步该做什么；外部工程负责给模型提供环境。
 
 ```text
 Agent product = Model + Harness
@@ -52,7 +52,7 @@ flowchart TD
   Context --> Model
 ```
 
-这张图要表达的是：模型负责决策，JCode 负责提供行动环境、上下文、状态和可观察性。
+图里最重要的关系很简单：模型负责决策，JCode 负责提供行动环境、上下文、状态和可观察性。
 
 对 coding agent 来说，这些部分各自负责一件事：
 
@@ -98,7 +98,7 @@ LLM + tools + loop
 
 pi 的好处是小。它告诉你 `read/write/edit/bash` 就能撑起一个有效的 coding agent。
 
-JCode 更完整。它把多 provider、多 session、memory、swarm、UI、self-dev 都放进同一个本地 runtime，适合看这些东西接在一起之后会发生什么。
+JCode 包得更全。它把多 provider、多 session、memory、swarm、UI、self-dev 都放进同一个本地 runtime，适合用来看这些东西接在一起之后会发生什么。
 
 ### 和平台型 coding agent 的距离
 
@@ -124,7 +124,7 @@ Claude Code 这类产品能给我们公开行为上的参照，比如工具、�
 - `src/tui/` 不是皮肤，它决定用户怎么看 agent 当前状态。
 - `src/memory*` 不是普通 RAG demo，是长期使用后的召回系统。
 
-同时也要看代价：常驻 server 能复用状态，但会带来 reload、socket、生命周期管理这些复杂度。JCode 的每个大设计都类似，好处和代价通常一起出现。
+同时也要看代价：常驻 server 能复用状态，但会带来 reload、socket、生命周期管理这些复杂度。后面读到的大部分设计，基本都是这种好处和代价一起出现。
 
 ## 读完后检查一下
 
@@ -135,10 +135,10 @@ Claude Code 这类产品能给我们公开行为上的参照，比如工具、�
 
 ## 这份教程怎么读
 
-后面的章节不会要求你在 IDE 和教程之间来回切。每一课会把关键源码摘出来，直接讲函数边界、状态流向和设计取舍。路径只用于标明来源，不是让你自己去补课。
+后面的章节不会要求你在 IDE 和教程之间来回切。每一课会把关键源码摘出来，直接讲函数负责什么、状态往哪里走、为什么要这样设计。路径只用于标明来源，不是让你自己去补课。
 
 第一遍看启动过程时，只需要抓住控制权怎么移动：`main()` 交给 `jcode::run()`，再到 CLI startup，默认命令确保 server 存在，client 连接长期 runtime。教程会把这条路拆成代码节选，不要求你先翻完整 `src/server/`。
 
 Agent loop 也是一样。你先在教程里看到正常路径：准备 messages 和 tools，调用 provider stream，收集 tool call，执行工具，把 tool result 写回下一轮。compaction、memory、native tool、soft interrupt 会在相关课程里补，不会只丢文件名。
 
-这份教程不另开题目区。需要你知道的判断会直接放在课里；源码节选不是为了做题，而是为了让你看到某个函数时知道它为什么在这里。
+这份教程不另开题目区。需要你知道的判断会直接放在课里；源码节选不是为了做题，而是为了让你看到某个函数时知道它为什么放在这里。

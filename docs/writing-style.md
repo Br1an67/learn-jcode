@@ -86,7 +86,7 @@ pub async fn run() -> Result<()> {
 接着读 `src/lib.rs`，它会进入启动逻辑。
 ```
 
-规则：关键流程必须给源码节选、精简版源码或结构体字段摘录。每个代码块后面必须解释“这段代码证明了什么”。不要整段搬大文件，只摘最能说明问题的 5-25 行。
+规则：关键流程必须给源码节选、精简版源码或结构体字段摘录。代码块后面要解释它在流程里做了什么，不要只写“见源码”。不要整段搬大文件，只摘最能说明问题的 5-25 行。
 
 ### 复杂流程优先画 Mermaid
 
@@ -102,7 +102,7 @@ flowchart LR
   Result --> Turn
 ```
 
-这张图说明 agent loop 的闭合路径。代码节选解释函数细节，Mermaid 负责让读者先看到结构。
+这张图先给出 agent loop 的闭合路径。代码节选解释函数细节，Mermaid 负责让读者先看到结构。
 
 反面示例：
 
@@ -110,7 +110,7 @@ flowchart LR
 JCode 的 agent loop 会经过 provider、tool registry、tool result、message。
 ```
 
-规则：启动链路、agent loop、tool registry、provider stream、server/client event、memory sidecar、swarm coordination 这类内容应优先配 Mermaid。图要解释状态归属或数据流，不画纯装饰图。每张图后面必须有一句解释图里最重要的边界。
+规则：启动过程、agent loop、tool registry、provider stream、server/client event、memory sidecar、swarm coordination 这类内容应优先配 Mermaid。图要解释状态放在哪里或数据怎么流动，不画纯装饰图。每张图后面必须用一句话解释图里最重要的关系。
 
 ### 解释设计取舍，不写功能清单
 
@@ -139,6 +139,22 @@ JCode 支持 memory、session search、embedding、graph retrieval 等能力。
 ```text
 强烈建议读者谨慎探索高级功能模块，以免产生不必要的学习成本。
 ```
+
+### 改文案要通读，不只扫关键词
+
+正面示例：
+
+```text
+通读一节以后，发现“这段代码说明...”连续出现，就把它改成更具体的旁注：这里能看出什么状态被保存、谁在调用谁、少了这一步会怎样。
+```
+
+反面示例：
+
+```text
+只搜索“赋能”“闭环”“总之”，没搜到就认为没有 AI 味。
+```
+
+规则：关键词扫描只能做最后兜底。正式改正文时，必须按章节顺序通读，重点检查段落是否像正常技术作者在带读代码，而不是只检查禁用词。
 
 ## 3. 禁止清单
 

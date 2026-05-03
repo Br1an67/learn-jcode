@@ -9,7 +9,7 @@
 | model | 做判断的模型，例如 Claude、OpenAI、Gemini 等 provider 后面的 LLM | JCode 自己的规则系统 |
 | harness | 模型外面的运行环境：工具、上下文、权限、状态、UI、存储 | 一组 prompt 或工作流 |
 | agent loop | 一轮又一轮把 messages 发给模型、处理 tool call、追加 tool result 的循环 | 一个复杂的 planner |
-| runtime | 支撑 agent loop 长期运行的进程、状态和后台任务集合 | 单个函数调用 |
+| runtime | 支撑 agent loop 长期运行的进程、状态和后台任务 | 单个函数调用 |
 | resident server | JCode 的常驻本地 server，负责 session、provider、MCP、swarm、event 等长期状态 | 普通后台转发进程 |
 | TUI client | 终端 UI 客户端，连接 server，展示消息、工具状态、diff、widgets | 所有状态的拥有者 |
 | session | JCode 的长期会话状态，包含 messages、journal、replay、compaction、render 信息 | 聊天文本数组 |
@@ -42,23 +42,23 @@
 
 ### client 和 server
 
-client 负责交互和展示，server 负责长期状态。client 退出不等于 session 消失。这个边界解释了为什么 JCode 需要 socket、reload、multi-client 和 server runtime。
+client 负责交互和展示，server 负责长期状态。client 退出不等于 session 消失。这个区别解释了为什么 JCode 需要 socket、reload、multi-client 和 server runtime。
 
 ### provider 和 agent loop
 
-agent loop 只处理 JCode 内部消息和 `StreamEvent`。provider 层负责处理不同平台的请求体、鉴权、stream 格式和缓存行为。这个边界让 JCode 不需要在 turn loop 里写一堆 provider-specific 分支。
+agent loop 只处理 JCode 内部消息和 `StreamEvent`。provider 层负责处理不同平台的请求体、鉴权、stream 格式和缓存行为。这样 JCode 就不用在 turn loop 里写一堆 provider-specific 分支。
 
 ### tool definition 和 tool execution
 
-definition 给模型看，execution 给 runtime 调。一个工具要同时有 schema 和 handler。只写 prompt 说明不算工具，只写 handler 也不能让模型知道怎么调用。
+definition 给模型看，execution 给 runtime 调。一个工具要同时有 schema 和 handler。只写 prompt 说明不算工具；只写 handler，模型也不知道怎么调用。
 
 ### memory 和当前 turn
 
-memory sidecar 不阻塞当前 turn。它把结果写到 pending memory，主 agent 下一轮再注入。这个一轮延迟是设计选择，不是漏掉同步检索。
+memory sidecar 不阻塞当前 turn。它把结果写到 pending memory，主 agent 下一轮再注入。这一轮延迟是有意设计，不是漏掉了同步检索。
 
 ### subagent 和 swarm
 
-subagent 偏一次性委派，swarm 偏长期协作现场。swarm 需要 plan、channel、heartbeat、checkpoint、report 和恢复逻辑。
+subagent 偏一次性委派，swarm 偏长期协作。swarm 需要 plan、channel、heartbeat、checkpoint、report 和恢复逻辑。
 
 ### ambient 和 self-dev
 

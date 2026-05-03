@@ -2,7 +2,7 @@
 
 ## 先看工具怎么接进来
 
-工具系统难的不是工具多，而是工具 schema、执行器、权限、输出截断和事件记录都要收在同一条 registry 边界里。
+工具系统难的不是工具多，而是工具 schema、执行器、权限、输出截断和事件记录都要在 registry 里统一处理。
 
 工具系统是 coding-agent harness 的核心。没有工具，模型只能聊天。有了工具，模型才能读代码、改代码、跑测试、查历史、和其他 agent 协作。
 
@@ -19,11 +19,11 @@ flowchart TD
   Guard --> Result["ToolOutput"]
 ```
 
-这张图把工具系统的两条线放在一起：`definitions()` 生成给模型看的 schema，`execute()` 是 runtime 执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
+图里有两条线：`definitions()` 生成给模型看的 schema，`execute()` 是 runtime 执行工具的入口。两条线都从 `Tool` trait 和 `Registry` 出发。
 
 ## 先看两条路径
 
-工具系统先看接口约定：每个工具都要同时给出模型可见的 schema 和 runtime 可调用的 `execute()`。这就是 `Tool` trait 的意义。模型看到的是 `ToolDefinition`，执行时走 registry。
+工具系统先看接口约定：每个工具都要同时给出模型可见的 schema 和 runtime 可调用的 `execute()`。这就是 `Tool` trait 的作用。模型看到的是 `ToolDefinition`，执行时走 registry。
 
 Registry 不是一个普通 map。它同时管理 base tools、session-specific tools、skill registry、compaction 相关状态、allowed tool 过滤、别名解析、telemetry、错误和输出截断。下面的代码节选会直接展示这几层，不需要读者自己从一堆工具文件里拼。
 
@@ -33,7 +33,7 @@ JCode 把基础 coding 工具和 harness 工具放在同一个系统里：`read/
 
 下面代码摘自本地 JCode 当前 revision，部分为了讲解做了精简。读概念看这里，改代码以源码为准。
 
-工具系统先看合同，不看具体工具：
+先看接口，不看具体工具：
 
 ```rust
 // src/tool/mod.rs，节选
@@ -53,7 +53,7 @@ pub trait Tool: Send + Sync {
 }
 ```
 
-这段代码把工具的两面都放在一起：`to_definition()` 给模型看，`execute()` 给 runtime 调。很多 demo 只写 function call，JCode 这里已经把 provider schema 和执行入口分开了。
+工具的两面在这里放到了一起：`to_definition()` 给模型看，`execute()` 给 runtime 调。很多 demo 只写 function call，JCode 这里已经把 provider schema 和执行入口分开了。
 
 `Registry::base_tools()` 能看出 JCode 默认给模型哪些基础工具：
 
@@ -125,7 +125,7 @@ pub async fn execute(&self, name: &str, input: Value, ctx: ToolContext)
 }
 ```
 
-这段代码说明 registry 不只是查表。它还处理 alias、telemetry、错误和上下文截断。工具越多，这一层越重要。
+registry 不只是查表。它还处理 alias、telemetry、错误和上下文截断。工具越多，这一层越重要。
 
 ## Tool trait
 
@@ -232,7 +232,7 @@ JCode: 长期多会话本地 agent runtime
 
 工具 registry 可以对照 [mini/02_tool_registry.py](../../mini/02_tool_registry.py)。它只保留一个工具注册表，同时产出 model-visible definition 和 runtime execution。
 
-这个最小复现能帮助你固定两层边界：模型看见的是 name、description、schema；runtime 调用的是 handler。JCode 的 `Registry` 更复杂，主要多了 allowed tools、alias、telemetry、context guard 和 session-specific tools。
+这个最小复现只说明两层关系：模型看见的是 name、description、schema；runtime 调用的是 handler。JCode 的 `Registry` 更复杂，主要多了 allowed tools、alias、telemetry、context guard 和 session-specific tools。
 
 ## 一个小改造应该长什么样
 

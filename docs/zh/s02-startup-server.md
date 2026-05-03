@@ -20,7 +20,7 @@ flowchart TD
   Connect --> Client["TUI<br/>client"]
   Client <--> Server
 
-  subgraph State["server-owned state"]
+  subgraph State["server state"]
     Sessions["session<br/>map"]
     Provider["provider"]
     Swarm["swarm<br/>state"]
@@ -33,7 +33,7 @@ flowchart TD
   Server --> MCP
 ```
 
-JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，才能支撑长期会话和多 client。代价是 server 必须承担生命周期、socket、reload 和状态恢复。
+JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启、重连。session、provider、MCP pool、swarm state 这些状态放在 server，长期会话和多 client 才能成立。代价是 server 必须处理生命周期、socket、reload 和状态恢复。
 
 ## 先看正常路径
 
@@ -41,7 +41,7 @@ JCode 不把所有状态放在 TUI client 里，因为 client 会断开、重启
 
 默认 `jcode` 命令不会直接创建 agent。它先判断 server 是否存在：没有就启动同一个 binary 的 `serve` 子命令，有就连接本地 socket。这样第一次运行会拉起常驻 server，后面的 client 可以断开、重连，而 session、provider、MCP pool、swarm state 仍留在 server。
 
-下面按四段看：入口交权、startup 准备、dispatch 选择、server runtime 承载状态。看完这四段，就能解释为什么 JCode 是 resident-server 架构，不是普通 CLI wrapper。
+下面按四段看：入口交权、startup 准备、dispatch 选择、server runtime 里放了哪些状态。看完这四段，就能解释为什么 JCode 是 resident-server 架构，不是普通 CLI wrapper。
 
 ## 核心代码节选
 
@@ -115,7 +115,7 @@ tui_launch::run_tui_client(
 .await?;
 ```
 
-这段代码把 JCode 的启动方式说清楚了：默认命令不是“新建一个本地 agent 然后开始聊天”，而是先保证 server 存在，再启动 TUI client 去连接它。
+JCode 的默认命令不是“新建一个本地 agent 然后开始聊天”，而是先保证 server 存在，再启动 TUI client 去连接它。
 
 server 侧的状态也可以直接从结构体看出来：
 
@@ -133,7 +133,7 @@ struct ServerRuntime {
 }
 ```
 
-这不是一个薄代理。`sessions`、`provider`、`swarm_state`、`mcp_pool` 都在 server runtime 里，说明长期会话、多 client、MCP、swarm 都依赖这个常驻进程。
+这不是一个薄代理。`sessions`、`provider`、`swarm_state`、`mcp_pool` 都在 server runtime 里，长期会话、多 client、MCP、swarm 都依赖这个常驻进程。
 
 ## 启动过程
 
@@ -168,7 +168,7 @@ JCode 的 server 负责：
 
 可以简单理解为：client 负责交互，server 负责保存状态和运行 agent。
 
-这个设计的代价也要记住：server 需要处理断连、重连、idle timeout、reload、状态持久化。JCode 不是“多一个 server 更高级”，而是用复杂度换长期会话体验。
+这里也有代价：server 需要处理断连、重连、idle timeout、reload、状态持久化。JCode 不是“多一个 server 更高级”，而是用这部分复杂度换长期会话体验。
 
 ## `ServerRuntime` 里值得看的字段
 

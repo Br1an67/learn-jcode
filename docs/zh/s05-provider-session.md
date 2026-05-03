@@ -22,7 +22,7 @@ sequenceDiagram
   Stream-->>Agent: text / tool / usage / error
 ```
 
-这张图说明 provider 层的职责：agent loop 不应该理解每个平台的私有 stream 格式，`MultiProvider` 和具体 provider 负责把它们统一成 `StreamEvent`。
+图里要看的是 provider 层的职责：agent loop 不应该理解每个平台的私有 stream 格式，`MultiProvider` 和具体 provider 负责把它们统一成 `StreamEvent`。
 
 ## 先看三块代码
 
@@ -30,7 +30,7 @@ Provider 层的统一入口是 `Provider` trait：JCode 内部只想面对一种
 
 `MultiProvider` 负责 provider 选择和 failover。Agent loop 不应该散落 `if Claude / if OpenAI`，而是把请求交给 provider 层。`complete_split()` 还把 stable system prefix 和 dynamic context 拆开，目的是减少 prompt cache 抖动。
 
-Auth 和 session 是 provider 工程的一部分。Auth 不是保存 API key，它要处理本地命令、路径、WSL、外部登录和 terminal handoff。Session 也不是简单聊天记录，它要保存 messages、replay events、compaction state、journal entries，并能恢复成 TUI/agent 可继续消费的状态。
+Auth 和 session 也不能当成边角料。Auth 不只是保存 API key，它要处理本地命令、路径、WSL、外部登录和 terminal handoff。Session 也不是简单聊天记录，它要保存 messages、replay events、compaction state、journal entries，并能恢复成 TUI/agent 可继续消费的状态。
 
 ## 核心代码节选
 
@@ -67,11 +67,11 @@ pub trait Provider: Send + Sync {
 }
 ```
 
-这段代码说明 JCode 内部只想面对一种 provider 接口：输入是 `Message`、`ToolDefinition`、system prompt，输出是 `StreamEvent`。OpenAI、Claude、Gemini 的私有格式都留在具体 provider 实现里。
+JCode 内部只想面对一种 provider 接口：输入是 `Message`、`ToolDefinition`、system prompt，输出是 `StreamEvent`。OpenAI、Claude、Gemini 的私有格式都留在具体 provider 实现里。
 
 `complete_split()` 的默认实现也很关键。它把动态系统上下文变成靠后的 synthetic message，而不是混进稳定 system prefix。这样做是为了保住 provider prompt cache 的稳定前缀。
 
-Provider 选择不是 agent loop 自己判断，而是 `MultiProvider` 收口：
+Provider 选择不是 agent loop 自己判断，而是集中到 `MultiProvider`：
 
 ```rust
 // src/provider/selection.rs，精简版
@@ -97,7 +97,7 @@ impl MultiProvider {
 }
 ```
 
-这段是精简版，但能看清设计：provider 选择被集中在 provider 层。agent loop 不应该知道“当前默认用 Claude 还是 OpenAI”。
+这段是精简版，但能看出一个做法：provider 选择集中在 provider 层。agent loop 不应该知道“当前默认用 Claude 还是 OpenAI”。
 
 Auth 的复杂度也能在代码里看到。外部登录命令运行时，JCode 会临时把终端 raw mode 交出去，命令结束后再恢复：
 
@@ -131,7 +131,7 @@ fn run_external_login_command_inner(
 
 这段代码解释了为什么 auth 不是一个配置项。JCode 运行在 TUI、SSH、headless、外部 CLI 登录这些环境里，登录流程要处理真实终端状态，不是读取一个环境变量就结束。
 
-Session 的存储形状也值得直接看：
+Session 保存成什么样，也可以直接从结构体看：
 
 ```rust
 // src/session/model.rs，字段节选
@@ -154,7 +154,7 @@ pub struct StoredCompactionState {
 }
 ```
 
-这段代码说明 session 不是“聊天文本数组”。message 里有结构化 `ContentBlock`、显示角色、时间、工具耗时和 usage；compaction 也有自己的覆盖范围和摘要状态。后面做 resume、replay、import 时，这些字段都会参与恢复。
+session 不是“聊天文本数组”。message 里有结构化 `ContentBlock`、显示角色、时间、工具耗时和 usage；compaction 也有自己的覆盖范围和摘要状态。后面做 resume、replay、import 时，都会用到这些字段。
 
 ## Provider 层解决什么问题
 
@@ -188,7 +188,7 @@ ollama
 ...
 ```
 
-这说明它不是简单面向一个 API key 的 CLI。
+这说明它不是只读一个 API key 的 CLI。
 
 OAuth、账号切换、headless login、callback URL、pending login state，这些都是 coding-agent 产品会遇到的实际问题。
 
@@ -224,7 +224,7 @@ JCode README 提到可以从 Codex、Claude Code、OpenCode、pi 恢复会话。
 
 所以 import、session、render 都值得单独看。
 
-## 这里先记两个判断
+## 这里容易漏掉两点
 
 第一，session import 难点不是“把文本搬过去”。OpenCode、Codex、Claude Code、pi 的会话结构不同，JCode 至少要对齐这些东西：
 
@@ -249,13 +249,13 @@ JCode 不能让 turn loop 到处写 provider-specific 分支。
 
 provider stream 这条线也可以看 [mini/03_provider_stream.py](../../mini/03_provider_stream.py)。在 `s03` 里它解释 agent loop，在这一页里它解释 provider 的职责：把平台私有 stream 归一成 JCode 能处理的事件。
 
-真实 provider 要额外处理 auth、model id、request body、tool schema、usage、error 和 retry。最小复现只留下 stream 归一化后的形状，避免读者把 provider 误读成普通 HTTP wrapper。
+真实 provider 要额外处理 auth、model id、request body、tool schema、usage、error 和 retry。最小复现只留下 stream 归一化后的形状，避免把 provider 误读成普通 HTTP wrapper。
 
-session 这条线可以看 [mini/05_session_journal.py](../../mini/05_session_journal.py)。它把 session 拆成 append-only journal、render view 和 replay messages 三个动作。真实 JCode 多了 compaction、usage、import、active process 和 memory profile，但底层判断一致：session 不是一段聊天文本，而是可恢复的结构化运行记录。
+session 这条线可以看 [mini/05_session_journal.py](../../mini/05_session_journal.py)。它把 session 拆成 append-only journal、render view 和 replay messages 三个动作。真实 JCode 多了 compaction、usage、import、active process 和 memory profile，但思路一致：session 不是一段聊天文本，而是可恢复的结构化运行记录。
 
 ## 读完后检查一下
 
 - `Provider` trait 为什么把输出统一成 `StreamEvent`。
 - `complete_split()` 为什么要区分 static 和 dynamic system prompt。
-- `MultiProvider` 为什么应该收口 provider 选择和 failover。
+- `MultiProvider` 为什么应该集中处理 provider 选择和 failover。
 - session 为什么不是聊天文本，而是包含 content blocks、usage、compaction 等结构化状态。

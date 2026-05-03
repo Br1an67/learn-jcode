@@ -1,10 +1,10 @@
-# s10 - 边界课：JCode、pi、OpenCode、Claude Code
+# s10 - 对照课：JCode、pi、OpenCode、Claude Code
 
 ## 先把范围说清楚
 
 JCode 不适合拿来学最小 loop。它更适合用来看一个本地长期 runtime 怎样处理状态、恢复和协作。
 
-这一页把前面几节放在一起看：JCode 适合用来研究什么，它和 pi、OpenCode、Claude Code 的公开能力分别差在哪里。
+这一页把前面几节放在一起看：JCode 适合研究什么，它和 pi、OpenCode、Claude Code 的公开能力分别差在哪里。
 
 这里只讨论公开行为、公开文档和源码可见的开源项目。Claude Code 不讨论非公开或泄露源码。
 
@@ -40,7 +40,7 @@ flowchart TD
 
 ## 源码位置对照
 
-不要只说“JCode 更复杂”。复杂度要能在源码结构里找到对应位置。
+不要只说“JCode 更复杂”。要能在源码结构里指出它复杂在哪里。
 
 | 问题 | pi-mono 的锚点 | OpenCode 的锚点 | JCode 的锚点 |
 | --- | --- | --- | --- |
@@ -52,9 +52,9 @@ flowchart TD
 | 多 agent 状态放哪里 | 更克制，重点仍是最小有效工具 | 偏平台协作和 session/fork 能力 | `SwarmState`、`VersionedPlan`、channel、heartbeat、file touch |
 | 自我修改是不是核心 | 不是主线 | 不是主线 | `selfdev` 是工具、session capability、build/reload 恢复链路 |
 
-这张表想说明：JCode 不是“比 pi 多几个工具”。它把更多事情放进同一个本地 runtime，所以你读到的复杂度来自状态归属，而不是代码写得绕。
+这张表想说明：JCode 不是“比 pi 多几个工具”。它把更多事情放进同一个本地 runtime，所以你读到的复杂度来自状态放在哪里，而不是代码写得绕。
 
-## 五段代码看边界
+## 五段代码看差异
 
 pi 的工具入口很薄：
 
@@ -102,7 +102,7 @@ pub struct SwarmState {
 }
 ```
 
-这段代码说明 JCode 的复杂度来自 server-owned coordination。swarm 不是一组 prompt，而是 server 里的成员、计划、coordinator 和恢复状态。
+JCode 的复杂度来自 server 里的协作状态。swarm 不是一组 prompt，而是 server 里的成员、计划、coordinator 和恢复状态。
 
 JCode 的 provider 边界也不是“支持多个模型”这么简单。agent loop 不直接懂每家 API，而是读统一的 stream 事件：
 
@@ -162,7 +162,7 @@ pub async fn execute(&self, name: &str, input: Value, ctx: ToolContext) -> Resul
 }
 ```
 
-这段代码让工具注册表变成 runtime boundary：名称别名、异步执行、telemetry、context guard 都在这里收口。把这些逻辑拆散，agent loop 会立刻被 provider 差异、工具输出长度、UI 状态和错误恢复拉进复杂分支里。
+工具注册表在这里不只是一个 HashMap。名称别名、异步执行、telemetry、context guard 都在这里处理。把这些逻辑拆散，agent loop 会立刻被 provider 差异、工具输出长度、UI 状态和错误恢复拉进复杂分支里。
 
 ## 更实际的判断方法
 
@@ -175,7 +175,7 @@ pub async fn execute(&self, name: &str, input: Value, ctx: ToolContext) -> Resul
 | 失败怎么恢复 | 报错后让用户重来 | session replay、tool result repair、reload recovery、rate-limit retry |
 | UI 怎么知道 | stdout 打印几行 | server event 进入 TUI state，再变成 widget、diff、usage、side panel |
 
-这比“JCode 功能多”更有用。你看一个模块时，先问它解决的是状态归属、时序、恢复，还是可观察性。如果四个都不是，它可能只是表层功能。
+这比“JCode 功能多”更有用。看一个模块时，先问它解决的是状态放在哪里、什么时候执行、失败怎么恢复，还是用户怎么知道当前状态。如果四个都不是，它可能只是表层功能。
 
 ## JCode 的代价
 
@@ -199,7 +199,7 @@ ambient scheduler
 self-dev reload
 ```
 
-这些能力不是免费来的。每加一层，就多一组状态归属问题：
+这些能力不是免费来的。每加一层，就多一组“状态放在哪里”的问题：
 
 - 状态放在 client 还是 server？
 - 当前 turn 同步做，还是下一轮使用 pending result？
@@ -207,7 +207,7 @@ self-dev reload
 - worker 状态放在聊天记录里，还是放在 server plan？
 - reload 时如何恢复 session 和正在做的任务？
 
-这就是 JCode 值得读的地方：它不是只告诉你 agent 能做什么，而是展示长期本地 agent 为了状态和恢复要写哪些工程代码。
+这就是 JCode 值得读的地方：它不只是告诉你 agent 能做什么，还能看到长期本地 agent 为了状态和恢复要写哪些工程代码。
 
 ## 和 pi 的差异
 
@@ -219,7 +219,7 @@ JCode 更适合学产品化之后的边界。它把 provider、auth、session、
 
 ## 和 OpenCode 的差异
 
-OpenCode 更像开放平台取向：多端、配置、扩展、平台体验更重。JCode 更偏本地 terminal runtime：terminal-native、server residency、Rust 实现、内置 memory/swarm/self-dev。
+OpenCode 更偏开放平台：多端、配置、扩展、平台体验更重。JCode 更偏本地 terminal runtime：terminal-native、server residency、Rust 实现、内置 memory/swarm/self-dev。
 
 两者都说明一点：可长期使用的 coding agent 不是 stdout 包装。UI、server、权限、provider、session 都会进入核心架构。
 
@@ -238,4 +238,4 @@ JCode 的好处是源码可读。你可以看到这些能力落在什么结构�
 - 为什么 OpenCode 和 JCode 都有 client/server 思路，但产品取向不同。
 - 为什么 Claude Code 只能按公开行为比较，不能引入非公开源码。
 - 为什么本教程主体只读 JCode，其他项目只用于做对照。
-- 为什么“复杂”必须落到源码里的状态归属，而不是停在功能清单。
+- 为什么“复杂”要落到源码里的状态位置，而不是停在功能清单。

@@ -1,12 +1,12 @@
 # s09 - Ambient 和 Self-Dev
 
-## 先看为什么要设边界
+## 先看为什么要限制住
 
-ambient 和 self-dev 都会在没有人盯着终端时继续改状态，所以必须先有预算、边界和恢复路径。
+ambient 和 self-dev 都会在没有人盯着终端时继续改状态，所以必须先有预算、限制和恢复路径。
 
-这一节看 JCode 两个更偏高级的功能：ambient 后台循环，以及 self-dev 自我修改。
+这一节看 JCode 两个更靠后的功能：ambient 后台循环，以及 self-dev 自我修改。
 
-这两个模块都不能只看 prompt。Ambient 的关键是调度、预算和结束机制；self-dev 的关键是 session 边界、build/reload 和恢复。
+这两个模块都不能只看 prompt。Ambient 的关键是调度、预算和结束机制；self-dev 的关键是 session 限制、build/reload 和恢复。
 
 ## Ambient
 
@@ -21,9 +21,9 @@ flowchart TD
   Next --> Scheduler
 ```
 
-这张图说明 ambient 必须有结束和调度机制。后台 agent 不是无限跑，它通过 `end_ambient_cycle` 汇报结果并安排下一次唤醒。
+ambient 必须有结束和调度机制。后台 agent 不能无限跑，它要通过 `end_ambient_cycle` 汇报结果，并安排下一次唤醒。
 
-Ambient 首先要解决的是边界问题。它需要启动条件、资源预算、安全边界、runner、scheduler 和持久化队列。没有这些，ambient 就不是助手，而是后台噪音。
+Ambient 首先要限制自己什么时候跑、跑多久、能做什么。它需要启动条件、资源预算、安全边界、runner、scheduler 和持久化队列。没有这些限制，ambient 很容易变成干扰。
 
 模块可以这样分工：`directives` 提供待处理指令，`manager` 管运行状态，`runner` 启动一轮 ambient cycle，`scheduler` 决定下次什么时候醒，`persistence` 保存队列和锁，`tool/ambient` 让后台 agent 显式结束 cycle、安排下次运行或请求权限。
 
@@ -56,7 +56,7 @@ pub use prompt::{
 };
 ```
 
-这段代码说明 ambient 不是一个工具文件。它有指令、管理器、持久化、prompt、runner、scheduler。这里要读的是后台循环和预算，不是只看工具 schema。
+ambient 不是一个工具文件。它有指令、管理器、持久化、prompt、runner、scheduler。读这里要看后台循环和预算，不要只看工具 schema。
 
 ambient cycle 结束也必须通过工具显式上报：
 
@@ -81,7 +81,7 @@ impl Tool for EndAmbientCycleTool {
 }
 ```
 
-这段代码说明 ambient agent 不是跑完就消失。它必须汇报本轮做了什么、改了多少 memory、是否做了 compaction、下次什么时候醒。
+ambient agent 不是跑完就消失。它必须汇报本轮做了什么、改了多少 memory、是否做了 compaction、下次什么时候醒。
 
 schedule queue 说明“下次唤醒”不是口头承诺，而是持久化队列里的 item：
 
@@ -115,7 +115,7 @@ impl ScheduledQueue {
 }
 ```
 
-这段代码把 ambient 的调度写得很具体：到期 item 才会被取出，优先级高的先跑，同优先级按时间排序。后台 agent 不是无限循环，而是被队列和调度约束。
+ambient 的调度在这里写得很具体：到期 item 才会被取出，优先级高的先跑，同优先级按时间排序。后台 agent 不是无限循环，而是被队列和调度约束。
 
 runner 把队列、锁、agent cycle 接起来：
 
@@ -152,7 +152,7 @@ pub async fn run_loop(self, provider: Arc<dyn Provider>) {
 }
 ```
 
-这段代码的重点不是循环本身，而是两个边界：direct item 可以投递到具体 session，ambient item 才进入后台 agent；`AmbientLock` 防止多个 ambient runner 同时抢同一批后台维护任务。
+这段代码的重点不是循环本身，而是两处限制：direct item 可以投递到具体 session，ambient item 才进入后台 agent；`AmbientLock` 防止多个 ambient runner 同时抢同一批后台维护任务。
 
 跑一轮 ambient 时，JCode 只给 ambient session 注册 ambient 专用工具：
 
@@ -173,7 +173,7 @@ if let Some(result) = ambient_tools::take_cycle_result() {
 }
 ```
 
-这段代码把权限范围说清楚了：ambient agent 不是拿普通 session 的完整工具箱乱跑。它有自己的 prompt、自己的 session、自己的工具集合，结果必须被 runner 收走。
+权限范围也在这里限制住了：ambient agent 不是拿普通 session 的完整工具箱乱跑。它有自己的 prompt、自己的 session、自己的工具集合，结果必须被 runner 收走。
 
 如果 agent 没调用 `end_ambient_cycle`，runner 不直接相信它已经完成：
 
@@ -203,7 +203,7 @@ Ambient 是后台 agent。它不是用户发一句做一句，而是在资源允
 - 做低风险主动任务。
 - 自己决定下次什么时候醒来。
 
-这个方向仍然比较实验，值得看的地方在于它把长期 agent 的环境维护问题摆到了源码里。
+这个方向仍然比较实验，但源码里已经能看到它怎样处理长期环境维护。
 
 读 ambient 时重点看资源限制。后台 agent 如果没有预算和优先级控制，会变成另一个干扰源。
 
@@ -226,13 +226,13 @@ flowchart TD
   Server --> Resume["resume<br/>sessions"]
 ```
 
-这张图说明 self-dev 的边界：先切到 self-dev session，再 build/test，最后 reload shared server 并恢复会话。危险动作不应该从普通 session 直接执行。
+self-dev 的顺序是：先切到 self-dev session，再 build/test，最后 reload shared server 并恢复会话。危险动作不应该从普通 session 直接执行。
 
-Self-dev 首先要保证“让 JCode 改自己”必须经过受控 session。显式 `jcode self-dev` 会创建或恢复 self-dev session，设置 canary 标记，必要时要求 build，然后启动 TUI。普通 session 不能直接执行危险 reload。
+Self-dev 首先要保证“让 JCode 改自己”必须经过受控 session。显式 `jcode self-dev` 会创建或恢复 self-dev session，设置 canary 标记，必要时要求 build，然后启动 TUI。普通 session 不能直接执行危险的 reload。
 
 `SelfDevTool` 暴露的是一组 action：`enter/build/test/cancel-build/reload/status/socket-info`。其中 `reload`、`socket-info`、`socket-help` 会检查当前 session 是否 self-dev，这就是风险边界。launch 负责从普通会话切到 self-dev 会话，build queue 负责请求去重、锁和后台状态，reload 负责新 binary 接管旧 server 并恢复会话。
 
-Prompt 不是 self-dev 的核心。它只是把规则告诉模型；边界主要在 CLI、tool action、build/test、session gate 和 reload 恢复。
+Prompt 不是 self-dev 的核心。它只是把规则告诉模型；限制风险主要靠 CLI、tool action、build/test、session gate 和 reload 恢复。
 
 ### Self-Dev 核心代码节选
 
@@ -269,7 +269,7 @@ pub fn enter_selfdev_session(
 }
 ```
 
-这段代码证明 self-dev 的边界在 session，而不是 prompt。canary session 继承必要上下文，但它有自己的 session id、working dir 和 self-dev 标记。
+这段代码证明 self-dev 的限制在 session，而不是 prompt。canary session 继承必要上下文，但它有自己的 session id、working dir 和 self-dev 标记。
 
 Self-dev 工具的 action schema 再看这一段：
 
@@ -302,7 +302,7 @@ impl Tool for SelfDevTool {
 }
 ```
 
-这段代码说明 self-dev 不是一个隐藏命令，而是模型能调用的工具。它暴露的是一组受控动作：进入 self-dev、build、test、reload、看状态。
+self-dev 不是一个隐藏命令，而是模型能调用的工具。它暴露的是一组受控动作：进入 self-dev、build、test、reload、看状态。
 
 再看风险边界：
 
@@ -326,7 +326,7 @@ match action.as_str() {
 }
 ```
 
-这段代码说明 self-dev 的危险动作不是所有 session 都能用。`reload` 必须在 self-dev session 里执行，这是 JCode 给“让 agent 改自己”加的边界。
+self-dev 的危险动作不是所有 session 都能用。`reload` 必须在 self-dev session 里执行，这是 JCode 给“让 agent 改自己”加的限制。
 
 reload 前还会保存恢复上下文、更新 canary manifest、再向 server 发 reload signal：
 
@@ -369,7 +369,7 @@ pub(super) async fn do_reload(
 }
 ```
 
-这段代码说明 self-dev reload 不是“重启一下”。它要先记录要激活的版本、保存恢复上下文，再让 server 进入 reload handoff。否则 agent 改自己时很容易丢掉当前任务。
+self-dev reload 不是“重启一下”。它要先记录要激活的版本、保存恢复上下文，再让 server 进入 reload handoff。否则 agent 改自己时很容易丢掉当前任务。
 
 server 侧还有 reload recovery 记录。reload 期间被打断的 session 不是靠用户手动想起来：
 
@@ -448,7 +448,7 @@ sequenceDiagram
 
 self-dev reload gate 可以对照 [mini/08_selfdev_reload_gate.py](../../mini/08_selfdev_reload_gate.py)。
 
-这个最小复现只保留状态边界：必须进入 canary session，build 之后才能 reload，并且 reload 前要留下 pending activation 和 recovery context。
+这个最小复现只保留几条限制：必须进入 canary session，build 之后才能 reload，并且 reload 前要留下 pending activation 和 recovery context。
 
 Self-dev 是让 JCode 改自己。
 
@@ -461,11 +461,11 @@ Self-dev 是让 JCode 改自己。
 - 必须跑 `cargo check`。
 - 不要一上来改 provider、server reload、compaction、swarm。
 
-## 先记住这两个取舍
+## 这两个功能的代价
 
-Ambient 补的是用户不会每次显式要求维护环境的短板。它把近期 session、memory、git 活动这类维护工作放到后台循环里。
+Ambient 解决的是用户不会每次都显式要求维护环境的问题。它把近期 session、memory、git 活动这类维护工作放到后台循环里。
 
-Self-dev 补的是 JCode 自己也需要被快速改造的需求。边界是分支、commit、build/test、self-dev session 和 reload 恢复。
+Self-dev 解决的是让 JCode 修改自己这件事。限制条件是分支、commit、build/test、self-dev session 和 reload 恢复。
 
 风险也要一起记住：ambient 没有资源限制会变成干扰源；self-dev 改 reload 或 server state 可能让正在运行的 session 丢状态。
 

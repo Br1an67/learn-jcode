@@ -102,7 +102,7 @@ Read in order, one or two lessons per day.
 | s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
-| s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
+| s10 | [对照课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
 If a lesson's source path feels too large, read the corresponding minimal reproduction in [mini/](./mini/), then return to the lesson.
 

@@ -2,9 +2,9 @@
 
 # learn-jcode
 
-这是一份给工程师看的 JCode 源码课程。写法按“同事带你读代码”来，不写宣传稿，不堆黑话。
+这是一份给工程师看的 JCode 源码课程。写法尽量像同事带你读代码，不写宣传稿，也不堆黑话。
 
-读者默认知道一点 agent loop，但还没系统读过产品级 coding-agent harness。你来这里不是为了看“JCode 很强”，而是为了知道它为什么需要 server、tool registry、provider、session、TUI、memory、swarm 这些东西。
+读者默认知道一点 agent loop，但还没系统读过产品级 coding-agent harness。你来这里不是为了看“JCode 很强”，而是为了弄清楚它为什么需要 server、tool registry、provider、session、TUI、memory、swarm 这些东西。
 
 ## 适合谁
 
@@ -31,7 +31,7 @@ learn-jcode/
 ├── README-en.md              # English entry
 ├── mermaid.min.js            # mdBook 本地 Mermaid runtime
 ├── mermaid-init.js           # mdBook Mermaid 渲染
-├── mini/                     # 核心机制的最小复现，不是任务区
+├── mini/                     # 几个最小复现，不是练习题
 │   ├── README.md
 │   ├── 01_server_client.py
 │   ├── 02_tool_registry.py
@@ -83,7 +83,7 @@ learn-jcode/
 
 这个教程不是从零写一个 toy agent，而是读 JCode 本身。需要读者知道的内容直接写进课程，不单独开动手区。
 
-`mini/` 里是 8 个核心机制的最小复现，对应 server/client、tool registry、provider stream、memory sidecar、session journal、swarm channel、ambient scheduler、self-dev reload gate。它们不是另一条任务线，只用于降低读 JCode 源码前的认知负担。
+`mini/` 里放了 8 个最小复现，对应 server/client、tool registry、provider stream、memory sidecar、session journal、swarm channel、ambient scheduler、self-dev reload gate。它们不是另一条任务线，只是把源码里的大块机制先缩小到几十行，方便回头读 JCode。
 
 ## 课程
 
@@ -102,7 +102,7 @@ learn-jcode/
 | s07 | [Memory](./docs/zh/s07-memory.md) | [Memory](./docs/en/s07-memory.md) |
 | s08 | [Swarm](./docs/zh/s08-swarm.md) | [Swarm](./docs/en/s08-swarm.md) |
 | s09 | [Ambient 和 Self-Dev](./docs/zh/s09-ambient-selfdev.md) | [Ambient and Self-Dev](./docs/en/s09-ambient-selfdev.md) |
-| s10 | [边界课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
+| s10 | [对照课](./docs/zh/s10-comparison.md) | [Boundaries](./docs/en/s10-comparison.md) |
 
 如果某课的源码太大，可以先看 [mini/](./mini/) 里的对应最小复现，再回到课程正文。
 
@@ -139,7 +139,7 @@ mdbook build
 第 6 天：读 memory
 第 7 天：读 swarm
 第 8 天：读 ambient/self-dev
-第 9 天：读边界课，确认 JCode 和几个 coding-agent runtime 的取舍
+第 9 天：读对照课，确认 JCode 和几个 coding-agent runtime 的取舍
 ```
 
 这个节奏不是硬性安排。重点是不要跳过前四课直接冲 swarm 和 self-dev。那样很容易只记住名词，看不懂运行时边界。
@@ -149,7 +149,7 @@ mdbook build
 - 新增一个只读工具，比如 `repo_summary`。
 - 写一套 OpenAI-compatible provider profile 配置和 smoke test 文档。
 - 做一个 side panel 工作流。
-- 写一份 JCode / OpenCode / pi 的源码级边界说明。
+- 写一份 JCode / OpenCode / pi 的源码对照说明。
 - 给 memory/session search 写一个实际用例。
 
 ## 源码来源
@@ -162,4 +162,4 @@ mdbook build
 
 完整 revision 见 [docs/sources.md](./docs/sources.md)。
 
-关于 Claude Code：本教程只在边界课里参考公开行为，不使用、不传播、不复述任何非公开或泄露源码。
+关于 Claude Code：本教程只在对照课里参考公开行为，不使用、不传播、不复述任何非公开或泄露源码。
